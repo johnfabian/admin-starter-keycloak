@@ -1,3 +1,4 @@
+name: admin-starter-keycloak
 services:
   postgres:
     image: postgres:16-alpine
@@ -13,7 +14,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-keycloak-db.sql:/docker-entrypoint-initdb.d/init-keycloak-db.sql:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
