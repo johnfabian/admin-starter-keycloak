@@ -58,8 +58,7 @@ Recommended options to rename the Docker Desktop group to
    name: admin-starter-keycloak
 
    services:
-     postgres:
-       ...
+     postgres: ...
    ```
 
 2. Or pass the project name when running Compose:
@@ -133,6 +132,7 @@ Recommended local client settings:
     client-related screens.
 - Valid redirect URIs:
   - Value: `http://localhost:5173/*`
+  - Value: `http://localhost:5173/auth/callback`
   - The allowed callback destinations after login. Keep this restricted to
     trusted app URLs so tokens cannot be redirected elsewhere.
 - Valid post logout redirect URIs:
@@ -175,6 +175,11 @@ return the user to one of the configured **Valid post logout redirect URIs**.
 Do not configure a front-channel or backchannel logout URL until the application
 has a real route that can receive and process that logout request.
 
+Current proof-of-concept logout clears only the local app session cookie and
+returns to `AUTH_POST_LOGOUT_REDIRECT_URI`. Full Keycloak SSO logout should be
+enabled after the app has server-side session storage for the ID token, because
+Keycloak may require `id_token_hint` on the end-session request.
+
 Future logout callback options:
 
 - Use front-channel logout only if the browser app needs Keycloak to call a
@@ -184,7 +189,26 @@ Future logout callback options:
   own server session that must be invalidated when Keycloak logs the user out.
 
 Use Keycloak for login. The app should redirect to Keycloak rather than render
-custom login screens.
+custom login screens. This app uses React Router framework-mode server routes
+with an HttpOnly session cookie instead of storing tokens in browser
+`localStorage`. The current proof of concept stores only compact user identity
+and role data in that cookie; Keycloak tokens should move to a server-side
+session table before the BFF starts forwarding tokens to a resource server.
+
+Successful app login redirects to the user dashboard:
+
+```text
+http://localhost:5173/users/dashboard
+```
+
+The server-side callback route is:
+
+```text
+http://localhost:5173/auth/callback
+```
+
+Registration uses the Keycloak registration action. Enable realm self-service
+registration if the app's Register button should create new users.
 
 ## Application Roles
 
@@ -262,17 +286,18 @@ list and check for the exact role names documented above.
 Planned dashboard routes:
 
 ```text
-/admin
-/admin/manage-users
-/admin/manage-groups
-/admin/manage-group-permissions
+/admins/dashboard
+/admins/manage-users
+/admins/manage-groups
+/admins/manage-group-permissions
+/users/dashboard
 /apps
 /apps/todos
 ```
 
 Expected route behavior:
 
-- `/admin` and all Admin child routes require `Admins`.
+- `/admins` and all Admin child routes require `Admins`.
 - Admin edit and delete controls are available to `Admins`.
 - `/apps` and `/apps/todos` require an authenticated user with `Users` or
   `Admins`.
