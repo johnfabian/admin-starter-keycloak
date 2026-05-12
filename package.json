@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
-    "dev": "docker compose -f docker/docker-compose.yml --env-file .env.development up -d --wait && react-router dev",
+    "dev": "docker compose -f docker/docker-compose.yml --env-file .env.development up -d --wait && echo Frontend: http://localhost:5173 && echo Keycloak: http://localhost:8080 && react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "docker:up": "docker compose -f docker/docker-compose.yml --env-file .env.development up -d --wait",
