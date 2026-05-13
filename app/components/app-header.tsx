@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { appInfo, appRoles, appRoutes } from "~/lib/app-settings";
 import type { CurrentUser } from "~/models/current-user";
 
 function getInitials(user: CurrentUser) {
@@ -26,34 +27,38 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-3" aria-label="Admin Starter home">
+        <Link
+          to={appRoutes.home}
+          className="flex items-center gap-3"
+          aria-label={`${appInfo.name} home`}
+        >
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950">
             <Blocks className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Admin Starter
+            {appInfo.name}
           </span>
         </Link>
 
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              {user.roles.includes("Admins") ? (
+              {user.roles.includes(appRoles.admins) ? (
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/admins/dashboard">
+                  <Link to={appRoutes.adminsDashboard}>
                     <Shield className="h-4 w-4" aria-hidden="true" />
-                    Admins
+                    {appRoles.admins}
                   </Link>
                 </Button>
               ) : null}
               <Button asChild variant="ghost" size="sm">
-                <Link to="/users/dashboard">
+                <Link to={appRoutes.usersDashboard}>
                   <UserRound className="h-4 w-4" aria-hidden="true" />
                   Dashboard
                 </Link>
               </Button>
               <Button asChild variant="outline" size="sm">
-                <a href="/auth/logout">
+                <a href={appRoutes.authLogout}>
                   <LogOut className="h-4 w-4" aria-hidden="true" />
                   Logout
                 </a>
@@ -79,7 +84,7 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <a href="/auth/logout">
+                    <a href={appRoutes.authLogout}>
                       <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
                       Logout
                     </a>
@@ -90,10 +95,10 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
           ) : (
             <>
               <Button asChild variant="ghost" size="sm">
-                <a href="/auth/login?prompt=login">Login</a>
+                <a href={appRoutes.authLoginWithPrompt}>Login</a>
               </Button>
               <Button asChild size="sm">
-                <a href="/auth/register">Register</a>
+                <a href={appRoutes.authRegister}>Register</a>
               </Button>
             </>
           )}

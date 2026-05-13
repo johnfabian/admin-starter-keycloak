@@ -1,5 +1,7 @@
 import { redirect } from "react-router";
 
+import { appRoutes } from "~/lib/app-settings";
+
 export async function loader() {
-  return redirect("/users/dashboard");
+  return redirect(appRoutes.usersDashboard);
 }

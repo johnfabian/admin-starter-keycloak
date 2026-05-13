@@ -54,7 +54,7 @@ screen when you want to test credentials or switch users.
 
 Protected routes:
 
-- `/users/dashboard` requires any authenticated user.
+- `/users/dashboard` requires the `Users` or `Admins` Keycloak client role.
 - `/users` redirects to `/users/dashboard`.
 - `/admins/dashboard` requires the `Admins` Keycloak client role.
 - `/admins` redirects to `/admins/dashboard`.
@@ -64,6 +64,16 @@ Route modules are kept intentionally slim. They define `meta`, `loader`, and
 redirect behavior, then render page components from `app/components/pages`.
 Shared page wrappers live in `app/layouts`. Protected loaders call centralized
 guards from `app/lib/route-guards.server.ts`.
+
+Routes and access settings are centralized for reuse:
+
+- `app/lib/app-settings.ts` owns app name/title, route paths, route patterns,
+  route module paths, role names, and route access groups.
+- `app/lib/auth-config.server.ts` owns server-only Keycloak/OIDC environment
+  config and issuer URL helpers.
+- `app/lib/auth-policy.ts` owns reusable role and access checks.
+- `app/routes.ts` wires React Router from `appRoutePatterns` and
+  `appRouteModules` instead of hardcoded route strings.
 
 Auth routes:
 
@@ -125,6 +135,9 @@ Keycloak: http://localhost:8080
 ## Keycloak Setup
 
 See [docs/keycloak-setup.md](docs/keycloak-setup.md).
+
+For production planning, deployment steps, and hardening checklist, see
+[docs/production-deployment.md](docs/production-deployment.md).
 
 Minimum local client requirements:
 

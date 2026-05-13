@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import { Button } from "~/components/ui/button";
 import { AppLayout } from "~/layouts/app-layout";
+import { appRoles, appRoutes } from "~/lib/app-settings";
 import type { CurrentUser } from "~/models/current-user";
 
 export function HomePage({ user }: { user: CurrentUser | null }) {
@@ -26,27 +27,29 @@ export function HomePage({ user }: { user: CurrentUser | null }) {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="default">
-                  <a href={user ? "/users/dashboard" : "/auth/login?prompt=login"}>
+                  <a href={user ? appRoutes.usersDashboard : appRoutes.authLoginWithPrompt}>
                     {user ? "Open dashboard" : "Login with Keycloak"}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </a>
                 </Button>
                 <Button asChild variant="outline" size="default">
-                  <Link to="/admins/dashboard">View admin route</Link>
+                  <Link to={appRoutes.adminsDashboard}>View admin route</Link>
                 </Button>
               </div>
               <div className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
-                {["Server session cookie", "Admins and Users roles", "Postgres-ready apps"].map(
-                  (item) => (
-                    <div
-                      key={item}
-                      className="flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2 text-sm text-zinc-700 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-950/60 dark:text-zinc-300 dark:ring-zinc-800"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
-                      {item}
-                    </div>
-                  )
-                )}
+                {[
+                  "Server session cookie",
+                  `${appRoles.admins} and ${appRoles.users} roles`,
+                  "Postgres-ready apps",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-2 rounded-lg bg-white/70 px-3 py-2 text-sm text-zinc-700 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-950/60 dark:text-zinc-300 dark:ring-zinc-800"
+                  >
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                    {item}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -77,9 +80,9 @@ export function HomePage({ user }: { user: CurrentUser | null }) {
                       <span className="text-zinc-500">Role</span>
                     </div>
                     {[
-                      ["Maya Chen", "Admins", "bg-emerald-500"],
-                      ["Jon Bell", "Users", "bg-sky-500"],
-                      ["Priya Shah", "Users", "bg-violet-500"],
+                      ["Maya Chen", appRoles.admins, "bg-emerald-500"],
+                      ["Jon Bell", appRoles.users, "bg-sky-500"],
+                      ["Priya Shah", appRoles.users, "bg-violet-500"],
                     ].map(([name, role, color]) => (
                       <div
                         key={name}

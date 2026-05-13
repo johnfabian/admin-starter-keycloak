@@ -1,14 +1,15 @@
 import { UsersDashboardPage } from "~/components/pages/users-dashboard-page";
-import { requireAuthenticatedRoute } from "~/lib/route-guards.server";
+import { appInfo } from "~/lib/app-settings";
+import { requireUserRoute } from "~/lib/route-guards.server";
 import type { Route } from "./+types/users-dashboard";
 
 export function meta() {
-  return [{ title: "User Dashboard | Admin Starter" }];
+  return [{ title: `${appInfo.pageTitles.usersDashboard} | ${appInfo.name}` }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
   return {
-    user: await requireAuthenticatedRoute(request),
+    user: await requireUserRoute(request),
   };
 }
 

@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { Button } from "~/components/ui/button";
 import { AppLayout } from "~/layouts/app-layout";
+import { appRoutes } from "~/lib/app-settings";
 import type { CurrentUser } from "~/models/current-user";
 
 export function ForbiddenPage({ user }: { user: CurrentUser | null }) {
@@ -14,11 +15,11 @@ export function ForbiddenPage({ user }: { user: CurrentUser | null }) {
             You do not have access to this area.
           </h1>
           <p className="mt-4 text-zinc-600 dark:text-zinc-300">
-            The Admin dashboard requires the `Admins` Keycloak client role.
+            This page requires one of the Keycloak client roles assigned for that app area.
           </p>
           <div className="mt-6">
             <Button asChild>
-              <Link to="/users/dashboard">Go to user dashboard</Link>
+              <Link to={appRoutes.home}>Go home</Link>
             </Button>
           </div>
         </section>

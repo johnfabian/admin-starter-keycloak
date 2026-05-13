@@ -45,6 +45,7 @@ export default function App() {
   return <Outlet />;
 }
 
+// React Router picks up this named export automatically for route errors and 404s.
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";

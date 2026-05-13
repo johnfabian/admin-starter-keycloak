@@ -1,6 +1,7 @@
 import { ShieldCheck, UsersRound } from "lucide-react";
 
 import { AppLayout } from "~/layouts/app-layout";
+import { appRoles } from "~/lib/app-settings";
 import type { CurrentUser } from "~/models/current-user";
 
 export function AdminsDashboardPage({ user }: { user: CurrentUser }) {
@@ -16,8 +17,8 @@ export function AdminsDashboardPage({ user }: { user: CurrentUser }) {
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">Admin access verified</h1>
           <p className="mt-4 max-w-2xl text-zinc-600 dark:text-zinc-300">
-            You are signed in as {user.name} with the `Admins` role. User, group, and permission
-            management screens will be added here next.
+            You are signed in as {user.name} with the `{appRoles.admins}` role. User, group, and
+            permission management screens will be added here next.
           </p>
         </section>
 

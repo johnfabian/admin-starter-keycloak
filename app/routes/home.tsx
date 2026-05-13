@@ -1,13 +1,14 @@
 import { HomePage } from "~/components/pages/home-page";
+import { appInfo } from "~/lib/app-settings";
 import { getCurrentUser } from "~/lib/auth.server";
 import type { Route } from "./+types/home";
 
 export function meta() {
   return [
-    { title: "Admin Starter Keycloak" },
+    { title: appInfo.title },
     {
       name: "description",
-      content: "A Keycloak-powered admin starter for users, groups, permissions, and apps.",
+      content: appInfo.description,
     },
   ];
 }

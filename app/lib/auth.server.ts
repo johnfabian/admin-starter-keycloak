@@ -3,6 +3,9 @@ import crypto from "node:crypto";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import { createCookieSessionStorage, redirect } from "react-router";
 
+import { appRoutes } from "~/lib/app-settings";
+import { getAuthConfig, getIssuerUrl } from "~/lib/auth-config.server";
+import { hasAnyRole, hasRole } from "~/lib/auth-policy";
 import type { CurrentUser } from "~/models/current-user";
 
 interface SessionData {
@@ -17,55 +20,18 @@ interface TokenResponse {
   id_token: string;
 }
 
-function requiredEnv(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} is required. Add it to .env.development for local dev.`);
-  }
-
-  return value;
-}
-
 const sessionStorage = createCookieSessionStorage<Partial<SessionData>>({
   cookie: {
     name: "__admin_starter_session",
     httpOnly: true,
     path: "/",
     sameSite: "lax",
-    secrets: [requiredEnv("SESSION_SECRET")],
+    secrets: [getAuthConfig().sessionSecret],
     secure: process.env.NODE_ENV === "production",
   },
 });
 
 const { getSession, commitSession, destroySession } = sessionStorage;
-
-function getIssuer() {
-  return requiredEnv("KEYCLOAK_ISSUER");
-}
-
-function getClientId() {
-  return requiredEnv("KEYCLOAK_CLIENT_ID");
-}
-
-function getClientSecret() {
-  return process.env.KEYCLOAK_CLIENT_SECRET || "";
-}
-
-function getRedirectUri() {
-  return requiredEnv("AUTH_REDIRECT_URI");
-}
-
-function getPostLoginRedirectUri() {
-  return requiredEnv("AUTH_POST_LOGIN_REDIRECT_URI");
-}
-
-function getPostLogoutRedirectUri() {
-  return requiredEnv("AUTH_POST_LOGOUT_REDIRECT_URI");
-}
-
-function issuerUrl(pathname: string) {
-  return `${getIssuer().replace(/\/$/, "")}${pathname}`;
-}
 
 function base64Url(buffer: Buffer) {
   return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -85,17 +51,18 @@ function getRequestPath(request: Request) {
 }
 
 function normalizeReturnTo(returnTo: string | null) {
-  if (!returnTo) return new URL(getPostLoginRedirectUri()).pathname;
+  const { postLoginRedirectUri } = getAuthConfig();
+  if (!returnTo) return new URL(postLoginRedirectUri).pathname;
 
   try {
-    const parsed = new URL(returnTo, getPostLoginRedirectUri());
-    if (parsed.origin !== new URL(getPostLoginRedirectUri()).origin) {
-      return new URL(getPostLoginRedirectUri()).pathname;
+    const parsed = new URL(returnTo, postLoginRedirectUri);
+    if (parsed.origin !== new URL(postLoginRedirectUri).origin) {
+      return new URL(postLoginRedirectUri).pathname;
     }
 
     return `${parsed.pathname}${parsed.search}`;
   } catch {
-    return new URL(getPostLoginRedirectUri()).pathname;
+    return new URL(postLoginRedirectUri).pathname;
   }
 }
 
@@ -105,10 +72,11 @@ function getStringClaim(payload: JWTPayload, key: string) {
 }
 
 function getRoles(payload: JWTPayload) {
+  const { clientId } = getAuthConfig();
   const resourceAccess = payload.resource_access;
   if (!resourceAccess || typeof resourceAccess !== "object") return [];
 
-  const clientAccess = (resourceAccess as Record<string, unknown>)[getClientId()];
+  const clientAccess = (resourceAccess as Record<string, unknown>)[clientId];
   if (!clientAccess || typeof clientAccess !== "object") return [];
 
   const roles = (clientAccess as Record<string, unknown>).roles;
@@ -139,9 +107,10 @@ function buildCurrentUser(idPayload: JWTPayload, accessPayload: JWTPayload): Cur
 }
 
 async function verifyToken(token: string, expectedAudience?: string) {
-  const jwks = createRemoteJWKSet(new URL(issuerUrl("/protocol/openid-connect/certs")));
+  const { issuer } = getAuthConfig();
+  const jwks = createRemoteJWKSet(new URL(getIssuerUrl("/protocol/openid-connect/certs")));
   const result = await jwtVerify(token, jwks, {
-    issuer: getIssuer(),
+    issuer,
     audience: expectedAudience,
   });
 
@@ -156,7 +125,9 @@ export async function getCurrentUser(request: Request): Promise<CurrentUser | nu
 export async function requireUser(request: Request): Promise<CurrentUser> {
   const user = await getCurrentUser(request);
   if (!user) {
-    throw redirect(`/auth/login?returnTo=${encodeURIComponent(getRequestPath(request))}`);
+    throw redirect(
+      `${appRoutes.authLogin}?returnTo=${encodeURIComponent(getRequestPath(request))}`
+    );
   }
 
   return user;
@@ -164,14 +135,24 @@ export async function requireUser(request: Request): Promise<CurrentUser> {
 
 export async function requireRole(request: Request, role: string): Promise<CurrentUser> {
   const user = await requireUser(request);
-  if (!user.roles.includes(role)) {
-    throw redirect("/forbidden");
+  if (!hasRole(user, role)) {
+    throw redirect(appRoutes.forbidden);
+  }
+
+  return user;
+}
+
+export async function requireAnyRole(request: Request, roles: string[]): Promise<CurrentUser> {
+  const user = await requireUser(request);
+  if (!hasAnyRole(user, roles)) {
+    throw redirect(appRoutes.forbidden);
   }
 
   return user;
 }
 
 export async function redirectToLogin(request: Request, action?: "register") {
+  const { clientId, redirectUri } = getAuthConfig();
   const session = await getSession(request.headers.get("Cookie"));
   const url = new URL(request.url);
   const state = randomToken();
@@ -183,9 +164,9 @@ export async function redirectToLogin(request: Request, action?: "register") {
   session.set("codeVerifier", codeVerifier);
   session.set("returnTo", returnTo);
 
-  const authorizationUrl = new URL(issuerUrl("/protocol/openid-connect/auth"));
-  authorizationUrl.searchParams.set("client_id", getClientId());
-  authorizationUrl.searchParams.set("redirect_uri", getRedirectUri());
+  const authorizationUrl = new URL(getIssuerUrl("/protocol/openid-connect/auth"));
+  authorizationUrl.searchParams.set("client_id", clientId);
+  authorizationUrl.searchParams.set("redirect_uri", redirectUri);
   authorizationUrl.searchParams.set("response_type", "code");
   authorizationUrl.searchParams.set("scope", "openid profile email");
   authorizationUrl.searchParams.set("state", state);
@@ -208,32 +189,32 @@ export async function redirectToLogin(request: Request, action?: "register") {
 }
 
 export async function completeLogin(request: Request) {
+  const { clientId, clientSecret, redirectUri, postLoginRedirectUri } = getAuthConfig();
   const session = await getSession(request.headers.get("Cookie"));
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const expectedState = session.get("state");
   const codeVerifier = session.get("codeVerifier");
-  const returnTo = session.get("returnTo") || new URL(getPostLoginRedirectUri()).pathname;
+  const returnTo = session.get("returnTo") || new URL(postLoginRedirectUri).pathname;
 
   if (!code || !state || !expectedState || !codeVerifier || state !== expectedState) {
     throw new Response("Invalid authentication callback.", { status: 400 });
   }
 
   const body = new URLSearchParams({
-    client_id: getClientId(),
+    client_id: clientId,
     code,
     code_verifier: codeVerifier,
     grant_type: "authorization_code",
-    redirect_uri: getRedirectUri(),
+    redirect_uri: redirectUri,
   });
 
-  const clientSecret = getClientSecret();
   if (clientSecret) {
     body.set("client_secret", clientSecret);
   }
 
-  const tokenResponse = await fetch(issuerUrl("/protocol/openid-connect/token"), {
+  const tokenResponse = await fetch(getIssuerUrl("/protocol/openid-connect/token"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -248,7 +229,7 @@ export async function completeLogin(request: Request) {
   }
 
   const tokens = (await tokenResponse.json()) as TokenResponse;
-  const idPayload = await verifyToken(tokens.id_token, getClientId());
+  const idPayload = await verifyToken(tokens.id_token, clientId);
   const accessPayload = await verifyToken(tokens.access_token);
   const user = buildCurrentUser(idPayload, accessPayload);
 
@@ -271,9 +252,10 @@ export async function completeLogin(request: Request) {
 }
 
 export async function logout(request: Request) {
+  const { postLogoutRedirectUri } = getAuthConfig();
   const session = await getSession(request.headers.get("Cookie"));
 
-  throw redirect(getPostLogoutRedirectUri(), {
+  throw redirect(postLogoutRedirectUri, {
     headers: {
       "Set-Cookie": await destroySession(session),
     },
