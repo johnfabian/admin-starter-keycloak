@@ -43,6 +43,27 @@ Sign in with `KEYCLOAK_ADMIN_USER` and `KEYCLOAK_ADMIN_PASSWORD`.
 The bootstrap admin values only apply the first time Keycloak initializes its
 database. After that, manage admin accounts from the Keycloak console.
 
+## Local Traefik Services
+
+Use this stack when you want to test the app through Traefik locally:
+
+```powershell
+Copy-Item .env.traefik.example .env.traefik
+npm run docker:traefik:up
+```
+
+Open:
+
+```text
+http://app.localhost
+http://auth.localhost
+http://localhost:8081
+```
+
+`http://localhost:8081` is the local Traefik dashboard. The app and Keycloak
+should be opened through `app.localhost` and `auth.localhost` so the same
+host-based routing model can later move to real DigitalOcean domains.
+
 ## Docker Desktop Project Name
 
 Docker Desktop currently shows the Compose app as `docker` because the Compose
@@ -125,22 +146,28 @@ Recommended local client settings:
     clients.
 - Root URL:
   - Value: `http://localhost:5173`
+  - Traefik local value: `http://app.localhost`
   - The base URL Keycloak can use when resolving relative client URLs.
 - Home URL:
   - Value: `http://localhost:5173`
+  - Traefik local value: `http://app.localhost`
   - Where Keycloak can send users when launching or returning to the app from
     client-related screens.
 - Valid redirect URIs:
   - Value: `http://localhost:5173/*`
   - Value: `http://localhost:5173/auth/callback`
+  - Traefik local value: `http://app.localhost/*`
+  - Traefik local value: `http://app.localhost/auth/callback`
   - The allowed callback destinations after login. Keep this restricted to
     trusted app URLs so tokens cannot be redirected elsewhere.
 - Valid post logout redirect URIs:
   - Value: `http://localhost:5173/*`
+  - Traefik local value: `http://app.localhost/*`
   - The allowed destinations after logout. The app logout flow should return
     users only to one of these URLs.
 - Web origins:
   - Value: `http://localhost:5173`
+  - Traefik local value: `http://app.localhost`
   - Controls browser CORS origins for this client. Use the exact dev origin
     instead of `*` for a tighter local setup.
 
