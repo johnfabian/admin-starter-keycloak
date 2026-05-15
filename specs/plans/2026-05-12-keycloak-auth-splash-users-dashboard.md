@@ -10,7 +10,7 @@ that displays the logged-in user's first and last name.
 
 ## Key Changes
 
-- Add plan archiving with `docs/plans/`, `scripts/create-plan.mjs`, and
+- Add plan archiving with `specs/plans/`, `scripts/create-plan.mjs`, and
   `npm run plan:new -- "plan title"`.
 - Add React Router framework-mode auth routes for login, registration,
   callback, and logout.

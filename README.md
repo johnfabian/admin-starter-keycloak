@@ -151,7 +151,7 @@ Minimum local client requirements:
 
 ## Plans
 
-Implementation plans are stored in `docs/plans/` before feature work starts.
+Implementation plans are stored in `specs/plans/` before feature work starts.
 
 Create a new plan:
 

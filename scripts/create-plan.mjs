@@ -10,7 +10,7 @@ const slug =
     .replace(/^-+|-+$/g, "") || "implementation-plan";
 
 const today = new Date().toISOString().slice(0, 10);
-const plansDir = path.join(process.cwd(), "docs", "plans");
+const plansDir = path.join(process.cwd(), "specs", "plans");
 
 function planPathFor(index) {
   const suffix = index === 1 ? "" : `-${index}`;
