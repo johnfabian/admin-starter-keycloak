@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 
+load_env_file() {
+  local env_file="$1"
+
+  if [[ -f "${env_file}" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${env_file}"
+    set +a
+  fi
+}
+
 require_docker() {
   if ! command -v docker >/dev/null 2>&1; then
-    echo "Docker is required to run backups." >&2
+    echo "Docker is required." >&2
     exit 1
   fi
 }
@@ -67,4 +78,46 @@ backup_postgres_stack() {
   dump_database "${container}" "keycloak" "keycloak${suffix}.dump" "${backup_dir}"
   dump_database "${container}" "admin_starter" "admin_starter${suffix}.dump" "${backup_dir}"
   dump_all_databases "${container}" "all-databases${suffix}.sql" "${backup_dir}"
+}
+
+require_restore_confirmation() {
+  local expected="$1"
+
+  if [[ "${CONFIRM_RESTORE:-}" != "${expected}" ]]; then
+    echo "Refusing to restore without confirmation." >&2
+    echo "Run with CONFIRM_RESTORE=${expected}." >&2
+    exit 1
+  fi
+}
+
+restore_database() {
+  local container="$1"
+  local database="$2"
+  local backup_file="$3"
+  local postgres_user="${POSTGRES_USER:-postgres}"
+  local remote_file="/tmp/restore-${database}.dump"
+
+  require_docker
+
+  if [[ ! -f "${backup_file}" ]]; then
+    echo "Backup file does not exist: ${backup_file}" >&2
+    exit 1
+  fi
+
+  if ! has_container "${container}"; then
+    echo "Container ${container} does not exist." >&2
+    exit 1
+  fi
+
+  if ! is_running "${container}"; then
+    echo "Container ${container} is not running." >&2
+    exit 1
+  fi
+
+  echo "Restoring ${backup_file} into ${container}:${database}"
+  docker cp "${backup_file}" "${container}:${remote_file}"
+  docker exec "${container}" dropdb -U "${postgres_user}" --if-exists "${database}"
+  docker exec "${container}" createdb -U "${postgres_user}" "${database}"
+  docker exec "${container}" pg_restore -U "${postgres_user}" -d "${database}" --clean --if-exists "${remote_file}"
+  docker exec "${container}" rm "${remote_file}"
 }

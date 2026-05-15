@@ -92,7 +92,12 @@ For each running stack, it backs up:
 - all databases with `pg_dumpall`
 
 Stacks that are not running are skipped. The script uses `POSTGRES_USER` if it
-is set in the shell and falls back to `postgres`.
+is set in the stack env file:
+
+- default stack: `.env.development`
+- Traefik stack: `.env.traefik`
+
+If no stack env file exists, it falls back to `postgres`.
 
 You can also run each local stack backup separately:
 
@@ -162,6 +167,33 @@ docker exec app-traefik-postgres rm /tmp/all-databases-traefik.sql
 
 Restore into a fresh local stack only after you understand which volume will be
 overwritten.
+
+### Keycloak-Only Restore Scripts
+
+Use these scripts to restore only the Keycloak database from a `keycloak.dump`
+backup.
+
+The scripts are intentionally guarded. They refuse to run unless
+`CONFIRM_RESTORE=keycloak` is set and a backup file path is supplied.
+
+Default local stack:
+
+```bash
+CONFIRM_RESTORE=keycloak bash scripts/restore-keycloak-local-default.sh ./backups/postgres/20260515T140558Z/keycloak.dump
+```
+
+Traefik local stack:
+
+```bash
+CONFIRM_RESTORE=keycloak bash scripts/restore-keycloak-local-traefik.sh ./backups/postgres/20260515T140558Z/keycloak-traefik.dump
+```
+
+The target Postgres container must be running before the restore script runs:
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file .env.development up -d postgres
+docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik up -d postgres
+```
 
 ### Default Stack Restore
 
