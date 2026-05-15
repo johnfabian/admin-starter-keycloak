@@ -6,6 +6,7 @@
 !.env.example
 !.env.traefik.example
 /node_modules/
+**/node_modules/
 .tmp/
 /backups/
 

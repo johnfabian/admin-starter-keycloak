@@ -171,6 +171,9 @@ See [docs/keycloak-setup.md](docs/keycloak-setup.md).
 For production planning, deployment steps, and hardening checklist, see
 [docs/production-deployment.md](docs/production-deployment.md).
 
+For dependency install hardening and pnpm supply-chain settings, see
+[docs/supply-chain-security.md](docs/supply-chain-security.md).
+
 API-specific Keycloak and Traefik setup instructions live in each API folder:
 
 - [api-python/README.md](api-python/README.md)

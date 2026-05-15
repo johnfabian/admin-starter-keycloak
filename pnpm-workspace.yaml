@@ -4,3 +4,14 @@ packages:
   - "api-express"
   - "api-dotnet"
   - "mobile"
+
+# Supply-chain hardening.
+# See docs/supply-chain-security.md before relaxing these settings.
+minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+blockExoticSubdeps: true
+strictDepBuilds: true
+trustPolicy: no-downgrade
+allowBuilds:
+  esbuild: false

@@ -2,7 +2,7 @@
   "name": "admin-starter-keycloak",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.22.0",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "dev": "corepack pnpm db:up && corepack pnpm auth:up && echo Frontend: http://localhost:5173 && echo Keycloak: http://localhost:8080 && corepack pnpm web:dev",
     "dev:gateway": "corepack pnpm gateway:up && corepack pnpm db:gateway:up && corepack pnpm auth:gateway:up && corepack pnpm web:gateway:up && echo App: http://app.localhost && echo Keycloak: http://auth.localhost && echo Traefik: http://localhost:8081",
