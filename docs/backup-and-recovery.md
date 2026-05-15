@@ -66,6 +66,44 @@ This repo ignores local backup files:
 Backups can contain user data, password hashes, client secrets, and other
 sensitive information. Do not commit them to Git.
 
+## Local All-In-One Backup Script
+
+Use the backup script when you want one local command:
+
+```bash
+./backup-all
+```
+
+The script writes timestamped files under:
+
+```text
+backups/postgres/YYYYMMDDTHHMMSSZ/
+```
+
+It checks both local stacks:
+
+- default stack: `app-postgres`
+- Traefik stack: `app-traefik-postgres`
+
+For each running stack, it backs up:
+
+- `keycloak` database
+- `admin_starter` database
+- all databases with `pg_dumpall`
+
+Stacks that are not running are skipped. The script uses `POSTGRES_USER` if it
+is set in the shell and falls back to `postgres`.
+
+You can also run each local stack backup separately:
+
+```bash
+bash scripts/backup-local-default.sh
+bash scripts/backup-local-traefik.sh
+```
+
+`./backup-all` calls those separate scripts and writes their output to the same
+timestamped backup directory.
+
 ## Local Postgres Backup
 
 ### Default Stack
