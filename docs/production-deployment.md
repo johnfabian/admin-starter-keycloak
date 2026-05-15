@@ -10,8 +10,9 @@ Recommended production shape:
 
 ```text
 Internet
-  -> TLS reverse proxy / load balancer
+  -> Traefik TLS reverse proxy / load balancer
     -> React Router app container
+    -> FastAPI resource server container
     -> Keycloak
       -> Postgres
 ```
@@ -21,12 +22,18 @@ Keep production separate from the local development Compose stack. The local
 convenience. Production should use a dedicated compose file, orchestrator, or
 managed services with stricter networking, secrets, persistence, and backups.
 
+This repo now includes a local Traefik stack at
+`docker/docker-compose.traefik.yml`. Use it to test the same reverse-proxy
+routing model locally before deploying to DigitalOcean.
+
 ## Pre-Deployment Decisions
 
 Decide these before building the production environment:
 
 - Public app URL, for example `https://app.example.com`.
 - Public Keycloak URL, for example `https://auth.example.com`.
+- Public API URL for the future FastAPI resource server, for example
+  `https://api.example.com`.
 - Whether Postgres is self-hosted in Docker or managed by a cloud provider.
 - Where Docker images will be built and stored.
 - Where secrets will live: platform secrets, Docker secrets, SOPS, Vault, or
@@ -60,6 +67,72 @@ runtime environment.
 
 Generate `SESSION_SECRET` with a cryptographically strong random value. Do not
 commit production secrets to the repository.
+
+## Local Traefik Test Stack
+
+Use this when you want to test Traefik locally instead of hitting Vite and
+Keycloak directly by port.
+
+1. Copy the local Traefik environment template:
+
+   ```bash
+   cp .env.traefik.example .env.traefik
+   ```
+
+2. Update `.env.traefik` secrets. For local HTTP testing, keep:
+
+   ```env
+   APP_NODE_ENV=development
+   APP_EXTERNAL_URL=http://app.localhost
+   KEYCLOAK_EXTERNAL_URL=http://auth.localhost
+   KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
+   AUTH_REDIRECT_URI=http://app.localhost/auth/callback
+   AUTH_POST_LOGIN_REDIRECT_URI=http://app.localhost/users/dashboard
+   AUTH_POST_LOGOUT_REDIRECT_URI=http://app.localhost
+   ```
+
+   The app session cookie is marked `Secure` when `NODE_ENV=production`.
+   Keeping `APP_NODE_ENV=development` lets browser login work over local HTTP.
+   Use `production` only when Traefik is serving HTTPS.
+
+3. Start the stack:
+
+   ```bash
+   npm run docker:traefik:up
+   ```
+
+4. Open:
+
+   ```text
+   http://app.localhost
+   http://auth.localhost
+   http://localhost:8081
+   ```
+
+   `app.localhost` routes to the React Router container, `auth.localhost`
+   routes to Keycloak, and `localhost:8081` opens the Traefik dashboard.
+
+5. Configure the Keycloak client for the Traefik local URLs:
+
+   ```text
+   Root URL: http://app.localhost
+   Home URL: http://app.localhost
+   Valid redirect URIs: http://app.localhost/*
+   Valid post logout redirect URIs: http://app.localhost/*
+   Web origins: http://app.localhost
+   ```
+
+6. Stop the stack:
+
+   ```bash
+   npm run docker:traefik:down
+   ```
+
+To reset the local Traefik Postgres volume:
+
+```bash
+docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down -v
+```
 
 ## Build The App Image
 
@@ -157,7 +230,7 @@ For self-hosted Docker Postgres:
 
 ## Reverse Proxy And TLS
 
-Put the app and Keycloak behind a reverse proxy or load balancer:
+Put the app, Keycloak, and the future FastAPI resource server behind Traefik:
 
 - Terminate TLS with valid certificates.
 - Redirect HTTP to HTTPS.
@@ -167,10 +240,97 @@ Put the app and Keycloak behind a reverse proxy or load balancer:
 - Set reasonable request body and timeout limits.
 - Route `app.example.com` to the React Router container.
 - Route `auth.example.com` to Keycloak.
+- Route `api.example.com` to the FastAPI container after it exists.
 
 Confirm cookies are secure in production. The app session cookie is configured
 with `secure: process.env.NODE_ENV === "production"`, so `NODE_ENV=production`
 must be set.
+
+## DigitalOcean Traefik Notes
+
+For a Docker Compose deployment on a DigitalOcean Droplet:
+
+- Point DNS records for `app.example.com`, `auth.example.com`, and later
+  `api.example.com` to the Droplet.
+- Open only ports `80` and `443` publicly.
+- Keep Postgres on a private Docker network or move it to DigitalOcean Managed
+  PostgreSQL.
+- Use Traefik's Docker provider for service discovery.
+- Use a persistent volume or host mount for Traefik ACME certificate storage.
+- Do not enable `--api.insecure=true` on a public host. If you keep the Traefik
+  dashboard, protect it with authentication and network restrictions.
+- Set `APP_NODE_ENV=production` and use only `https://` URLs in app and
+  Keycloak environment variables.
+
+Production Traefik should add a secure entrypoint and ACME certificate resolver,
+for example:
+
+```yaml
+command:
+  - --entrypoints.web.address=:80
+  - --entrypoints.websecure.address=:443
+  - --entrypoints.web.http.redirections.entrypoint.to=websecure
+  - --entrypoints.web.http.redirections.entrypoint.scheme=https
+  - --certificatesresolvers.letsencrypt.acme.email=ops@example.com
+  - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+  - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+  - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+  - --providers.docker=true
+  - --providers.docker.exposedbydefault=false
+ports:
+  - "80:80"
+  - "443:443"
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock:ro
+  - traefik_letsencrypt:/letsencrypt
+```
+
+Production routers should use the HTTPS entrypoint and certificate resolver:
+
+```yaml
+labels:
+  - traefik.enable=true
+  - traefik.http.routers.app.rule=Host(`app.example.com`)
+  - traefik.http.routers.app.entrypoints=websecure
+  - traefik.http.routers.app.tls.certresolver=letsencrypt
+  - traefik.http.services.app.loadbalancer.server.port=3000
+```
+
+Use the same pattern for Keycloak and the future FastAPI service, changing the
+host rule and internal service port.
+
+## Future FastAPI Resource Server
+
+When FastAPI is added, keep it private behind Traefik and validate Keycloak
+access tokens on every protected request.
+
+Suggested route shape:
+
+```text
+https://api.example.com -> FastAPI container
+```
+
+Suggested Compose labels:
+
+```yaml
+labels:
+  - traefik.enable=true
+  - traefik.http.routers.api.rule=Host(`api.example.com`)
+  - traefik.http.routers.api.entrypoints=websecure
+  - traefik.http.routers.api.tls.certresolver=letsencrypt
+  - traefik.http.services.api.loadbalancer.server.port=8000
+```
+
+Suggested FastAPI auth settings:
+
+```env
+KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
+KEYCLOAK_AUDIENCE=admin-starter-api
+```
+
+Create a separate Keycloak client for the API if the API needs its own audience,
+service account, or authorization model. Keep the browser app client
+`admin-starter-web` separate from the resource server client.
 
 ## App Hardening Checklist
 
@@ -194,7 +354,7 @@ Before production launch:
 ## Deployment Steps
 
 1. Provision production DNS for the app and Keycloak domains.
-2. Provision TLS certificates.
+2. Configure Traefik with HTTPS and ACME certificate storage.
 3. Provision Postgres and create required databases/users.
 4. Deploy Keycloak and connect it to production Postgres.
 5. Create or import the production realm.
@@ -241,7 +401,8 @@ Before upgrades:
 
 Known items from the current proof of concept:
 
-- Production Compose or deployment manifests do not exist yet.
+- The included Traefik Compose stack is local HTTP only. Create a hardened
+  DigitalOcean production Compose file or deployment manifest before launch.
 - Logout currently clears only the app session; full Keycloak SSO logout still
   needs server-side storage for `id_token_hint`.
 - Keycloak tokens are not persisted server-side yet; add server-side sessions
@@ -249,4 +410,3 @@ Known items from the current proof of concept:
 - App database schema and migrations are not defined yet.
 - Health checks for the app container are not defined yet.
 - Production observability, backups, and restore tests are not configured yet.
-

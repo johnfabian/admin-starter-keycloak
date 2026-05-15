@@ -14,7 +14,10 @@
     "typecheck": "react-router typegen && tsc",
     "docker:up": "docker compose -f docker/docker-compose.yml --env-file .env.development up -d --wait",
     "docker:down": "docker compose -f docker/docker-compose.yml down",
-    "docker:logs": "docker compose -f docker/docker-compose.yml logs -f"
+    "docker:logs": "docker compose -f docker/docker-compose.yml logs -f",
+    "docker:traefik:up": "docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik up -d --build --wait",
+    "docker:traefik:down": "docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down",
+    "docker:traefik:logs": "docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik logs -f"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",

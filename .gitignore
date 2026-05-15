@@ -1,9 +1,25 @@
 .DS_Store
 .env*
 !.env.example
+!.env.traefik.example
 /node_modules/
 .tmp/
+/backups/
 
 # React Router
 /.react-router/
 /build/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
