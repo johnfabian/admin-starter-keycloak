@@ -75,8 +75,8 @@ Keycloak directly by port.
 
 1. Copy the local Traefik environment template:
 
-   ```powershell
-   Copy-Item .env.traefik.example .env.traefik
+   ```bash
+   cp .env.traefik.example .env.traefik
    ```
 
 2. Update `.env.traefik` secrets. For local HTTP testing, keep:
@@ -97,7 +97,7 @@ Keycloak directly by port.
 
 3. Start the stack:
 
-   ```powershell
+   ```bash
    npm run docker:traefik:up
    ```
 
@@ -124,13 +124,13 @@ Keycloak directly by port.
 
 6. Stop the stack:
 
-   ```powershell
+   ```bash
    npm run docker:traefik:down
    ```
 
 To reset the local Traefik Postgres volume:
 
-```powershell
+```bash
 docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down -v
 ```
 
