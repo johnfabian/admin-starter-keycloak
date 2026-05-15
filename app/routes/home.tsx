@@ -1,13 +1,24 @@
+import { HomePage } from "~/components/pages/home-page";
+import { appInfo } from "~/lib/app-settings";
+import { getCurrentUser } from "~/lib/auth.server";
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: appInfo.title },
+    {
+      name: "description",
+      content: appInfo.description,
+    },
   ];
 }
 
-export default function Home() {
-  return <Welcome />;
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    user: await getCurrentUser(request),
+  };
+}
+
+export default function Home({ loaderData }: Route.ComponentProps) {
+  return <HomePage user={loaderData.user} />;
 }

@@ -1,0 +1,18 @@
+import { UsersDashboardPage } from "~/components/pages/users-dashboard-page";
+import { appInfo } from "~/lib/app-settings";
+import { requireUserRoute } from "~/lib/route-guards.server";
+import type { Route } from "./+types/users-dashboard";
+
+export function meta() {
+  return [{ title: `${appInfo.pageTitles.usersDashboard} | ${appInfo.name}` }];
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    user: await requireUserRoute(request),
+  };
+}
+
+export default function UsersDashboard({ loaderData }: Route.ComponentProps) {
+  return <UsersDashboardPage user={loaderData.user} />;
+}
