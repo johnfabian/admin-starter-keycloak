@@ -61,6 +61,7 @@ backup_postgres_stack() {
   local container="$2"
   local suffix="$3"
   local backup_dir="$4"
+  local app_database="${POSTGRES_DB:-admin_starter}"
 
   require_docker
   mkdir -p "${backup_dir}"
@@ -76,7 +77,7 @@ backup_postgres_stack() {
   fi
 
   dump_database "${container}" "keycloak" "keycloak${suffix}.dump" "${backup_dir}"
-  dump_database "${container}" "admin_starter" "admin_starter${suffix}.dump" "${backup_dir}"
+  dump_database "${container}" "${app_database}" "${app_database}${suffix}.dump" "${backup_dir}"
   dump_all_databases "${container}" "all-databases${suffix}.sql" "${backup_dir}"
 }
 

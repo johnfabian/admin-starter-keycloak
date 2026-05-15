@@ -12,6 +12,8 @@
 # React Router
 /.react-router/
 /build/
+/web/.react-router/
+/web/build/
 
 # Terraform
 **/.terraform/

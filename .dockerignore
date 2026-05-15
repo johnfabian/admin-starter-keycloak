@@ -1,4 +1,10 @@
+.git
 .react-router
 build
 node_modules
+web/.react-router
+web/build
+web/node_modules
+backups
+.tmp
 README.md

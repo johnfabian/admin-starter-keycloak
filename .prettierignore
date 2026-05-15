@@ -1,5 +1,8 @@
 .react-router/
 build/
 node_modules/
+web/.react-router/
+web/build/
+web/node_modules/
 .tmp/
-bun.lock
+pnpm-lock.yaml

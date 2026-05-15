@@ -2,7 +2,7 @@
 
 This document is a pre-production checklist for deploying the React Router app
 with Keycloak-backed authentication. Treat it as a living runbook: update it
-when the hosting target, domain names, database provider, or auth flow changes.
+when the hosting target, domain names, Postgres provider, or auth flow changes.
 
 ## Target Shape
 
@@ -18,13 +18,14 @@ Internet
 ```
 
 Keep production separate from the local development Compose stack. The local
-`docker/docker-compose.yml` exposes Postgres and Keycloak directly for developer
-convenience. Production should use a dedicated compose file, orchestrator, or
-managed services with stricter networking, secrets, persistence, and backups.
+`postgres/docker-compose.yml` exposes Postgres directly for developer
+convenience, and `auth-server/docker-compose.yml` exposes Keycloak directly.
+Production should use a dedicated compose file, orchestrator, or managed
+services with stricter networking, secrets, persistence, and backups.
 
-This repo now includes a local Traefik stack at
-`docker/docker-compose.traefik.yml`. Use it to test the same reverse-proxy
-routing model locally before deploying to DigitalOcean.
+This repo includes local gateway-mode Compose files under `api-gateway/`,
+`postgres/`, `auth-server/`, and `web/`. Use them to test the same
+reverse-proxy routing model locally before deploying to DigitalOcean.
 
 ## Pre-Deployment Decisions
 
@@ -51,21 +52,21 @@ Required production variables:
 NODE_ENV=production
 
 KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
-KEYCLOAK_CLIENT_ID=admin-starter-web
-KEYCLOAK_CLIENT_SECRET=
+WEB_KEYCLOAK_CLIENT_ID=admin-starter-web
+WEB_KEYCLOAK_CLIENT_SECRET=
 
-AUTH_REDIRECT_URI=https://app.example.com/auth/callback
-AUTH_POST_LOGIN_REDIRECT_URI=https://app.example.com/users/dashboard
-AUTH_POST_LOGOUT_REDIRECT_URI=https://app.example.com
+WEB_AUTH_REDIRECT_URI=https://app.example.com/auth/callback
+WEB_AUTH_POST_LOGIN_REDIRECT_URI=https://app.example.com/users/dashboard
+WEB_AUTH_POST_LOGOUT_REDIRECT_URI=https://app.example.com
 
-SESSION_SECRET=<long-random-secret>
+WEB_SESSION_SECRET=<long-random-secret>
 ```
 
-If the Keycloak client is public with PKCE, `KEYCLOAK_CLIENT_SECRET` can stay
+If the Keycloak client is public with PKCE, `WEB_KEYCLOAK_CLIENT_SECRET` can stay
 empty. If the client is confidential, store the secret only in the server-side
 runtime environment.
 
-Generate `SESSION_SECRET` with a cryptographically strong random value. Do not
+Generate `WEB_SESSION_SECRET` with a cryptographically strong random value. Do not
 commit production secrets to the repository.
 
 ## Local Traefik Test Stack
@@ -86,9 +87,9 @@ Keycloak directly by port.
    APP_EXTERNAL_URL=http://app.localhost
    KEYCLOAK_EXTERNAL_URL=http://auth.localhost
    KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
-   AUTH_REDIRECT_URI=http://app.localhost/auth/callback
-   AUTH_POST_LOGIN_REDIRECT_URI=http://app.localhost/users/dashboard
-   AUTH_POST_LOGOUT_REDIRECT_URI=http://app.localhost
+   WEB_AUTH_REDIRECT_URI=http://app.localhost/auth/callback
+   WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://app.localhost/users/dashboard
+   WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://app.localhost
    ```
 
    The app session cookie is marked `Secure` when `NODE_ENV=production`.
@@ -98,7 +99,7 @@ Keycloak directly by port.
 3. Start the stack:
 
    ```bash
-   npm run docker:traefik:up
+   corepack pnpm dev:gateway
    ```
 
 4. Open:
@@ -125,35 +126,36 @@ Keycloak directly by port.
 6. Stop the stack:
 
    ```bash
-   npm run docker:traefik:down
+   corepack pnpm dev:gateway:down
    ```
 
 To reset the local Traefik Postgres volume:
 
 ```bash
-docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down -v
+docker compose -f auth-server/docker-compose.gateway.yml --env-file .env.traefik down
+docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik down -v
 ```
 
 ## Build The App Image
 
-The repo includes a production Dockerfile that builds the React Router app and
-runs:
+The repo includes a production Dockerfile under `web/` that builds the React
+Router app and runs:
 
 ```bash
-bun run start
+pnpm start
 ```
 
 Build and tag the image:
 
 ```bash
-docker build -t registry.example.com/admin-starter-keycloak:YYYY-MM-DD .
+docker build -f web/Dockerfile -t registry.example.com/admin-starter-keycloak:YYYY-MM-DD .
 ```
 
 Before publishing the image:
 
 ```bash
-npm run check
-npm run build
+corepack pnpm check
+corepack pnpm web:build
 ```
 
 Push the image to the deployment registry:
@@ -196,8 +198,8 @@ For production Keycloak:
 - Do not expose Keycloak directly on an untrusted HTTP port.
 - Keep the admin console reachable only by trusted users and networks when
   possible.
-- Use a strong database password and a dedicated database/user for Keycloak.
-- Enable regular Keycloak and database backups.
+- Use a strong Postgres password and a dedicated Keycloak database and user.
+- Enable regular Keycloak and Postgres backups.
 - Configure logs so login failures, admin events, and suspicious activity are
   retained.
 - Keep Keycloak patched; plan upgrades separately from app deploys.
@@ -325,7 +327,7 @@ Suggested FastAPI auth settings:
 
 ```env
 KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
-KEYCLOAK_AUDIENCE=admin-starter-api
+API_PYTHON_KEYCLOAK_AUDIENCE=admin-starter-api-python
 ```
 
 Create a separate Keycloak client for the API if the API needs its own audience,
@@ -337,7 +339,7 @@ service account, or authorization model. Keep the browser app client
 Before production launch:
 
 - Use HTTPS-only production URLs in app and Keycloak configuration.
-- Use a long random `SESSION_SECRET`.
+- Use a long random `WEB_SESSION_SECRET`.
 - Confirm the session cookie is `HttpOnly`, `SameSite=Lax`, and `Secure`.
 - Confirm `/auth/callback` rejects invalid or missing `state`.
 - Confirm login works after browser restart.
@@ -364,7 +366,7 @@ Before production launch:
 9. Deploy the app container with production environment variables.
 10. Run smoke tests.
 11. Enable monitoring, backups, and alerting.
-12. Record the deployed image tag, realm export, and database backup state.
+12. Record the deployed image tag, realm export, and Postgres backup state.
 
 ## Smoke Tests
 
@@ -387,12 +389,12 @@ Minimum backup requirements:
 - A documented restore command or provider restore procedure.
 - Periodic restore tests into a non-production environment.
 - Realm export after major Keycloak configuration changes.
-- Secret rotation procedure for `SESSION_SECRET`, database credentials, and
+- Secret rotation procedure for `WEB_SESSION_SECRET`, Postgres credentials, and
   Keycloak client secrets.
 
 Before upgrades:
 
-- Take a fresh database backup.
+- Take a fresh Postgres backup.
 - Export the Keycloak realm.
 - Record current image tags.
 - Confirm rollback image tags are still available.

@@ -1,0 +1,36 @@
+name: admin-starter-auth-gateway
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: app-traefik-keycloak
+    restart: unless-stopped
+    command: start
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: ${KEYCLOAK_EXTERNAL_URL}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=admin-starter-public
+      - traefik.http.routers.keycloak.rule=Host(`${KEYCLOAK_HOST}`)
+      - traefik.http.routers.keycloak.entrypoints=web
+      - traefik.http.services.keycloak.loadbalancer.server.port=8080
+    networks:
+      - public
+      - Postgres
+
+networks:
+  public:
+    external: true
+    name: admin-starter-public
+  Postgres:
+    external: true
+    name: admin-starter-postgres-gateway

@@ -1,0 +1,31 @@
+name: admin-starter-api-gateway
+
+services:
+  traefik:
+    image: traefik:v3.2
+    container_name: app-traefik
+    restart: unless-stopped
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      public:
+        aliases:
+          - app.localhost
+          - auth.localhost
+          - api.localhost
+          - api-python.localhost
+          - api-express.localhost
+          - api-dotnet.localhost
+
+networks:
+  public:
+    name: admin-starter-public

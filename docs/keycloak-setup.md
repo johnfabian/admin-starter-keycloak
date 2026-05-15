@@ -17,7 +17,7 @@ cp .env.example .env.development
 Required local values:
 
 ```env
-POSTGRES_USER=postgres
+POSTGRES_USER=app
 POSTGRES_PASSWORD=<local-password>
 POSTGRES_DB=admin_starter
 
@@ -26,10 +26,11 @@ KEYCLOAK_ADMIN_PASSWORD=<bootstrap-admin-password>
 KEYCLOAK_HOSTNAME=localhost
 ```
 
-Start Postgres and Keycloak from the project root:
+Start the shared Postgres database and Keycloak from the project root:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env.development up -d --wait
+corepack pnpm db:up
+corepack pnpm auth:up
 ```
 
 Open the Keycloak admin console:
@@ -49,7 +50,7 @@ Use this stack when you want to test the app through Traefik locally:
 
 ```bash
 cp .env.traefik.example .env.traefik
-npm run docker:traefik:up
+corepack pnpm dev:gateway
 ```
 
 Open:
@@ -66,32 +67,21 @@ should be opened through `app.localhost` and `auth.localhost` so the same
 host-based routing model matches real DigitalOcean domains. Use
 `api.localhost` for the FastAPI service when the API stack is running.
 
-## Docker Desktop Project Name
+## Docker Desktop Project Names
 
-Docker Desktop currently shows the Compose app as `docker` because the Compose
-file is located in the `docker` directory. Docker Compose uses the directory
-name as the default project name unless a project name is supplied.
+The local Compose files include explicit project names so Docker Desktop groups
+them by boundary:
 
-Recommended options to rename the Docker Desktop group to
-`admin-starter-keycloak`:
+```text
+admin-starter-postgres
+admin-starter-auth-server
+admin-starter-api-gateway
+admin-starter-web-gateway
+```
 
-1. Add a top-level name to `docker/docker-compose.yml`:
-
-   ```yaml
-   name: admin-starter-keycloak
-
-   services:
-     postgres: ...
-   ```
-
-2. Or pass the project name when running Compose:
-
-   ```bash
-   docker compose -p admin-starter-keycloak -f docker/docker-compose.yml --env-file .env.development up -d --wait
-   ```
-
-The individual containers are currently named `app-postgres` and
-`app-keycloak`.
+The direct local containers are currently named `app-postgres` and
+`app-keycloak`. Gateway mode uses `app-traefik-postgres` and
+`app-traefik-keycloak`.
 
 ## Realm
 
@@ -232,7 +222,7 @@ Recommended client scopes and role scope settings:
   - `email`
   - `roles`
   - `web-origins`
-  - `admin-starter-api-audience` after the API audience scope is created
+  - `admin-starter-api-python-audience` after the API audience scope is created
 - Optional client scopes:
   - `organization`
   - `offline_access` only if the app intentionally requests offline tokens
@@ -243,8 +233,8 @@ Recommended client scopes and role scope settings:
 - Role scope mappings:
   - Allow `admin-starter-web:Users`
   - Allow `admin-starter-web:Admins`
-  - Allow `admin-starter-api:api-users`
-  - Allow `admin-starter-api:api-admins`
+  - Allow `admin-starter-api-python:api-users`
+  - Allow `admin-starter-api-python:api-admins`
 
 Recommended Advanced tab settings:
 
@@ -299,7 +289,7 @@ Do not configure a front-channel or backchannel logout URL until the application
 has a real route that can receive and process that logout request.
 
 Local app logout clears the app session cookie and returns to
-`AUTH_POST_LOGOUT_REDIRECT_URI`. Full Keycloak SSO logout requires server-side
+`WEB_AUTH_POST_LOGOUT_REDIRECT_URI`. Full Keycloak SSO logout requires server-side
 session storage for the ID token, because Keycloak may require `id_token_hint`
 on the end-session request.
 
@@ -335,6 +325,13 @@ registration if the app's Register button should create new users.
 
 ## FastAPI API Client
 
+The API-specific setup instructions now live with each API example:
+
+- [Python/FastAPI setup](../api-python/README.md)
+- [Express setup](../api-express/README.md)
+- [.NET setup](../api-dotnet/README.md)
+- [Traefik API gateway setup](../api-gateway/README.md)
+
 Keep the FastAPI resource server behind Traefik at:
 
 ```text
@@ -357,7 +354,7 @@ Authorization: Bearer <access-token>
 Create a separate Keycloak client to represent the API:
 
 ```text
-admin-starter-api
+admin-starter-api-python
 ```
 
 Recommended API client settings:
@@ -403,8 +400,8 @@ Recommended API client scopes and advanced settings:
 - Full scope allowed: `Off`
   - The API should receive only the role and audience claims it needs.
 - Role scope mappings:
-  - Allow `admin-starter-api:api-users`
-  - Allow `admin-starter-api:api-admins`
+  - Allow `admin-starter-api-python:api-users`
+  - Allow `admin-starter-api-python:api-admins`
 - Advanced tab:
   - Access Token Lifespan: leave empty to inherit the realm `5 minutes`
   - Client Session Idle: leave empty unless service accounts are enabled
@@ -417,7 +414,7 @@ Recommended API client scopes and advanced settings:
   - Valid request URIs: leave blank
   - Access Token Signature Algorithm: `RS256`
 
-Recommended API roles on the `admin-starter-api` client:
+Recommended API roles on the `admin-starter-api-python` client:
 
 ```text
 api-users
@@ -427,11 +424,11 @@ api-admins
 Assign these roles to the same Keycloak groups that receive the web roles:
 
 - `Application Users` group: `admin-starter-web:Users` and
-  `admin-starter-api:api-users`
+  `admin-starter-api-python:api-users`
 - `Application Admins` group: `admin-starter-web:Admins` and
-  `admin-starter-api:api-admins`
+  `admin-starter-api-python:api-admins`
 
-The API can then authorize from `resource_access.admin-starter-api.roles`
+The API can then authorize from `resource_access.admin-starter-api-python.roles`
 instead of depending on browser-app roles. This keeps the API permission model
 portable for both web and mobile clients.
 
@@ -443,30 +440,30 @@ the token claims it receives.
 
 FastAPI should validate that access tokens were intended for the API. To make
 that practical, add an audience mapper so tokens issued to the web and mobile
-clients include `admin-starter-api` in the `aud` claim.
+clients include `admin-starter-api-python` in the `aud` claim.
 
 Recommended setup:
 
 1. Go to **Client scopes**.
-2. Create a client scope named `admin-starter-api-audience`.
+2. Create a client scope named `admin-starter-api-python-audience`.
 3. Set protocol to `openid-connect`.
 4. Open the new client scope.
 5. Go to **Mappers**.
 6. Choose **Configure a new mapper**.
 7. Choose **Audience**.
-8. Name it `admin-starter-api-audience`.
-9. Set **Included Client Audience** to `admin-starter-api`.
+8. Name it `admin-starter-api-python-audience`.
+9. Set **Included Client Audience** to `admin-starter-api-python`.
 10. Turn **Add to access token** on.
 11. Save.
 12. Open the `admin-starter-web` client.
-13. Add `admin-starter-api-audience` as a default client scope.
+13. Add `admin-starter-api-python-audience` as a default client scope.
 14. Repeat for the `admin-starter-mobile` client.
 
 Suggested FastAPI validation settings:
 
 ```env
 KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
-KEYCLOAK_AUDIENCE=admin-starter-api
+API_PYTHON_KEYCLOAK_AUDIENCE=admin-starter-api-python
 KEYCLOAK_JWKS_URL=http://auth.localhost/realms/admin-starter/protocol/openid-connect/certs
 ```
 
@@ -474,9 +471,13 @@ Production values should use HTTPS:
 
 ```env
 KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
-KEYCLOAK_AUDIENCE=admin-starter-api
+API_PYTHON_KEYCLOAK_AUDIENCE=admin-starter-api-python
 KEYCLOAK_JWKS_URL=https://auth.example.com/realms/admin-starter/protocol/openid-connect/certs
 ```
+
+When `api-express` and `api-dotnet` are added, use the same pattern with
+`API_EXPRESS_KEYCLOAK_AUDIENCE=admin-starter-api-express` and
+`API_DOTNET_KEYCLOAK_AUDIENCE=admin-starter-api-dotnet`.
 
 ## Expo Mobile Client
 
@@ -533,7 +534,7 @@ Recommended mobile client scopes and advanced settings:
   - `profile`
   - `email`
   - `roles`
-  - `admin-starter-api-audience`
+  - `admin-starter-api-python-audience`
 - Optional client scopes:
   - `organization`
   - `offline_access` only if the mobile app needs long-lived refresh after app
@@ -541,8 +542,8 @@ Recommended mobile client scopes and advanced settings:
 - Full scope allowed: `Off`
   - Keep mobile tokens tight. Add only the API and web roles the app needs.
 - Role scope mappings:
-  - Allow `admin-starter-api:api-users`
-  - Allow `admin-starter-api:api-admins`
+  - Allow `admin-starter-api-python:api-users`
+  - Allow `admin-starter-api-python:api-admins`
   - Allow `admin-starter-web:Users` if the app displays shared app roles
   - Allow `admin-starter-web:Admins` if the app exposes admin UI
 - Advanced tab:
@@ -700,7 +701,8 @@ When using a tunnel or LAN hostname, update:
 - Expo `EXPO_PUBLIC_API_URL`
 - Keycloak mobile client redirect URIs
 - Keycloak web origins if testing Expo web
-- API `KEYCLOAK_ISSUER` and `KEYCLOAK_AUDIENCE`
+- API `KEYCLOAK_ISSUER` and the API-specific audience variable, such as
+  `API_PYTHON_KEYCLOAK_AUDIENCE`
 
 ## Application Roles
 

@@ -1,7 +1,24 @@
 # Admin Starter Keycloak
 
-A React Router 7 framework-mode admin starter that uses Keycloak for identity
-and a BFF-style server layer for web authentication.
+A pnpm monorepo admin starter. The current implemented app is a React Router 7
+framework-mode web app that uses Keycloak for identity and a BFF-style server
+layer for web authentication.
+
+## Repository Layout
+
+```text
+postgres/      Shared Postgres Compose files
+auth-server/   Keycloak Compose files
+api-gateway/   Traefik Compose file
+api-python/    FastAPI placeholder
+api-express/   Express API placeholder
+api-dotnet/    .NET API placeholder
+web/           React Router web app
+mobile/        Expo placeholder
+docs/          setup guides and runbooks
+specs/plans/   implementation plans
+scripts/       shared automation
+```
 
 ## Architecture
 
@@ -61,18 +78,18 @@ Protected routes:
 - `/forbidden` displays when a signed-in user lacks the required role.
 
 Route modules are kept intentionally slim. They define `meta`, `loader`, and
-redirect behavior, then render page components from `app/components/pages`.
-Shared page wrappers live in `app/layouts`. Protected loaders call centralized
-guards from `app/lib/route-guards.server.ts`.
+redirect behavior, then render page components from `web/app/components/pages`.
+Shared page wrappers live in `web/app/layouts`. Protected loaders call
+centralized guards from `web/app/lib/route-guards.server.ts`.
 
 Routes and access settings are centralized for reuse:
 
-- `app/lib/app-settings.ts` owns app name/title, route paths, route patterns,
+- `web/app/lib/app-settings.ts` owns app name/title, route paths, route patterns,
   route module paths, role names, and route access groups.
-- `app/lib/auth-config.server.ts` owns server-only Keycloak/OIDC environment
-  config and issuer URL helpers.
-- `app/lib/auth-policy.ts` owns reusable role and access checks.
-- `app/routes.ts` wires React Router from `appRoutePatterns` and
+- `web/app/lib/auth-config.server.ts` owns server-only Keycloak/OIDC
+  environment config and issuer URL helpers.
+- `web/app/lib/auth-policy.ts` owns reusable role and access checks.
+- `web/app/routes.ts` wires React Router from `appRoutePatterns` and
   `appRouteModules` instead of hardcoded route strings.
 
 Auth routes:
@@ -112,17 +129,32 @@ Important local values:
 
 ```env
 KEYCLOAK_ISSUER=http://localhost:8080/realms/admin-starter
-KEYCLOAK_CLIENT_ID=admin-starter-web
-AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
-AUTH_POST_LOGIN_REDIRECT_URI=http://localhost:5173/users/dashboard
-AUTH_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
-SESSION_SECRET=dev-admin-starter-keycloak-session-secret-change-me
+WEB_KEYCLOAK_CLIENT_ID=admin-starter-web
+WEB_AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
+WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://localhost:5173/users/dashboard
+WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
+WEB_SESSION_SECRET=dev-admin-starter-keycloak-session-secret-change-me
+```
+
+Env names are intentionally scoped for multiple clients:
+
+- `WEB_*` values belong to the React Router web/BFF client.
+- `EXPO_PUBLIC_*` values belong to the future Expo mobile public client.
+- `API_*_KEYCLOAK_AUDIENCE` values belong to future API resource server
+  examples.
+- `KEYCLOAK_*` values without a web/mobile/API prefix are shared Keycloak realm
+  or server settings.
+
+Install dependencies:
+
+```bash
+corepack pnpm install
 ```
 
 Start Postgres, Keycloak, and the React Router dev server:
 
 ```bash
-npm run dev
+corepack pnpm dev
 ```
 
 The dev script prints both local URLs:
@@ -138,6 +170,13 @@ See [docs/keycloak-setup.md](docs/keycloak-setup.md).
 
 For production planning, deployment steps, and hardening checklist, see
 [docs/production-deployment.md](docs/production-deployment.md).
+
+API-specific Keycloak and Traefik setup instructions live in each API folder:
+
+- [api-python/README.md](api-python/README.md)
+- [api-express/README.md](api-express/README.md)
+- [api-dotnet/README.md](api-dotnet/README.md)
+- [api-gateway/README.md](api-gateway/README.md)
 
 Minimum local client requirements:
 
@@ -156,17 +195,22 @@ Implementation plans are stored in `specs/plans/` before feature work starts.
 Create a new plan:
 
 ```bash
-npm run plan:new -- "keycloak auth splash users dashboard"
+corepack pnpm plan:new -- "keycloak auth splash users dashboard"
 ```
 
 ## Scripts
 
 ```bash
-npm run dev          # start Docker services and React Router dev server
-npm run typecheck    # generate route types and run TypeScript
-npm run build        # production build
-npm run start        # serve the production build
-npm run docker:up    # start local Postgres and Keycloak
-npm run docker:down  # stop local Docker services
-npm run docker:logs  # follow Docker service logs
+corepack pnpm dev               # start Postgres, auth, and the web dev server
+corepack pnpm dev:gateway       # start Traefik, gateway Postgres, auth, and web
+corepack pnpm web:typecheck     # generate route types and run TypeScript
+corepack pnpm web:build         # production web build
+corepack pnpm web:start         # serve the production web build
+corepack pnpm db:up             # start local shared Postgres
+corepack pnpm db:down           # stop local shared Postgres
+corepack pnpm auth:up           # start local Keycloak
+corepack pnpm auth:down         # stop local Keycloak
+corepack pnpm auth:logs         # follow local auth service logs
+corepack pnpm gateway:up        # start Traefik only
+./backup-all           # run local backup scripts
 ```
