@@ -1,4 +1,7 @@
 .DS_Store
+*.dump
+*.err
+*.log
 .env*
 !.env.example
 /node_modules/
