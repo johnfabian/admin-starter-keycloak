@@ -17,14 +17,14 @@ Terraform is useful for making Keycloak configuration repeatable:
 - organizations
 - identity providers
 
-Terraform does not replace database backups. It records intended configuration,
+Terraform does not replace Postgres backups. It records intended configuration,
 not live user sessions, events, revoked tokens, or every operational data point
 inside Keycloak.
 
 ## Current State
 
 This repository does not currently contain Terraform configuration. Keycloak
-settings made in the admin console are stored in the Keycloak Postgres database,
+settings made in the admin console are stored in the Keycloak database,
 inside the Docker volume used by the Compose stack.
 
 The repo currently stores:
@@ -225,7 +225,7 @@ web_root_url = "https://app.example.com"
 ```hcl
 resource "keycloak_openid_client" "api" {
   realm_id  = keycloak_realm.admin_starter.id
-  client_id = "admin-starter-api"
+  client_id = "admin-starter-api-python"
   name      = "Admin Starter API"
   enabled   = true
 
@@ -332,14 +332,14 @@ Desired outcome:
 
 ```json
 {
-  "aud": ["admin-starter-api"]
+  "aud": ["admin-starter-api-python"]
 }
 ```
 
 Terraform should manage:
 
-- a client scope named `admin-starter-api-audience`
-- an audience protocol mapper that adds `admin-starter-api`
+- a client scope named `admin-starter-api-python-audience`
+- an audience protocol mapper that adds `admin-starter-api-python`
 - default client scope assignment for `admin-starter-web`
 - default client scope assignment for `admin-starter-mobile`
 
@@ -462,7 +462,7 @@ web_root_url = "https://app.example.com"
 api_root_url = "https://api.example.com"
 ```
 
-## Terraform Vs Realm Export Vs Database Backup
+## Terraform Vs Realm Export Vs Postgres Backup
 
 | Tool            | Best For                           | Not Good For                               |
 | --------------- | ---------------------------------- | ------------------------------------------ |

@@ -6,12 +6,15 @@
 !.env.example
 !.env.traefik.example
 /node_modules/
+**/node_modules/
 .tmp/
 /backups/
 
 # React Router
 /.react-router/
 /build/
+/web/.react-router/
+/web/build/
 
 # Terraform
 **/.terraform/

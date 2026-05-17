@@ -1,0 +1,33 @@
+name: admin-starter-web-gateway
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: web/Dockerfile
+    container_name: app-traefik-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${APP_NODE_ENV:-development}
+      PORT: 3000
+      HOST: 0.0.0.0
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      WEB_KEYCLOAK_CLIENT_ID: ${WEB_KEYCLOAK_CLIENT_ID}
+      WEB_KEYCLOAK_CLIENT_SECRET: ${WEB_KEYCLOAK_CLIENT_SECRET}
+      WEB_AUTH_REDIRECT_URI: ${WEB_AUTH_REDIRECT_URI}
+      WEB_AUTH_POST_LOGIN_REDIRECT_URI: ${WEB_AUTH_POST_LOGIN_REDIRECT_URI}
+      WEB_AUTH_POST_LOGOUT_REDIRECT_URI: ${WEB_AUTH_POST_LOGOUT_REDIRECT_URI}
+      WEB_SESSION_SECRET: ${WEB_SESSION_SECRET}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=admin-starter-public
+      - traefik.http.routers.app.rule=Host(`${APP_HOST}`)
+      - traefik.http.routers.app.entrypoints=web
+      - traefik.http.services.app.loadbalancer.server.port=3000
+    networks:
+      - public
+
+networks:
+  public:
+    external: true
+    name: admin-starter-public

@@ -4,10 +4,10 @@ This guide explains what Traefik is, how this repository currently uses it, and
 which Traefik features are useful as the app moves from local testing toward a
 production deployment.
 
-The repo currently pins `traefik:v3.2` in
-`docker/docker-compose.traefik.yml`. The feature notes below are based on
-Traefik v3 documentation. Before enabling a new option, confirm it exists in the
-pinned image or upgrade Traefik deliberately.
+The repo currently pins `traefik:v3.2` in `api-gateway/docker-compose.yml`.
+The feature notes below are based on Traefik v3 documentation. Before enabling
+a new option, confirm it exists in the pinned image or upgrade Traefik
+deliberately.
 
 ## What Traefik Is
 
@@ -19,8 +19,8 @@ For this application, Traefik is the public front door for:
 
 - the React Router app, currently served by the `app` container on port `3000`
 - Keycloak, currently served by the `keycloak` container on port `8080`
-- a future FastAPI resource server, likely served by an `api` container on port
-  `8000`
+- a future FastAPI resource server, likely served by an `api-python` container on
+  port `8000`
 
 Traefik lets browser and mobile clients use clean hostnames such as
 `app.localhost`, `auth.localhost`, and eventually `api.localhost` instead of
@@ -30,8 +30,10 @@ internal container names and ports. In production, the same model becomes
 
 ## Current Local Architecture
 
-The local Traefik stack is defined in
-`docker/docker-compose.traefik.yml`.
+The local Traefik service is defined in `api-gateway/docker-compose.yml`.
+Gateway-mode Postgres, auth, and web services are defined in
+`postgres/docker-compose.gateway.yml`, `auth-server/docker-compose.gateway.yml`,
+and `web/docker-compose.gateway.yml`.
 
 ```mermaid
 flowchart LR
@@ -40,7 +42,7 @@ flowchart LR
   traefik[Traefik<br/>ports 80 and 8081]
   app[React Router app<br/>app:3000]
   keycloak[Keycloak<br/>keycloak:8080]
-  api[FastAPI API<br/>future api:8000]
+  api[FastAPI API<br/>future api-python:8000]
   postgres[(Postgres<br/>private network)]
   secure_store[Expo SecureStore<br/>mobile session material]
 
@@ -68,8 +70,7 @@ flowchart LR
     api
   end
 
-  subgraph private_network[private internal Docker network]
-    app
+  subgraph postgres_network[private Postgres Docker network]
     keycloak
     api
     postgres
@@ -82,7 +83,9 @@ Key points in the current local stack:
 - The app is exposed at `http://app.localhost`.
 - Keycloak is exposed at `http://auth.localhost`.
 - The future FastAPI service should be exposed at `http://api.localhost` once
-  the `api` container exists.
+  the `api-python` container exists.
+- Additional API examples can use `http://api-express.localhost` and
+  `http://api-dotnet.localhost`.
 - The Traefik dashboard is exposed at `http://localhost:8081`.
 - Expo mobile development should use a development build and a Keycloak/API URL
   the device or simulator can actually reach. A physical phone usually cannot
@@ -101,11 +104,14 @@ Keycloak services:
 ```yaml
 labels:
   - traefik.enable=true
-  - traefik.docker.network=admin-starter-keycloak-traefik_public
+  - traefik.docker.network=admin-starter-public
   - traefik.http.routers.api.rule=Host(`api.localhost`)
   - traefik.http.routers.api.entrypoints=web
   - traefik.http.services.api.loadbalancer.server.port=8000
 ```
+
+See [../api-gateway/README.md](../api-gateway/README.md) for the route labels
+for `api-python`, `api-express`, and `api-dotnet`.
 
 ## Production Target Architecture
 
@@ -352,8 +358,8 @@ Plan for both cases:
 
 Static configuration controls Traefik itself: entrypoints, providers, logs,
 dashboard/API, certificate resolvers, and global settings. In this repo, static
-configuration is currently passed as command-line arguments under the `traefik`
-service:
+configuration is currently passed as command-line arguments under the
+`api-gateway` Traefik service:
 
 ```yaml
 command:
@@ -635,7 +641,7 @@ must reach. Databases should stay on private networks.
 
 The local Traefik stack follows this shape:
 
-- `traefik` is on `public`
+- `traefik` is on the shared `admin-starter-public` network
 - `app` is on `public` and `private`
 - `keycloak` is on `public` and `private`
 - `postgres` is on `private` only
@@ -719,7 +725,7 @@ For this app:
 
 - add an app health endpoint before relying on proxy health checks
 - add a FastAPI health endpoint when the API is introduced
-- be cautious scaling Keycloak without planning database, cache, and session
+- be cautious scaling Keycloak without planning Postgres, cache, and session
   behavior
 - use sticky sessions only when a backend truly requires affinity
 
@@ -793,9 +799,9 @@ origin:
 APP_EXTERNAL_URL=https://app.example.com
 KEYCLOAK_EXTERNAL_URL=https://auth.example.com
 KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
-AUTH_REDIRECT_URI=https://app.example.com/auth/callback
-AUTH_POST_LOGIN_REDIRECT_URI=https://app.example.com/users/dashboard
-AUTH_POST_LOGOUT_REDIRECT_URI=https://app.example.com
+WEB_AUTH_REDIRECT_URI=https://app.example.com/auth/callback
+WEB_AUTH_POST_LOGIN_REDIRECT_URI=https://app.example.com/users/dashboard
+WEB_AUTH_POST_LOGOUT_REDIRECT_URI=https://app.example.com
 ```
 
 Keycloak client settings must match:
@@ -815,7 +821,9 @@ APP_EXTERNAL_URL=http://app.localhost
 KEYCLOAK_EXTERNAL_URL=http://auth.localhost
 API_EXTERNAL_URL=http://api.localhost
 KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
-AUTH_REDIRECT_URI=http://app.localhost/auth/callback
+WEB_AUTH_REDIRECT_URI=http://app.localhost/auth/callback
+WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://app.localhost/users/dashboard
+WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://app.localhost
 ```
 
 `API_EXTERNAL_URL` is the intended local value for the future FastAPI service.
@@ -828,7 +836,7 @@ It is not used by the current Compose stack until an `api` service is added.
 Check:
 
 - `KEYCLOAK_ISSUER`
-- `AUTH_REDIRECT_URI`
+- `WEB_AUTH_REDIRECT_URI`
 - Keycloak client redirect URI settings
 - `KC_HOSTNAME`
 - `KC_PROXY_HEADERS`
@@ -881,7 +889,7 @@ Check:
 Start the local Traefik test stack:
 
 ```bash
-npm run docker:traefik:up
+corepack pnpm dev:gateway
 ```
 
 Open:
@@ -899,19 +907,20 @@ router labels are added.
 View logs:
 
 ```bash
-npm run docker:traefik:logs
+corepack pnpm gateway:logs
 ```
 
 Stop:
 
 ```bash
-npm run docker:traefik:down
+corepack pnpm dev:gateway:down
 ```
 
 Reset local Traefik data:
 
 ```bash
-docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down -v
+docker compose -f auth-server/docker-compose.gateway.yml --env-file .env.traefik down
+docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik down -v
 ```
 
 ## Production Readiness Checklist
@@ -962,5 +971,5 @@ docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down
   <https://www.keycloak.org/docs/25.0.6/securing_apps/index.html>
 - Existing deployment runbook:
   [production-deployment.md](production-deployment.md)
-- Local infrastructure notes:
-  [../docker/README.md](../docker/README.md)
+- Auth server infrastructure notes:
+  [../auth-server/README.md](../auth-server/README.md)

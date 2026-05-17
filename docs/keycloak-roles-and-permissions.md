@@ -17,9 +17,16 @@ prod:      admin-starter-prod
 Inside each realm, use separate clients for each application surface:
 
 ```text
-admin-starter-web     React Router browser app
-admin-starter-api     FastAPI resource server
-admin-starter-mobile  Expo mobile app
+admin-starter-web          React Router browser app
+admin-starter-api-python   FastAPI resource server
+admin-starter-mobile       Expo mobile app
+```
+
+Future API examples can follow the same convention:
+
+```text
+admin-starter-api-express
+admin-starter-api-dotnet
 ```
 
 Use groups for assigning app access:
@@ -34,8 +41,8 @@ Use client roles for what the app/API authorizes:
 ```text
 admin-starter-web:Users
 admin-starter-web:Admins
-admin-starter-api:api-users
-admin-starter-api:api-admins
+admin-starter-api-python:api-users
+admin-starter-api-python:api-admins
 ```
 
 Use Organizations when the product needs B2B tenants, customer workspaces,
@@ -71,7 +78,7 @@ Keycloak to authenticate users or issue tokens.
 For this project:
 
 - `admin-starter-web` is the browser-facing React Router app.
-- `admin-starter-api` represents the FastAPI resource server and token
+- `admin-starter-api-python` represents the FastAPI resource server and token
   audience.
 - `admin-starter-mobile` is the Expo mobile app.
 
@@ -100,7 +107,7 @@ authorization because the role's owner is clear:
 
 ```text
 admin-starter-web:Admins
-admin-starter-api:api-admins
+admin-starter-api-python:api-admins
 ```
 
 Use client roles for:
@@ -111,7 +118,7 @@ Use client roles for:
 - coarse product permissions
 
 The web app should read `admin-starter-web` roles. The API should read
-`admin-starter-api` roles. Mobile can display UI from token claims, but the API
+`admin-starter-api-python` roles. Mobile can display UI from token claims, but the API
 must still enforce permissions server-side.
 
 ### Composite Roles
@@ -124,8 +131,8 @@ Example:
 ```text
 admin-starter-web:Admins
   includes admin-starter-web:Users
-  includes admin-starter-api:api-users
-  includes admin-starter-api:api-admins
+  includes admin-starter-api-python:api-users
+  includes admin-starter-api-python:api-admins
 ```
 
 Composite roles are useful when one role should imply another. They can also
@@ -154,12 +161,12 @@ Recommended groups:
 Application Users
   role mappings:
     admin-starter-web:Users
-    admin-starter-api:api-users
+    admin-starter-api-python:api-users
 
 Application Admins
   role mappings:
     admin-starter-web:Admins
-    admin-starter-api:api-admins
+    admin-starter-api-python:api-admins
 ```
 
 Use groups for:
@@ -191,7 +198,7 @@ FastAPI
   enforces API roles
   enforces tenant and resource ownership
 
-Database
+Postgres
   stores app data
   scopes records by user id, organization id, or tenant id
 ```
@@ -224,7 +231,7 @@ Client roles commonly appear in access tokens under `resource_access`:
     "admin-starter-web": {
       "roles": ["Users"]
     },
-    "admin-starter-api": {
+    "admin-starter-api-python": {
       "roles": ["api-users"]
     }
   }
@@ -246,12 +253,12 @@ mobile client should include the API audience:
 
 ```json
 {
-  "aud": ["admin-starter-api"]
+  "aud": ["admin-starter-api-python"]
 }
 ```
 
 FastAPI should validate `iss`, `aud`, signature, expiration, and required
-roles. A token that lacks `admin-starter-api` in `aud` should not be accepted by
+roles. A token that lacks `admin-starter-api-python` in `aud` should not be accepted by
 the API.
 
 ## Organizations
@@ -270,7 +277,7 @@ Use Organizations for:
 - organization claims in tokens
 
 Organizations are not a replacement for application data permissions. The app
-and API still need tenant-scoped database records and server-side authorization.
+and API still need tenant-scoped Postgres records and server-side authorization.
 
 ### Organization Claims
 
@@ -365,7 +372,7 @@ Pros:
 Cons:
 
 - not a hard isolation boundary
-- app/API/database must enforce tenant isolation carefully
+- app/API/Postgres must enforce tenant isolation carefully
 - tenant-specific policies may require more custom logic
 
 Use this when tenants share the same product, same deployment, same auth
@@ -427,16 +434,16 @@ FastAPI should:
 
 1. Validate token signature against Keycloak JWKS.
 2. Validate `iss`.
-3. Validate `aud` includes `admin-starter-api`.
-4. Validate the user has `admin-starter-api:api-users` or
-   `admin-starter-api:api-admins`.
+3. Validate `aud` includes `admin-starter-api-python`.
+4. Validate the user has `admin-starter-api-python:api-users` or
+   `admin-starter-api-python:api-admins`.
 5. Validate the token organization claim includes `acme`, or look up
    membership server-side.
 6. Query data with a tenant filter such as `organization_id = acme-id`.
 7. Apply resource ownership or admin checks before returning data.
 
 Never trust a path like `/organizations/acme` by itself. The path is only the
-requested tenant. The token and database decide whether access is allowed.
+requested tenant. The token and Postgres decide whether access is allowed.
 
 ## Authorization Services
 
@@ -464,7 +471,7 @@ Clients:
 
 ```text
 admin-starter-web
-admin-starter-api
+admin-starter-api-python
 admin-starter-mobile
 ```
 
@@ -500,7 +507,7 @@ initech
 ```
 
 Prefer immutable organization aliases. If a company changes its display name,
-change the display name, not the alias used by URLs and database records.
+change the display name, not the alias used by URLs and Postgres records.
 
 ## Common Mistakes
 
@@ -519,14 +526,14 @@ change the display name, not the alias used by URLs and database records.
 ## Setup Checklist
 
 - Create realm `admin-starter`.
-- Create clients `admin-starter-web`, `admin-starter-api`, and
+- Create clients `admin-starter-web`, `admin-starter-api-python`, and
   `admin-starter-mobile`.
 - Create web roles `Users` and `Admins`.
 - Create API roles `api-users` and `api-admins`.
 - Create groups `Application Users` and `Application Admins`.
 - Assign client roles to groups.
 - Add users to groups, not directly to roles, unless testing.
-- Create `admin-starter-api-audience` client scope.
+- Create `admin-starter-api-python-audience` client scope.
 - Add the API audience scope to web and mobile clients.
 - Keep `Full scope allowed` off once role scope mappings are explicit.
 - Add organizations when tenant membership is needed.

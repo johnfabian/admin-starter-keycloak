@@ -7,8 +7,8 @@ infrastructure for this project, with special attention to Keycloak.
 
 Back up these things:
 
-- Keycloak Postgres database
-- application Postgres database
+- Keycloak database
+- application database
 - Keycloak realm export snapshots
 - production `.env` or platform secret values
 - Traefik ACME certificate storage in production
@@ -24,26 +24,26 @@ systems.
 The default local Docker stack uses:
 
 ```text
-Compose file: docker/docker-compose.yml
+Compose file: postgres/docker-compose.yml
 Postgres container: app-postgres
 Keycloak container: app-keycloak
 Docker volume: admin-starter-keycloak_postgres_data
-App database: admin_starter
+App database: value of `POSTGRES_DB`
 Keycloak database: keycloak
 ```
 
 The local Traefik stack uses:
 
 ```text
-Compose file: docker/docker-compose.traefik.yml
+Compose file: postgres/docker-compose.gateway.yml
 Postgres container: app-traefik-postgres
 Keycloak container: app-traefik-keycloak
-Docker volume: admin-starter-keycloak-traefik_postgres_traefik_data
-App database: admin_starter
+Docker volume: admin-starter-postgres-traefik-data
+App database: value of `POSTGRES_DB`
 Keycloak database: keycloak
 ```
 
-Manual Keycloak admin-console changes are stored in the `keycloak` database
+Manual Keycloak admin-console changes are stored in the `keycloak` Postgres
 inside the relevant Postgres volume. They are not stored in Git.
 
 `docker compose down` keeps named volumes. `docker compose down -v` removes
@@ -87,8 +87,8 @@ It checks both local stacks:
 
 For each running stack, it backs up:
 
-- `keycloak` database
-- `admin_starter` database
+- `keycloak` Postgres
+- app database from the active stack env file, usually `POSTGRES_DB`
 - all databases with `pg_dumpall`
 
 Stacks that are not running are skipped. The script uses `POSTGRES_USER` if it
@@ -111,12 +111,16 @@ timestamped backup directory.
 
 ## Local Postgres Backup
 
+The examples below use `admin_starter` as the app database name. If your active
+env file uses a different `POSTGRES_DB`, replace `admin_starter` with that
+database name.
+
 ### Default Stack
 
 Back up the Keycloak database:
 
 ```bash
-docker exec app-postgres pg_dump -U postgres -d keycloak -F c -f /tmp/keycloak.dump
+docker exec app-postgres pg_dump -U "${POSTGRES_USER:-postgres}" -d keycloak -F c -f /tmp/keycloak.dump
 docker cp app-postgres:/tmp/keycloak.dump ./backups/postgres/keycloak.dump
 docker exec app-postgres rm /tmp/keycloak.dump
 ```
@@ -124,7 +128,7 @@ docker exec app-postgres rm /tmp/keycloak.dump
 Back up the app database:
 
 ```bash
-docker exec app-postgres pg_dump -U postgres -d admin_starter -F c -f /tmp/admin_starter.dump
+docker exec app-postgres pg_dump -U "${POSTGRES_USER:-postgres}" -d admin_starter -F c -f /tmp/admin_starter.dump
 docker cp app-postgres:/tmp/admin_starter.dump ./backups/postgres/admin_starter.dump
 docker exec app-postgres rm /tmp/admin_starter.dump
 ```
@@ -132,7 +136,7 @@ docker exec app-postgres rm /tmp/admin_starter.dump
 Back up all databases in SQL form:
 
 ```bash
-docker exec app-postgres pg_dumpall -U postgres -f /tmp/all-databases.sql
+docker exec app-postgres pg_dumpall -U "${POSTGRES_USER:-postgres}" -f /tmp/all-databases.sql
 docker cp app-postgres:/tmp/all-databases.sql ./backups/postgres/all-databases.sql
 docker exec app-postgres rm /tmp/all-databases.sql
 ```
@@ -142,7 +146,7 @@ docker exec app-postgres rm /tmp/all-databases.sql
 Back up the Keycloak database:
 
 ```bash
-docker exec app-traefik-postgres pg_dump -U postgres -d keycloak -F c -f /tmp/keycloak-traefik.dump
+docker exec app-traefik-postgres pg_dump -U "${POSTGRES_USER:-postgres}" -d keycloak -F c -f /tmp/keycloak-traefik.dump
 docker cp app-traefik-postgres:/tmp/keycloak-traefik.dump ./backups/postgres/keycloak-traefik.dump
 docker exec app-traefik-postgres rm /tmp/keycloak-traefik.dump
 ```
@@ -150,7 +154,7 @@ docker exec app-traefik-postgres rm /tmp/keycloak-traefik.dump
 Back up the app database:
 
 ```bash
-docker exec app-traefik-postgres pg_dump -U postgres -d admin_starter -F c -f /tmp/admin_starter-traefik.dump
+docker exec app-traefik-postgres pg_dump -U "${POSTGRES_USER:-postgres}" -d admin_starter -F c -f /tmp/admin_starter-traefik.dump
 docker cp app-traefik-postgres:/tmp/admin_starter-traefik.dump ./backups/postgres/admin_starter-traefik.dump
 docker exec app-traefik-postgres rm /tmp/admin_starter-traefik.dump
 ```
@@ -158,7 +162,7 @@ docker exec app-traefik-postgres rm /tmp/admin_starter-traefik.dump
 Back up all databases in SQL form:
 
 ```bash
-docker exec app-traefik-postgres pg_dumpall -U postgres -f /tmp/all-databases-traefik.sql
+docker exec app-traefik-postgres pg_dumpall -U "${POSTGRES_USER:-postgres}" -f /tmp/all-databases-traefik.sql
 docker cp app-traefik-postgres:/tmp/all-databases-traefik.sql ./backups/postgres/all-databases-traefik.sql
 docker exec app-traefik-postgres rm /tmp/all-databases-traefik.sql
 ```
@@ -191,8 +195,8 @@ CONFIRM_RESTORE=keycloak bash scripts/restore-keycloak-local-traefik.sh ./backup
 The target Postgres container must be running before the restore script runs:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env.development up -d postgres
-docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik up -d postgres
+docker compose -f postgres/docker-compose.yml --env-file .env.development up -d --wait
+docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik up -d --wait
 ```
 
 ### Default Stack Restore
@@ -200,28 +204,29 @@ docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik up -
 Stop services:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env.development down
+docker compose -f auth-server/docker-compose.yml --env-file .env.development down
+docker compose -f postgres/docker-compose.yml --env-file .env.development down
 ```
 
 Reset the local volume:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env.development down -v
+docker compose -f postgres/docker-compose.yml --env-file .env.development down -v
 ```
 
 Start Postgres:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env.development up -d postgres
+docker compose -f postgres/docker-compose.yml --env-file .env.development up -d --wait
 ```
 
 Copy and restore the Keycloak database:
 
 ```bash
 docker cp ./backups/postgres/keycloak.dump app-postgres:/tmp/keycloak.dump
-docker exec app-postgres dropdb -U postgres --if-exists keycloak
-docker exec app-postgres createdb -U postgres keycloak
-docker exec app-postgres pg_restore -U postgres -d keycloak --clean --if-exists /tmp/keycloak.dump
+docker exec app-postgres dropdb -U "${POSTGRES_USER:-postgres}" --if-exists keycloak
+docker exec app-postgres createdb -U "${POSTGRES_USER:-postgres}" keycloak
+docker exec app-postgres pg_restore -U "${POSTGRES_USER:-postgres}" -d keycloak --clean --if-exists /tmp/keycloak.dump
 docker exec app-postgres rm /tmp/keycloak.dump
 ```
 
@@ -229,16 +234,17 @@ Copy and restore the app database:
 
 ```bash
 docker cp ./backups/postgres/admin_starter.dump app-postgres:/tmp/admin_starter.dump
-docker exec app-postgres dropdb -U postgres --if-exists admin_starter
-docker exec app-postgres createdb -U postgres admin_starter
-docker exec app-postgres pg_restore -U postgres -d admin_starter --clean --if-exists /tmp/admin_starter.dump
+docker exec app-postgres dropdb -U "${POSTGRES_USER:-postgres}" --if-exists admin_starter
+docker exec app-postgres createdb -U "${POSTGRES_USER:-postgres}" admin_starter
+docker exec app-postgres pg_restore -U "${POSTGRES_USER:-postgres}" -d admin_starter --clean --if-exists /tmp/admin_starter.dump
 docker exec app-postgres rm /tmp/admin_starter.dump
 ```
 
 Start the full stack:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env.development up -d --wait
+corepack pnpm db:up
+corepack pnpm auth:up
 ```
 
 ### Traefik Stack Restore
@@ -246,22 +252,23 @@ docker compose -f docker/docker-compose.yml --env-file .env.development up -d --
 Stop and reset:
 
 ```bash
-docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik down -v
+docker compose -f auth-server/docker-compose.gateway.yml --env-file .env.traefik down
+docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik down -v
 ```
 
 Start Postgres:
 
 ```bash
-docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik up -d postgres
+docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik up -d --wait
 ```
 
 Restore the Keycloak database:
 
 ```bash
 docker cp ./backups/postgres/keycloak-traefik.dump app-traefik-postgres:/tmp/keycloak-traefik.dump
-docker exec app-traefik-postgres dropdb -U postgres --if-exists keycloak
-docker exec app-traefik-postgres createdb -U postgres keycloak
-docker exec app-traefik-postgres pg_restore -U postgres -d keycloak --clean --if-exists /tmp/keycloak-traefik.dump
+docker exec app-traefik-postgres dropdb -U "${POSTGRES_USER:-postgres}" --if-exists keycloak
+docker exec app-traefik-postgres createdb -U "${POSTGRES_USER:-postgres}" keycloak
+docker exec app-traefik-postgres pg_restore -U "${POSTGRES_USER:-postgres}" -d keycloak --clean --if-exists /tmp/keycloak-traefik.dump
 docker exec app-traefik-postgres rm /tmp/keycloak-traefik.dump
 ```
 
@@ -269,16 +276,16 @@ Restore the app database:
 
 ```bash
 docker cp ./backups/postgres/admin_starter-traefik.dump app-traefik-postgres:/tmp/admin_starter-traefik.dump
-docker exec app-traefik-postgres dropdb -U postgres --if-exists admin_starter
-docker exec app-traefik-postgres createdb -U postgres admin_starter
-docker exec app-traefik-postgres pg_restore -U postgres -d admin_starter --clean --if-exists /tmp/admin_starter-traefik.dump
+docker exec app-traefik-postgres dropdb -U "${POSTGRES_USER:-postgres}" --if-exists admin_starter
+docker exec app-traefik-postgres createdb -U "${POSTGRES_USER:-postgres}" admin_starter
+docker exec app-traefik-postgres pg_restore -U "${POSTGRES_USER:-postgres}" -d admin_starter --clean --if-exists /tmp/admin_starter-traefik.dump
 docker exec app-traefik-postgres rm /tmp/admin_starter-traefik.dump
 ```
 
 Start the full stack:
 
 ```bash
-docker compose -f docker/docker-compose.traefik.yml --env-file .env.traefik up -d --build --wait
+corepack pnpm dev:gateway
 ```
 
 ## Keycloak Realm Export Snapshot
@@ -293,7 +300,7 @@ backup. Keycloak's official docs note that import/export has limitations:
 - exported data does not include revoked tokens
 - Admin Console partial export masks sensitive values and does not export users
 
-Use database backups for recovery. Use realm exports for review, reference, and
+Use Postgres backups for recovery. Use realm exports for review, reference, and
 recreating configuration.
 
 ### Admin Console Partial Export
@@ -312,7 +319,7 @@ Do not commit the export unless it has been reviewed and sanitized.
 ### CLI Export
 
 For a more complete export, stop Keycloak and run a CLI export against the
-database. The exact command depends on how the container is launched and where
+Postgres. The exact command depends on how the container is launched and where
 the export directory is mounted.
 
 General Keycloak command shape:
@@ -322,7 +329,7 @@ General Keycloak command shape:
 ```
 
 For production, run exports in a maintenance window or from a dedicated export
-job that connects to the database while Keycloak is stopped.
+job that connects to the Postgres while Keycloak is stopped.
 
 ## Production Backup Strategy
 
@@ -361,7 +368,7 @@ For a full production recovery:
 2. Restore secrets.
 3. Restore Postgres.
 4. Restore or mount Traefik ACME storage if applicable.
-5. Deploy Keycloak pointing at the restored database.
+5. Deploy Keycloak pointing at the restored Postgres.
 6. Confirm Keycloak realm, clients, users, roles, and groups exist.
 7. Deploy the app and API.
 8. Run smoke tests.
@@ -407,7 +414,7 @@ Terraform cannot restore:
 - password history
 - live operational state
 
-Use Terraform plus database backups:
+Use Terraform plus Postgres backups:
 
 ```text
 Terraform: what the config should be
@@ -427,7 +434,7 @@ Suggested local drill:
 4. Log in through the app.
 5. Back up the Keycloak database.
 6. Run `docker compose down -v` for the test stack.
-7. Restore the database.
+7. Restore the Postgres.
 8. Start the stack.
 9. Confirm the test user, clients, roles, groups, and login flow still work.
 
@@ -439,11 +446,11 @@ but honest.
 - Never run `docker compose down -v` on production.
 - Never run `docker system prune --volumes` on a production host.
 - Never restore into production without a fresh backup of the current state.
-- Never commit database dumps, realm exports with secrets, `.env` files, or
+- Never commit Postgres dumps, realm exports with secrets, `.env` files, or
   Terraform state.
 - Always verify backup files exist and are non-empty.
 - Always test restore commands in a non-production environment.
-- Always record which app image, Keycloak image, and database backup belong
+- Always record which app image, Keycloak image, and Postgres backup belong
   together.
 
 ## References
@@ -454,5 +461,5 @@ but honest.
   [keycloak-terraform.md](keycloak-terraform.md)
 - Production deployment guide:
   [production-deployment.md](production-deployment.md)
-- Docker infrastructure notes:
-  [../docker/README.md](../docker/README.md)
+- Auth server infrastructure notes:
+  [../auth-server/README.md](../auth-server/README.md)
