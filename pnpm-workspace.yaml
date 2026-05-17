@@ -1,13 +1,13 @@
 packages:
-  - "web"
-  - "api-python"
-  - "api-express"
-  - "api-dotnet"
-  - "mobile"
+- "web"
+- "api-python"
+- "api-express"
+- "api-dotnet"
+- "mobile"
 
 # Supply-chain hardening.
 # See docs/supply-chain-security.md before relaxing these settings.
-minimumReleaseAge: 10080
+minimumReleaseAge: 10080 #7 days
 minimumReleaseAgeStrict: true
 minimumReleaseAgeIgnoreMissingTime: false
 blockExoticSubdeps: true
