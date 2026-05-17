@@ -4,6 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@11.1.2",
   "scripts": {
+    "build": "corepack pnpm web:build",
     "dev": "corepack pnpm db:up && corepack pnpm auth:up && echo Frontend: http://localhost:5173 && echo Keycloak: http://localhost:8080 && corepack pnpm web:dev",
     "dev:gateway": "corepack pnpm gateway:up && corepack pnpm db:gateway:up && corepack pnpm auth:gateway:up && corepack pnpm web:gateway:up && echo App: http://app.localhost && echo Keycloak: http://auth.localhost && echo Traefik: http://localhost:8081",
     "dev:gateway:down": "corepack pnpm web:gateway:down && corepack pnpm auth:gateway:down && corepack pnpm db:gateway:down && corepack pnpm gateway:down",
