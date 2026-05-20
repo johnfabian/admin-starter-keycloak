@@ -1,0 +1,19 @@
+name: admin-starter-local-mail-server
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: app-mailpit
+    restart: unless-stopped
+    environment:
+      MP_DATABASE: /data/mailpit.db
+      MP_MAX_MESSAGES: 5000
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - mailpit_data:/data
+
+volumes:
+  mailpit_data:
+    name: admin-starter-mailpit_data

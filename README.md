@@ -10,6 +10,7 @@ layer for web authentication.
 postgres/      Shared Postgres Compose files
 auth-server/   Keycloak Compose files
 api-gateway/   Traefik Compose file
+local-mail-server/  Mailpit local SMTP inbox Compose file
 api-python/    FastAPI placeholder
 api-express/   Express API placeholder
 api-dotnet/    .NET API placeholder
@@ -151,17 +152,18 @@ Install dependencies:
 corepack pnpm install
 ```
 
-Start Postgres, Keycloak, and the React Router dev server:
+Start Mailpit, Postgres, Keycloak, and the React Router dev server:
 
 ```bash
 corepack pnpm dev
 ```
 
-The dev script prints both local URLs:
+The dev script prints local URLs:
 
 ```text
 Frontend: http://localhost:5173
 Keycloak: http://localhost:8080
+Mailpit: http://localhost:8025
 ```
 
 ## Keycloak Setup
@@ -207,11 +209,14 @@ corepack pnpm plan:new -- "keycloak auth splash users dashboard"
 ## Scripts
 
 ```bash
-corepack pnpm dev               # start Postgres, auth, and the web dev server
-corepack pnpm dev:gateway       # start Traefik, gateway Postgres, auth, and web
+corepack pnpm dev               # start Mailpit, Postgres, auth, and web
+corepack pnpm dev:gateway       # start Mailpit, Traefik, gateway Postgres, auth, and web
 corepack pnpm web:typecheck     # generate route types and run TypeScript
 corepack pnpm web:build         # production web build
 corepack pnpm web:start         # serve the production web build
+corepack pnpm mail:up           # start local Mailpit SMTP inbox
+corepack pnpm mail:down         # stop local Mailpit SMTP inbox
+corepack pnpm mail:logs         # follow local Mailpit logs
 corepack pnpm db:up             # start local shared Postgres
 corepack pnpm db:down           # stop local shared Postgres
 corepack pnpm auth:up           # start local Keycloak
