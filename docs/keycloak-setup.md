@@ -847,6 +847,8 @@ Recommended starting point for Todos:
   <https://docs.expo.dev/versions/latest/sdk/securestore/>
 - Local roles and permissions guide:
   [keycloak-roles-and-permissions.md](keycloak-roles-and-permissions.md)
+- Local email verification setup:
+  [keycloak-email-verification.md](keycloak-email-verification.md)
 - Keycloak securing applications and services:
   <https://www.keycloak.org/docs/latest/securing_apps/>
 - Keycloak server administration:

@@ -168,6 +168,9 @@ Keycloak: http://localhost:8080
 
 See [docs/keycloak-setup.md](docs/keycloak-setup.md).
 
+For local SMTP, email verification, and forgot-password testing, see
+[docs/keycloak-email-verification.md](docs/keycloak-email-verification.md).
+
 For production planning, deployment steps, and hardening checklist, see
 [docs/production-deployment.md](docs/production-deployment.md).
 
