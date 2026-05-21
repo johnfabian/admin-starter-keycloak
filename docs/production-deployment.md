@@ -60,14 +60,21 @@ WEB_AUTH_POST_LOGIN_REDIRECT_URI=https://app.example.com/users/dashboard
 WEB_AUTH_POST_LOGOUT_REDIRECT_URI=https://app.example.com
 
 WEB_SESSION_SECRET=<long-random-secret>
+WEB_DATABASE_URL=<postgres-connection-string>
+WEB_TOKEN_ENCRYPTION_KEY=<second-long-random-secret>
+WEB_RESOURCE_SERVER_BASE_URL=<resource-server-url>
+WEB_KEYCLOAK_API_AUDIENCE=<resource-server-audience>
+WEB_TOKEN_REFRESH_LEEWAY_SECONDS=60
+WEB_SESSION_LAST_SEEN_UPDATE_SECONDS=300
 ```
 
 If the Keycloak client is public with PKCE, `WEB_KEYCLOAK_CLIENT_SECRET` can stay
 empty. If the client is confidential, store the secret only in the server-side
 runtime environment.
 
-Generate `WEB_SESSION_SECRET` with a cryptographically strong random value. Do not
-commit production secrets to the repository.
+Generate `WEB_SESSION_SECRET` and `WEB_TOKEN_ENCRYPTION_KEY` with
+cryptographically strong random values. Do not commit production secrets to the
+repository.
 
 ## Local Traefik Test Stack
 
@@ -340,17 +347,15 @@ Before production launch:
 
 - Use HTTPS-only production URLs in app and Keycloak configuration.
 - Use a long random `WEB_SESSION_SECRET`.
+- Use a separate long random `WEB_TOKEN_ENCRYPTION_KEY`.
 - Confirm the session cookie is `HttpOnly`, `SameSite=Lax`, and `Secure`.
 - Confirm `/auth/callback` rejects invalid or missing `state`.
 - Confirm login works after browser restart.
-- Confirm logout behavior is acceptable for launch.
+- Confirm logout is POST-only and redirects through Keycloak logout.
 - Confirm unauthorized users are redirected to `/forbidden`.
 - Confirm Admin routes require the `Admins` client role.
 - Confirm no Keycloak tokens are stored in `localStorage`.
-- Add server-side session storage before forwarding Keycloak tokens to a future
-  API/resource server.
-- Add full Keycloak SSO logout when the server stores `id_token` for
-  `id_token_hint`.
+- Confirm browser cookies contain only the opaque BFF session id, not tokens.
 - Add app-level audit logging before sensitive admin workflows go live.
 
 ## Deployment Steps
@@ -378,7 +383,7 @@ After each production deploy:
 - Visit `/admins/dashboard` as a non-admin and confirm access is denied.
 - Log in as an Admin and confirm `/admins/dashboard` loads.
 - Click Register and confirm the intended Keycloak registration behavior.
-- Click Logout and confirm the local app session clears.
+- Click Logout and confirm the local BFF session clears and Keycloak ends SSO.
 - Restart the app container and confirm existing users can still sign in.
 
 ## Backups And Recovery
@@ -405,10 +410,7 @@ Known items from the current proof of concept:
 
 - The included Traefik Compose stack is local HTTP only. Create a hardened
   DigitalOcean production Compose file or deployment manifest before launch.
-- Logout currently clears only the app session; full Keycloak SSO logout still
-  needs server-side storage for `id_token_hint`.
-- Keycloak tokens are not persisted server-side yet; add server-side sessions
-  before calling a resource API on behalf of the user.
-- App database schema and migrations are not defined yet.
+- Formal app database migrations are not defined yet; the BFF session table is
+  created lazily by the web server.
 - Health checks for the app container are not defined yet.
 - Production observability, backups, and restore tests are not configured yet.

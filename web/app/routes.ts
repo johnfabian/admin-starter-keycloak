@@ -14,4 +14,5 @@ export default [
   route(appRoutePatterns.authCallback, appRouteModules.authCallback),
   route(appRoutePatterns.authAccount, appRouteModules.authAccount),
   route(appRoutePatterns.authLogout, appRouteModules.authLogout),
+  route(appRoutePatterns.chromeDevtools, appRouteModules.chromeDevtools),
 ] satisfies RouteConfig;

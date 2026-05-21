@@ -1,101 +1,120 @@
-import crypto from "node:crypto";
-
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import { redirect } from "react-router";
 
 import { appRoutes } from "~/lib/app-settings.shared";
 import { hasAnyRole, hasRole } from "~/lib/auth-policy.shared";
+import {
+  assertSameOriginPost,
+  getRequestPath,
+  normalizeReturnTo,
+} from "~/lib/server/auth-request.server";
+import {
+  createBffSession,
+  deleteBffSession,
+  getBffSession,
+  updateBffSession,
+  type BffSession,
+} from "~/lib/server/bff-session.service.server";
 import { getAuthConfig, getIssuerUrl, hasAuthConfig } from "~/lib/server/auth-config.server";
+import { buildCurrentUser, getRolesFromTokenPayload } from "~/lib/server/current-user.server";
+import {
+  assertAccessTokenClient,
+  createAuthorizationCodeParams,
+  createRefreshTokenParams,
+  createTokenRequestBody,
+  createTokenSet,
+  requestToken,
+  shouldRefreshAccessToken,
+  verifyToken,
+} from "~/lib/server/oauth-token.service.server";
+import {
+  createCodeChallenge,
+  createRandomToken,
+  pkceCodeChallengeMethod,
+} from "~/lib/server/oauth-pkce.server";
 import { commitSession, destroySession, getSession } from "~/lib/server/session-storage.server";
-import { getStringValue, joinNonEmpty, toBase64Url } from "~/lib/string-helper.shared";
 import type { CurrentUser } from "~/models/current-user";
 
-interface TokenResponse {
-  access_token: string;
-  id_token: string;
-}
+const AUTH_FLOW_CONFIG = {
+  authorizationPath: "/protocol/openid-connect/auth",
+  logoutPath: "/protocol/openid-connect/logout",
+  queryParams: {
+    clientId: "client_id",
+    codeChallenge: "code_challenge",
+    codeChallengeMethod: "code_challenge_method",
+    idTokenHint: "id_token_hint",
+    keycloakAction: "kc_action",
+    postLogoutRedirectUri: "post_logout_redirect_uri",
+    prompt: "prompt",
+    redirectUri: "redirect_uri",
+    responseType: "response_type",
+    returnTo: "returnTo",
+    scope: "scope",
+    state: "state",
+  },
+  responseTypes: {
+    code: "code",
+  },
+  scopes: {
+    defaultLogin: "openid profile email",
+  },
+  sessionKeys: {
+    codeVerifier: "codeVerifier",
+    returnTo: "returnTo",
+    sessionId: "sessionId",
+  },
+  values: {
+    promptLogin: "login",
+    registerAction: "register",
+  },
+} as const;
 
-function randomToken() {
-  return toBase64Url(crypto.randomBytes(32).toString("base64"));
-}
+type AuthAction = typeof AUTH_FLOW_CONFIG.values.registerAction;
 
-function createCodeChallenge(codeVerifier: string) {
-  const challenge = crypto.createHash("sha256").update(codeVerifier).digest("base64");
-  return toBase64Url(challenge);
-}
+async function refreshSessionIfNeeded(session: BffSession) {
+  if (!shouldRefreshAccessToken(session.tokens)) return session;
 
-function getRequestPath(request: Request) {
-  const url = new URL(request.url);
-  return `${url.pathname}${url.search}`;
-}
+  const refreshedTokens = await requestToken(
+    createTokenRequestBody(createRefreshTokenParams(session.tokens.refreshToken))
+  );
 
-function normalizeReturnTo(returnTo: string | null) {
-  const { postLoginRedirectUri } = getAuthConfig();
-  if (!returnTo) return new URL(postLoginRedirectUri).pathname;
-
-  try {
-    const parsed = new URL(returnTo, postLoginRedirectUri);
-    if (parsed.origin !== new URL(postLoginRedirectUri).origin) {
-      return new URL(postLoginRedirectUri).pathname;
-    }
-
-    return `${parsed.pathname}${parsed.search}`;
-  } catch {
-    return new URL(postLoginRedirectUri).pathname;
+  if (!refreshedTokens) {
+    await deleteBffSession(session.id);
+    return null;
   }
+
+  const tokens = createTokenSet(refreshedTokens, session.tokens);
+  const { resourceServerAudience } = getAuthConfig();
+  const accessPayload = await verifyToken(tokens.accessToken, resourceServerAudience || undefined);
+  assertAccessTokenClient(accessPayload);
+
+  const user = { ...session.user, roles: getRolesFromTokenPayload(accessPayload) };
+  if (accessPayload.sub && accessPayload.sub !== session.user.id) {
+    await deleteBffSession(session.id);
+    return null;
+  }
+
+  const updatedSession = { ...session, tokens, user };
+  await updateBffSession(updatedSession);
+
+  return updatedSession;
 }
 
-function getRoles(payload: JWTPayload) {
-  const { clientId } = getAuthConfig();
-  const resourceAccess = payload.resource_access;
-  if (!resourceAccess || typeof resourceAccess !== "object") return [];
+export async function getCurrentSession(request: Request) {
+  if (!hasAuthConfig()) return null;
 
-  const clientAccess = (resourceAccess as Record<string, unknown>)[clientId];
-  if (!clientAccess || typeof clientAccess !== "object") return [];
+  const cookieSession = await getSession(request.headers.get("Cookie"));
+  const sessionId = cookieSession.get(AUTH_FLOW_CONFIG.sessionKeys.sessionId);
 
-  const roles = (clientAccess as Record<string, unknown>).roles;
-  if (!Array.isArray(roles)) return [];
+  if (!sessionId) return null;
 
-  return roles.filter((role): role is string => typeof role === "string");
-}
+  const session = await getBffSession(sessionId);
+  if (!session) return null;
 
-function buildCurrentUser(idPayload: JWTPayload, accessPayload: JWTPayload): CurrentUser {
-  const firstName = getStringValue(idPayload, "given_name");
-  const lastName = getStringValue(idPayload, "family_name");
-  const preferredUsername = getStringValue(idPayload, "preferred_username");
-  const name =
-    getStringValue(idPayload, "name") ||
-    joinNonEmpty([firstName, lastName]) ||
-    preferredUsername ||
-    getStringValue(idPayload, "email");
-
-  return {
-    id: idPayload.sub || "",
-    firstName,
-    lastName,
-    name,
-    email: getStringValue(idPayload, "email"),
-    image: getStringValue(idPayload, "picture") || null,
-    roles: getRoles(accessPayload),
-  };
-}
-
-async function verifyToken(token: string, expectedAudience?: string) {
-  const { issuer } = getAuthConfig();
-  const jwks = createRemoteJWKSet(new URL(getIssuerUrl("/protocol/openid-connect/certs")));
-  const result = await jwtVerify(token, jwks, {
-    issuer,
-    audience: expectedAudience,
-  });
-
-  return result.payload;
+  return refreshSessionIfNeeded(session);
 }
 
 export async function getCurrentUser(request: Request): Promise<CurrentUser | null> {
-  if (!hasAuthConfig()) return null;
-
-  const session = await getSession(request.headers.get("Cookie"));
-  return session.get("user") ?? null;
+  return (await getCurrentSession(request))?.user ?? null;
 }
 
 export async function requireUser(request: Request): Promise<CurrentUser> {
@@ -127,34 +146,53 @@ export async function requireAnyRole(request: Request, roles: string[]): Promise
   return user;
 }
 
-export async function redirectToLogin(request: Request, action?: "register") {
+export async function redirectToLogin(request: Request, action?: AuthAction) {
   const { clientId, redirectUri } = getAuthConfig();
   const session = await getSession(request.headers.get("Cookie"));
   const url = new URL(request.url);
-  const state = randomToken();
-  const codeVerifier = randomToken();
-  const returnTo = normalizeReturnTo(url.searchParams.get("returnTo"));
-  const prompt = url.searchParams.get("prompt");
+  const state = createRandomToken();
+  const codeVerifier = createRandomToken();
+  const returnTo = normalizeReturnTo(url.searchParams.get(AUTH_FLOW_CONFIG.queryParams.returnTo));
+  const prompt = url.searchParams.get(AUTH_FLOW_CONFIG.queryParams.prompt);
 
-  session.set("state", state);
-  session.set("codeVerifier", codeVerifier);
-  session.set("returnTo", returnTo);
+  session.unset(AUTH_FLOW_CONFIG.sessionKeys.sessionId);
+  session.set(AUTH_FLOW_CONFIG.queryParams.state, state);
+  session.set(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier, codeVerifier);
+  session.set(AUTH_FLOW_CONFIG.sessionKeys.returnTo, returnTo);
 
-  const authorizationUrl = new URL(getIssuerUrl("/protocol/openid-connect/auth"));
-  authorizationUrl.searchParams.set("client_id", clientId);
-  authorizationUrl.searchParams.set("redirect_uri", redirectUri);
-  authorizationUrl.searchParams.set("response_type", "code");
-  authorizationUrl.searchParams.set("scope", "openid profile email");
-  authorizationUrl.searchParams.set("state", state);
-  authorizationUrl.searchParams.set("code_challenge", createCodeChallenge(codeVerifier));
-  authorizationUrl.searchParams.set("code_challenge_method", "S256");
+  const authorizationUrl = new URL(getIssuerUrl(AUTH_FLOW_CONFIG.authorizationPath));
+  authorizationUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.clientId, clientId);
+  authorizationUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.redirectUri, redirectUri);
+  authorizationUrl.searchParams.set(
+    AUTH_FLOW_CONFIG.queryParams.responseType,
+    AUTH_FLOW_CONFIG.responseTypes.code
+  );
+  authorizationUrl.searchParams.set(
+    AUTH_FLOW_CONFIG.queryParams.scope,
+    AUTH_FLOW_CONFIG.scopes.defaultLogin
+  );
+  authorizationUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.state, state);
+  authorizationUrl.searchParams.set(
+    AUTH_FLOW_CONFIG.queryParams.codeChallenge,
+    createCodeChallenge(codeVerifier)
+  );
+  authorizationUrl.searchParams.set(
+    AUTH_FLOW_CONFIG.queryParams.codeChallengeMethod,
+    pkceCodeChallengeMethod
+  );
 
-  if (action === "register") {
-    authorizationUrl.searchParams.set("kc_action", "register");
+  if (action === AUTH_FLOW_CONFIG.values.registerAction) {
+    authorizationUrl.searchParams.set(
+      AUTH_FLOW_CONFIG.queryParams.keycloakAction,
+      AUTH_FLOW_CONFIG.values.registerAction
+    );
   }
 
-  if (prompt === "login") {
-    authorizationUrl.searchParams.set("prompt", "login");
+  if (prompt === AUTH_FLOW_CONFIG.values.promptLogin) {
+    authorizationUrl.searchParams.set(
+      AUTH_FLOW_CONFIG.queryParams.prompt,
+      AUTH_FLOW_CONFIG.values.promptLogin
+    );
   }
 
   throw redirect(authorizationUrl.toString(), {
@@ -165,48 +203,34 @@ export async function redirectToLogin(request: Request, action?: "register") {
 }
 
 export async function completeLogin(request: Request) {
-  const { clientId, clientSecret, redirectUri, postLoginRedirectUri } = getAuthConfig();
+  const { clientId, redirectUri, postLoginRedirectUri, resourceServerAudience } = getAuthConfig();
   const session = await getSession(request.headers.get("Cookie"));
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
-  const expectedState = session.get("state");
-  const codeVerifier = session.get("codeVerifier");
-  const returnTo = session.get("returnTo") || new URL(postLoginRedirectUri).pathname;
+  const state = url.searchParams.get(AUTH_FLOW_CONFIG.queryParams.state);
+  const expectedState = session.get(AUTH_FLOW_CONFIG.queryParams.state);
+  const codeVerifier = session.get(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier);
+  const returnTo =
+    session.get(AUTH_FLOW_CONFIG.sessionKeys.returnTo) || new URL(postLoginRedirectUri).pathname;
 
   if (!code || !state || !expectedState || !codeVerifier || state !== expectedState) {
     throw new Response("Invalid authentication callback.", { status: 400 });
   }
 
-  const body = new URLSearchParams({
-    client_id: clientId,
-    code,
-    code_verifier: codeVerifier,
-    grant_type: "authorization_code",
-    redirect_uri: redirectUri,
-  });
+  const tokenResponse = await requestToken(
+    createTokenRequestBody(createAuthorizationCodeParams(code, codeVerifier, redirectUri))
+  );
 
-  if (clientSecret) {
-    body.set("client_secret", clientSecret);
-  }
-
-  const tokenResponse = await fetch(getIssuerUrl("/protocol/openid-connect/token"), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
-
-  if (!tokenResponse.ok) {
+  if (!tokenResponse) {
     throw new Response("Could not complete authentication with Keycloak.", {
       status: 502,
     });
   }
 
-  const tokens = (await tokenResponse.json()) as TokenResponse;
-  const idPayload = await verifyToken(tokens.id_token, clientId);
-  const accessPayload = await verifyToken(tokens.access_token);
+  const tokens = createTokenSet(tokenResponse);
+  const idPayload = await verifyToken(tokens.idToken, clientId);
+  const accessPayload = await verifyToken(tokens.accessToken, resourceServerAudience || undefined);
+  assertAccessTokenClient(accessPayload);
   const user = buildCurrentUser(idPayload, accessPayload);
 
   if (!user.id) {
@@ -215,10 +239,12 @@ export async function completeLogin(request: Request) {
     });
   }
 
-  session.unset("state");
-  session.unset("codeVerifier");
-  session.unset("returnTo");
-  session.set("user", user);
+  const sessionId = await createBffSession(user, tokens);
+
+  session.unset(AUTH_FLOW_CONFIG.queryParams.state);
+  session.unset(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier);
+  session.unset(AUTH_FLOW_CONFIG.sessionKeys.returnTo);
+  session.set(AUTH_FLOW_CONFIG.sessionKeys.sessionId, sessionId);
 
   throw redirect(returnTo, {
     headers: {
@@ -228,12 +254,31 @@ export async function completeLogin(request: Request) {
 }
 
 export async function logout(request: Request) {
-  const { postLogoutRedirectUri } = getAuthConfig();
-  const session = await getSession(request.headers.get("Cookie"));
+  assertSameOriginPost(request);
 
-  throw redirect(postLogoutRedirectUri, {
+  const { clientId, postLogoutRedirectUri } = getAuthConfig();
+  const cookieSession = await getSession(request.headers.get("Cookie"));
+  const sessionId = cookieSession.get(AUTH_FLOW_CONFIG.sessionKeys.sessionId);
+  const bffSession = sessionId ? await getBffSession(sessionId) : null;
+
+  if (sessionId) {
+    await deleteBffSession(sessionId);
+  }
+
+  const logoutUrl = new URL(getIssuerUrl(AUTH_FLOW_CONFIG.logoutPath));
+  logoutUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.clientId, clientId);
+  logoutUrl.searchParams.set(
+    AUTH_FLOW_CONFIG.queryParams.postLogoutRedirectUri,
+    postLogoutRedirectUri
+  );
+
+  if (bffSession?.tokens.idToken) {
+    logoutUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.idTokenHint, bffSession.tokens.idToken);
+  }
+
+  throw redirect(logoutUrl.toString(), {
     headers: {
-      "Set-Cookie": await destroySession(session),
+      "Set-Cookie": await destroySession(cookieSession),
     },
   });
 }

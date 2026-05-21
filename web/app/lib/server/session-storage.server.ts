@@ -1,13 +1,12 @@
 import { createCookieSessionStorage } from "react-router";
 
 import { getAuthConfig } from "~/lib/server/auth-config.server";
-import type { CurrentUser } from "~/models/current-user";
 
 interface SessionData {
   state: string;
   codeVerifier: string;
   returnTo: string;
-  user: CurrentUser;
+  sessionId: string;
 }
 
 type SessionStorage = ReturnType<typeof createCookieSessionStorage<Partial<SessionData>>>;

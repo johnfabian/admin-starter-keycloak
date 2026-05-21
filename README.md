@@ -30,6 +30,7 @@ This app is currently shaped as a browser app plus a small Backend For Frontend
 Browser
   -> React Router BFF
     -> Keycloak
+    -> future resource server
 ```
 
 The BFF is the trusted server-side layer for the web app. It handles the
@@ -39,24 +40,15 @@ browser-unfriendly auth work:
 - receives the OIDC callback
 - exchanges the authorization code for tokens
 - validates tokens with Keycloak JWKS
-- stores a compact app user session in an HttpOnly cookie
+- stores an opaque session id in an HttpOnly cookie
+- stores encrypted Keycloak tokens in the server-side Postgres session table
+- refreshes access tokens server-side before resource server calls
 - protects routes with server loaders
 
-The browser does not read or store Keycloak tokens in `localStorage`.
-The current proof of concept does not persist Keycloak tokens in the cookie
-because browser cookies have small size limits. When the app needs to call a
-FastAPI/resource server with Keycloak tokens, move token storage to a server-side
-session table and keep only an opaque session id in the cookie.
-
-Logout currently clears the local app session and returns to the splash page.
-Full Keycloak SSO logout requires an `id_token_hint`; add server-side session
-storage for the ID token before redirecting through Keycloak's end-session
-endpoint.
-
-Because local logout does not end the Keycloak SSO session, protected-route
-redirects may silently sign the same Keycloak user back in. The visible Login
-button uses `/auth/login?prompt=login` to force Keycloak to show the login
-screen when you want to test credentials or switch users.
+The browser does not read or store Keycloak tokens in `localStorage`, loader
+JSON, or non-HttpOnly cookies. Logout is a POST action that clears the local BFF
+session and redirects through Keycloak's end-session endpoint when an ID token
+hint is available.
 
 ## Auth Flow
 
@@ -66,7 +58,7 @@ screen when you want to test credentials or switch users.
 3. User signs in with Keycloak
 4. Keycloak redirects to /auth/callback
 5. React Router server exchanges the code for tokens
-6. React Router server sets an HttpOnly session cookie
+6. React Router server stores tokens in Postgres and sets an HttpOnly session cookie
 7. User lands on /users/dashboard
 ```
 
@@ -79,17 +71,17 @@ Protected routes:
 - `/forbidden` displays when a signed-in user lacks the required role.
 
 Route modules are kept intentionally slim. They define `meta`, `loader`, and
-redirect behavior, then render page components from `web/app/components/pages`.
+redirect behavior, then render page components from `web/app/pages`.
 Shared page wrappers live in `web/app/layouts`. Protected loaders call
-centralized guards from `web/app/lib/route-guards.server.ts`.
+centralized guards from `web/app/lib/server/route-guards.server.ts`.
 
 Routes and access settings are centralized for reuse:
 
-- `web/app/lib/app-settings.ts` owns app name/title, route paths, route patterns,
+- `web/app/lib/app-settings.shared.ts` owns app name/title, route paths, route patterns,
   route module paths, role names, and route access groups.
-- `web/app/lib/auth-config.server.ts` owns server-only Keycloak/OIDC
+- `web/app/lib/server/auth-config.server.ts` owns server-only Keycloak/OIDC
   environment config and issuer URL helpers.
-- `web/app/lib/auth-policy.ts` owns reusable role and access checks.
+- `web/app/lib/auth-policy.shared.ts` owns reusable role and access checks.
 - `web/app/routes.ts` wires React Router from `appRoutePatterns` and
   `appRouteModules` instead of hardcoded route strings.
 
@@ -135,6 +127,12 @@ WEB_AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
 WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://localhost:5173/users/dashboard
 WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
 WEB_SESSION_SECRET=dev-admin-starter-keycloak-session-secret-change-me
+WEB_DATABASE_URL=postgresql://app:app@localhost:5434/admin_starter
+WEB_TOKEN_ENCRYPTION_KEY=dev-admin-starter-token-encryption-secret-change-me
+WEB_RESOURCE_SERVER_BASE_URL=http://localhost:8000
+WEB_KEYCLOAK_API_AUDIENCE=
+WEB_TOKEN_REFRESH_LEEWAY_SECONDS=60
+WEB_SESSION_LAST_SEEN_UPDATE_SECONDS=300
 ```
 
 Env names are intentionally scoped for multiple clients:

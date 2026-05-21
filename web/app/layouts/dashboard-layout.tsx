@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router";
 import {
   Blocks,
   Home,
-  LogOut,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { LogoutMenuItem } from "~/components/logout-control";
 import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -278,12 +278,7 @@ function DashboardUserMenu({ user }: { user: CurrentUser }) {
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="text-red-600 focus:text-red-700 dark:text-red-400">
-          <a href={appRoutes.authLogout}>
-            <LogOut className="size-4" aria-hidden="true" />
-            Logout
-          </a>
-        </DropdownMenuItem>
+        <LogoutMenuItem />
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -18,6 +18,12 @@ services:
       WEB_AUTH_POST_LOGIN_REDIRECT_URI: ${WEB_AUTH_POST_LOGIN_REDIRECT_URI}
       WEB_AUTH_POST_LOGOUT_REDIRECT_URI: ${WEB_AUTH_POST_LOGOUT_REDIRECT_URI}
       WEB_SESSION_SECRET: ${WEB_SESSION_SECRET}
+      WEB_DATABASE_URL: ${WEB_DATABASE_URL}
+      WEB_TOKEN_ENCRYPTION_KEY: ${WEB_TOKEN_ENCRYPTION_KEY}
+      WEB_RESOURCE_SERVER_BASE_URL: ${WEB_RESOURCE_SERVER_BASE_URL}
+      WEB_KEYCLOAK_API_AUDIENCE: ${WEB_KEYCLOAK_API_AUDIENCE}
+      WEB_TOKEN_REFRESH_LEEWAY_SECONDS: ${WEB_TOKEN_REFRESH_LEEWAY_SECONDS:-60}
+      WEB_SESSION_LAST_SEEN_UPDATE_SECONDS: ${WEB_SESSION_LAST_SEEN_UPDATE_SECONDS:-300}
     labels:
       - traefik.enable=true
       - traefik.docker.network=admin-starter-public
@@ -26,8 +32,12 @@ services:
       - traefik.http.services.app.loadbalancer.server.port=3000
     networks:
       - public
+      - postgres
 
 networks:
   public:
     external: true
     name: admin-starter-public
+  postgres:
+    external: true
+    name: admin-starter-postgres-gateway
