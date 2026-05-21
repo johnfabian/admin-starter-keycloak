@@ -67,7 +67,7 @@ Mailpit accepts SMTP messages and shows them in a browser UI.
 Start Mailpit from the project root:
 
 ```bash
-docker run --rm -d --name app-mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:latest
+corepack pnpm mail:up
 ```
 
 Open the local mailbox:
@@ -86,7 +86,7 @@ host.docker.internal
 Stop Mailpit when you are done:
 
 ```bash
-docker stop app-mailpit
+corepack pnpm mail:down
 ```
 
 ## Start Keycloak
