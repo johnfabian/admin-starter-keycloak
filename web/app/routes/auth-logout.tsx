@@ -1,4 +1,4 @@
-import { logout } from "~/lib/auth.server";
+import { logout } from "~/lib/server/auth.server";
 import type { Route } from "./+types/auth-logout";
 
 export async function loader({ request }: Route.LoaderArgs) {

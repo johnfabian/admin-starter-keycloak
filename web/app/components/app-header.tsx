@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Blocks, ExternalLink, LogOut, Shield, UserRound } from "lucide-react";
 
+import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
@@ -11,33 +12,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { appInfo, appRoles, appRoutes } from "~/lib/app-settings";
+import { appInfo, appRoles, appRoutes } from "~/lib/app-settings.shared";
+import { getInitials } from "~/lib/string-helper.shared";
 import type { CurrentUser } from "~/models/current-user";
-
-function getInitials(user: CurrentUser) {
-  const initials = [user.firstName, user.lastName]
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
-
-  return initials || user.name.charAt(0).toUpperCase() || "U";
-}
 
 export function AppHeader({ user }: { user: CurrentUser | null }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           to={appRoutes.home}
           className="flex items-center gap-3"
           aria-label={`${appInfo.name} home`}
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-950 text-white dark:bg-zinc-50 dark:text-zinc-950">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Blocks className="h-5 w-5" aria-hidden="true" />
           </span>
-          <span className="font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            {appInfo.name}
-          </span>
+          <span className="font-semibold tracking-tight text-foreground">{appInfo.name}</span>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -65,20 +56,25 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button
-                    className="rounded-full outline-none ring-offset-2 transition focus-visible:ring-2 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300"
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
                     aria-label="Open account menu"
                   >
                     <Avatar>
                       {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
-                      <AvatarFallback>{getInitials(user)}</AvatarFallback>
+                      <AvatarFallback>
+                        {getInitials([user.firstName, user.lastName], user.name)}
+                      </AvatarFallback>
                     </Avatar>
-                  </button>
+                  </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>
                     <span className="block truncate">{user.name}</span>
-                    <span className="block truncate text-xs font-normal text-zinc-500">
+                    <span className="block truncate text-xs font-normal text-muted-foreground">
                       {user.email || "Signed in"}
                     </span>
                   </DropdownMenuLabel>
@@ -100,6 +96,7 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
             </>
           ) : (
             <>
+              <ThemeToggle />
               <Button asChild variant="ghost" size="sm">
                 <a href={appRoutes.authLoginWithPrompt}>Login</a>
               </Button>
@@ -108,6 +105,7 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
               </Button>
             </>
           )}
+          {user ? <ThemeToggle /> : null}
         </div>
       </div>
     </header>

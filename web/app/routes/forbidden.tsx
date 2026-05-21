@@ -1,6 +1,6 @@
-import { ForbiddenPage } from "~/components/pages/forbidden-page";
-import { appInfo } from "~/lib/app-settings";
-import { getCurrentUser } from "~/lib/auth.server";
+import { ForbiddenPage } from "~/pages/forbidden-page";
+import { appInfo } from "~/lib/app-settings.shared";
+import { getCurrentUser } from "~/lib/server/auth.server";
 import type { Route } from "./+types/forbidden";
 
 export function meta() {

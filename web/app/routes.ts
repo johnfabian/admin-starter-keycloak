@@ -1,9 +1,9 @@
 import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
-import { appRouteModules, appRoutePatterns } from "./lib/app-settings";
+import { appRouteModules, appRoutePatterns } from "./lib/app-settings.shared";
 
 export default [
-  index(appRouteModules.home),
+  index(appRouteModules.splash),
   route(appRoutePatterns.users, appRouteModules.users),
   route(appRoutePatterns.usersDashboard, appRouteModules.usersDashboard),
   route(appRoutePatterns.admins, appRouteModules.admins),

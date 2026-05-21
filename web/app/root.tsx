@@ -8,6 +8,7 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { ThemeProvider } from "./providers/theme-provider";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -23,7 +24,7 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+function BaseLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -33,12 +34,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
   );
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return <BaseLayout>{children}</BaseLayout>;
 }
 
 export default function App() {

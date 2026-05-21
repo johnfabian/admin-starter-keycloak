@@ -1,48 +1,27 @@
 import crypto from "node:crypto";
 
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
-import { createCookieSessionStorage, redirect } from "react-router";
+import { redirect } from "react-router";
 
-import { appRoutes } from "~/lib/app-settings";
-import { getAuthConfig, getIssuerUrl } from "~/lib/auth-config.server";
-import { hasAnyRole, hasRole } from "~/lib/auth-policy";
+import { appRoutes } from "~/lib/app-settings.shared";
+import { hasAnyRole, hasRole } from "~/lib/auth-policy.shared";
+import { getAuthConfig, getIssuerUrl, hasAuthConfig } from "~/lib/server/auth-config.server";
+import { commitSession, destroySession, getSession } from "~/lib/server/session-storage.server";
+import { getStringValue, joinNonEmpty, toBase64Url } from "~/lib/string-helper.shared";
 import type { CurrentUser } from "~/models/current-user";
-
-interface SessionData {
-  state: string;
-  codeVerifier: string;
-  returnTo: string;
-  user: CurrentUser;
-}
 
 interface TokenResponse {
   access_token: string;
   id_token: string;
 }
 
-const sessionStorage = createCookieSessionStorage<Partial<SessionData>>({
-  cookie: {
-    name: "__admin_starter_session",
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secrets: [getAuthConfig().sessionSecret],
-    secure: process.env.NODE_ENV === "production",
-  },
-});
-
-const { getSession, commitSession, destroySession } = sessionStorage;
-
-function base64Url(buffer: Buffer) {
-  return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
 function randomToken() {
-  return base64Url(crypto.randomBytes(32));
+  return toBase64Url(crypto.randomBytes(32).toString("base64"));
 }
 
 function createCodeChallenge(codeVerifier: string) {
-  return base64Url(crypto.createHash("sha256").update(codeVerifier).digest());
+  const challenge = crypto.createHash("sha256").update(codeVerifier).digest("base64");
+  return toBase64Url(challenge);
 }
 
 function getRequestPath(request: Request) {
@@ -66,11 +45,6 @@ function normalizeReturnTo(returnTo: string | null) {
   }
 }
 
-function getStringClaim(payload: JWTPayload, key: string) {
-  const value = payload[key];
-  return typeof value === "string" ? value : "";
-}
-
 function getRoles(payload: JWTPayload) {
   const { clientId } = getAuthConfig();
   const resourceAccess = payload.resource_access;
@@ -86,22 +60,22 @@ function getRoles(payload: JWTPayload) {
 }
 
 function buildCurrentUser(idPayload: JWTPayload, accessPayload: JWTPayload): CurrentUser {
-  const firstName = getStringClaim(idPayload, "given_name");
-  const lastName = getStringClaim(idPayload, "family_name");
-  const preferredUsername = getStringClaim(idPayload, "preferred_username");
+  const firstName = getStringValue(idPayload, "given_name");
+  const lastName = getStringValue(idPayload, "family_name");
+  const preferredUsername = getStringValue(idPayload, "preferred_username");
   const name =
-    getStringClaim(idPayload, "name") ||
-    [firstName, lastName].filter(Boolean).join(" ") ||
+    getStringValue(idPayload, "name") ||
+    joinNonEmpty([firstName, lastName]) ||
     preferredUsername ||
-    getStringClaim(idPayload, "email");
+    getStringValue(idPayload, "email");
 
   return {
     id: idPayload.sub || "",
     firstName,
     lastName,
     name,
-    email: getStringClaim(idPayload, "email"),
-    image: getStringClaim(idPayload, "picture") || null,
+    email: getStringValue(idPayload, "email"),
+    image: getStringValue(idPayload, "picture") || null,
     roles: getRoles(accessPayload),
   };
 }
@@ -118,6 +92,8 @@ async function verifyToken(token: string, expectedAudience?: string) {
 }
 
 export async function getCurrentUser(request: Request): Promise<CurrentUser | null> {
+  if (!hasAuthConfig()) return null;
+
   const session = await getSession(request.headers.get("Cookie"));
   return session.get("user") ?? null;
 }

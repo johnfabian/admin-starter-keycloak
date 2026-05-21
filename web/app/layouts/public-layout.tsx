@@ -1,21 +1,27 @@
 import { AppHeader } from "~/components/app-header";
 import type { CurrentUser } from "~/models/current-user";
 
-interface AppLayoutProps {
+interface PublicLayoutProps {
   user: CurrentUser | null;
   children: React.ReactNode;
   background?: "white" | "muted";
+  showHeader?: boolean;
 }
 
-export function AppLayout({ user, children, background = "muted" }: AppLayoutProps) {
+export function PublicLayout({
+  user,
+  children,
+  background = "muted",
+  showHeader = true,
+}: PublicLayoutProps) {
   const backgroundClass =
     background === "white"
-      ? "bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50"
-      : "bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50";
+      ? "bg-background text-foreground"
+      : "bg-muted/30 text-foreground";
 
   return (
     <div className={`min-h-screen ${backgroundClass}`}>
-      <AppHeader user={user} />
+      {showHeader ? <AppHeader user={user} /> : null}
       {children}
     </div>
   );

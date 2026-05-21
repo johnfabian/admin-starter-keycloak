@@ -1,4 +1,4 @@
-import { appAccess } from "~/lib/app-settings";
+import { appAccess } from "~/lib/app-settings.shared";
 import type { CurrentUser } from "~/models/current-user";
 
 export type AppAccessArea = keyof typeof appAccess;

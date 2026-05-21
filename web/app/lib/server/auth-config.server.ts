@@ -1,4 +1,15 @@
-function requiredEnv(name: string) {
+import { trimTrailingSlash } from "~/lib/string-helper.shared";
+
+const REQUIRED_AUTH_ENV = [
+  "KEYCLOAK_ISSUER",
+  "WEB_KEYCLOAK_CLIENT_ID",
+  "WEB_AUTH_REDIRECT_URI",
+  "WEB_AUTH_POST_LOGIN_REDIRECT_URI",
+  "WEB_AUTH_POST_LOGOUT_REDIRECT_URI",
+  "WEB_SESSION_SECRET",
+] as const;
+
+function requiredEnv(name: (typeof REQUIRED_AUTH_ENV)[number]) {
   const value = process.env[name];
   if (!value) {
     throw new Error(`${name} is required. Add it to .env.development for local dev.`);
@@ -11,8 +22,12 @@ function optionalEnv(name: string) {
   return process.env[name] || "";
 }
 
+export function hasAuthConfig() {
+  return REQUIRED_AUTH_ENV.every((name) => Boolean(process.env[name]));
+}
+
 export function getAuthConfig() {
-  const issuer = requiredEnv("KEYCLOAK_ISSUER").replace(/\/$/, "");
+  const issuer = trimTrailingSlash(requiredEnv("KEYCLOAK_ISSUER"));
 
   return {
     issuer,

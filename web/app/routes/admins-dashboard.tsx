@@ -1,6 +1,6 @@
-import { AdminsDashboardPage } from "~/components/pages/admins-dashboard-page";
-import { appInfo } from "~/lib/app-settings";
-import { requireAdminRoute } from "~/lib/route-guards.server";
+import { AdminsDashboardPage } from "~/pages/admins-dashboard-page";
+import { appInfo } from "~/lib/app-settings.shared";
+import { requireAdminRoute } from "~/lib/server/route-guards.server";
 import type { Route } from "./+types/admins-dashboard";
 
 export function meta() {

@@ -5,7 +5,7 @@ export const appSettings = {
     description: "A Keycloak-powered admin starter for users, groups, permissions, and apps.",
     pageTitles: {
       usersDashboard: "User Dashboard",
-      adminsDashboard: "Admins",
+      adminsDashboard: "Admin Dashboard",
       forbidden: "Forbidden",
     },
   },
@@ -43,7 +43,7 @@ export const appSettings = {
       authLogout: "auth/logout",
     },
     modules: {
-      home: "routes/home.tsx",
+      splash: "routes/splash.tsx",
       users: "routes/users.tsx",
       usersDashboard: "routes/users-dashboard.tsx",
       admins: "routes/admins.tsx",
@@ -56,6 +56,33 @@ export const appSettings = {
       authLogout: "routes/auth-logout.tsx",
     },
   },
+  ui: {
+    mobileBreakpoint: 768,
+    theme: {
+      storageKeys: {
+        mode: "color-mode",
+        theme: "color-theme",
+      },
+      storageEvent: "admin-starter-theme-storage",
+      systemDarkModeQuery: "(prefers-color-scheme: dark)",
+      defaultMode: "dark",
+      defaultTheme: "teal",
+      modes: [
+        { value: "light", label: "Light" },
+        { value: "dark", label: "Dark" },
+        { value: "system", label: "System" },
+      ],
+      themes: [
+        { value: "teal", label: "Teal", colorClass: "bg-teal-500" },
+        { value: "blue", label: "Blue", colorClass: "bg-blue-500" },
+        { value: "green", label: "Green", colorClass: "bg-green-500" },
+        { value: "purple", label: "Purple", colorClass: "bg-purple-500" },
+        { value: "orange", label: "Orange", colorClass: "bg-orange-500" },
+        { value: "red", label: "Red", colorClass: "bg-red-500" },
+        { value: "pink", label: "Pink", colorClass: "bg-pink-500" },
+      ],
+    },
+  },
 } as const;
 
 export const appInfo = appSettings.app;
@@ -63,6 +90,11 @@ export const appRoles = appSettings.auth.roles;
 export const appRoutes = appSettings.routes.paths;
 export const appRoutePatterns = appSettings.routes.patterns;
 export const appRouteModules = appSettings.routes.modules;
+export const appUi = appSettings.ui;
+export const appTheme = appSettings.ui.theme;
+
+export type ColorMode = (typeof appTheme.modes)[number]["value"];
+export type ColorTheme = (typeof appTheme.themes)[number]["value"];
 
 export const appAccess = {
   adminRoutes: [appRoles.admins],
