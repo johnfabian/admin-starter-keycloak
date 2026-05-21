@@ -1,6 +1,6 @@
-import { UsersDashboardPage } from "~/components/pages/users-dashboard-page";
-import { appInfo } from "~/lib/app-settings";
-import { requireUserRoute } from "~/lib/route-guards.server";
+import { UsersDashboardPage } from "~/pages/users-dashboard-page";
+import { appInfo } from "~/lib/app-settings.shared";
+import { requireUserRoute } from "~/lib/server/route-guards.server";
 import type { Route } from "./+types/users-dashboard";
 
 export function meta() {

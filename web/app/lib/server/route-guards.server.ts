@@ -1,6 +1,6 @@
-import { appAccessAreas } from "~/lib/app-settings";
-import { getAccessRoles, type AppAccessArea } from "~/lib/auth-policy";
-import { requireAnyRole, requireUser } from "~/lib/auth.server";
+import { appAccessAreas } from "~/lib/app-settings.shared";
+import { getAccessRoles, type AppAccessArea } from "~/lib/auth-policy.shared";
+import { requireAnyRole, requireUser } from "~/lib/server/auth.server";
 
 export async function requireAuthenticatedRoute(request: Request) {
   return requireUser(request);

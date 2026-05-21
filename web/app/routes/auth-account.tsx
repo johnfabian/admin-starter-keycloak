@@ -1,4 +1,4 @@
-import { redirectToAccountConsole } from "~/lib/auth.server";
+import { redirectToAccountConsole } from "~/lib/server/auth.server";
 import type { Route } from "./+types/auth-account";
 
 export async function loader({ request }: Route.LoaderArgs) {

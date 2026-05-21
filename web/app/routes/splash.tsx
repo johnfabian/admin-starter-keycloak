@@ -1,6 +1,6 @@
-import { SplashPage } from "~/components/pages/splash-page";
-import { appInfo } from "~/lib/app-settings";
-import { getCurrentUser } from "~/lib/auth.server";
+import { SplashPage } from "~/pages/splash-page";
+import { appInfo } from "~/lib/app-settings.shared";
+import { getCurrentUser } from "~/lib/server/auth.server";
 import type { Route } from "./+types/splash";
 
 export function meta() {
