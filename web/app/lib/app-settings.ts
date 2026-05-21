@@ -43,7 +43,7 @@ export const appSettings = {
       authLogout: "auth/logout",
     },
     modules: {
-      home: "routes/home.tsx",
+      splash: "routes/splash.tsx",
       users: "routes/users.tsx",
       usersDashboard: "routes/users-dashboard.tsx",
       admins: "routes/admins.tsx",

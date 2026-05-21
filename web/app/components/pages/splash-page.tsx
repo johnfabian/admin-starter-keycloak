@@ -6,7 +6,7 @@ import { AppLayout } from "~/layouts/app-layout";
 import { appRoles, appRoutes } from "~/lib/app-settings";
 import type { CurrentUser } from "~/models/current-user";
 
-export function HomePage({ user }: { user: CurrentUser | null }) {
+export function SplashPage({ user }: { user: CurrentUser | null }) {
   return (
     <AppLayout user={user} background="white">
       <main>

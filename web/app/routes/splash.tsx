@@ -1,7 +1,7 @@
-import { HomePage } from "~/components/pages/home-page";
+import { SplashPage } from "~/components/pages/splash-page";
 import { appInfo } from "~/lib/app-settings";
 import { getCurrentUser } from "~/lib/auth.server";
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/splash";
 
 export function meta() {
   return [
@@ -19,6 +19,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
-export default function Home({ loaderData }: Route.ComponentProps) {
-  return <HomePage user={loaderData.user} />;
+export default function Splash({ loaderData }: Route.ComponentProps) {
+  return <SplashPage user={loaderData.user} />;
 }
