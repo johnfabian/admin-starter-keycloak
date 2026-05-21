@@ -1,6 +1,7 @@
 import { Link } from "react-router";
-import { Blocks, ExternalLink, LogOut, Shield, UserRound } from "lucide-react";
+import { Blocks, ExternalLink, Shield, UserRound } from "lucide-react";
 
+import { LogoutButton, LogoutMenuItem } from "~/components/logout-control";
 import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -48,12 +49,7 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
                   Dashboard
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="sm">
-                <a href={appRoutes.authLogout}>
-                  <LogOut className="h-4 w-4" aria-hidden="true" />
-                  Logout
-                </a>
-              </Button>
+              <LogoutButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -85,12 +81,7 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
                       My Profile
                     </a>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <a href={appRoutes.authLogout}>
-                      <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Logout
-                    </a>
-                  </DropdownMenuItem>
+                  <LogoutMenuItem />
                 </DropdownMenuContent>
               </DropdownMenu>
             </>

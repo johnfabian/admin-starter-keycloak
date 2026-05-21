@@ -272,7 +272,7 @@ Recommended local logout settings:
     enabled.
 - Backchannel logout URL: leave blank
   - The server endpoint Keycloak would call with a logout token. Blank is
-    correct while the app does not store its own server-side session.
+    correct until this starter adds an explicit backchannel logout route.
 - Backchannel logout session required: leave default
   - Controls whether Keycloak includes the session id claim in the backchannel
     logout token. It only matters when a backchannel logout URL exists.
@@ -288,10 +288,9 @@ return the user to one of the configured **Valid post logout redirect URIs**.
 Do not configure a front-channel or backchannel logout URL until the application
 has a real route that can receive and process that logout request.
 
-Local app logout clears the app session cookie and returns to
-`WEB_AUTH_POST_LOGOUT_REDIRECT_URI`. Full Keycloak SSO logout requires server-side
-session storage for the ID token, because Keycloak may require `id_token_hint`
-on the end-session request.
+Local app logout is a POST action that clears the BFF session cookie, deletes
+the server-side session record, and redirects through Keycloak's OIDC logout
+endpoint with `id_token_hint` when available.
 
 Logout callback options:
 
@@ -304,8 +303,8 @@ Logout callback options:
 Use Keycloak for login. The app should redirect to Keycloak rather than render
 custom login screens. This app uses React Router framework-mode server routes
 with an HttpOnly session cookie instead of storing tokens in browser
-`localStorage`. Store only compact user identity and role data in that cookie.
-Store Keycloak tokens in a server-side session table before the BFF forwards
+`localStorage`. The cookie stores only an opaque BFF session id; Keycloak tokens
+are encrypted in the server-side session table before the BFF forwards access
 tokens to a resource server.
 
 Successful app login redirects to the user dashboard:

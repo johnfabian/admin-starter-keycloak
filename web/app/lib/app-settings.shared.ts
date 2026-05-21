@@ -41,6 +41,7 @@ export const appSettings = {
       authCallback: "auth/callback",
       authAccount: "auth/account",
       authLogout: "auth/logout",
+      chromeDevtools: ".well-known/appspecific/com.chrome.devtools.json",
     },
     modules: {
       splash: "routes/splash.tsx",
@@ -54,6 +55,7 @@ export const appSettings = {
       authCallback: "routes/auth-callback.tsx",
       authAccount: "routes/auth-account.tsx",
       authLogout: "routes/auth-logout.tsx",
+      chromeDevtools: "routes/chrome-devtools.ts",
     },
   },
   ui: {
