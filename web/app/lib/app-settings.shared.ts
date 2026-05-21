@@ -65,6 +65,12 @@ export const appSettings = {
         mode: "color-mode",
         theme: "color-theme",
       },
+      cookieKeys: {
+        mode: "admin-starter-color-mode",
+        theme: "admin-starter-color-theme",
+      },
+      cookieMaxAgeSeconds: 31_536_000,
+      cookiePath: "/",
       storageEvent: "admin-starter-theme-storage",
       systemDarkModeQuery: "(prefers-color-scheme: dark)",
       defaultMode: "dark",
