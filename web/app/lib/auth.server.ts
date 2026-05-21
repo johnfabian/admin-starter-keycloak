@@ -261,3 +261,8 @@ export async function logout(request: Request) {
     },
   });
 }
+
+export async function redirectToAccountConsole(request: Request) {
+  await requireUser(request);
+  throw redirect(getIssuerUrl("/account"));
+}
