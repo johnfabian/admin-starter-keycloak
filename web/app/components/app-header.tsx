@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Blocks, LogOut, Shield, UserRound } from "lucide-react";
+import { Blocks, ExternalLink, LogOut, Shield, UserRound } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -83,6 +83,12 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
                     </span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a href={appRoutes.authAccount} target="_blank" rel="noreferrer">
+                      <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
+                      My Profile
+                    </a>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <a href={appRoutes.authLogout}>
                       <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />

@@ -27,6 +27,7 @@ export const appSettings = {
       authLoginWithPrompt: "/auth/login?prompt=login",
       authRegister: "/auth/register",
       authCallback: "/auth/callback",
+      authAccount: "/auth/account",
       authLogout: "/auth/logout",
     },
     patterns: {
@@ -38,6 +39,7 @@ export const appSettings = {
       authLogin: "auth/login",
       authRegister: "auth/register",
       authCallback: "auth/callback",
+      authAccount: "auth/account",
       authLogout: "auth/logout",
     },
     modules: {
@@ -50,6 +52,7 @@ export const appSettings = {
       authLogin: "routes/auth-login.tsx",
       authRegister: "routes/auth-register.tsx",
       authCallback: "routes/auth-callback.tsx",
+      authAccount: "routes/auth-account.tsx",
       authLogout: "routes/auth-logout.tsx",
     },
   },

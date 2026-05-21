@@ -12,5 +12,6 @@ export default [
   route(appRoutePatterns.authLogin, appRouteModules.authLogin),
   route(appRoutePatterns.authRegister, appRouteModules.authRegister),
   route(appRoutePatterns.authCallback, appRouteModules.authCallback),
+  route(appRoutePatterns.authAccount, appRouteModules.authAccount),
   route(appRoutePatterns.authLogout, appRouteModules.authLogout),
 ] satisfies RouteConfig;
