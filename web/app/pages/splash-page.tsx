@@ -83,7 +83,7 @@ const productLinks = [
 
 const companyLinks = [
   { label: "Dashboard", href: appRoutes.usersDashboard },
-  { label: "Admin", href: appRoutes.adminsDashboard },
+  { label: "Apps", href: appRoutes.appsDashboard },
   { label: "Account", href: appRoutes.authAccount },
 ];
 

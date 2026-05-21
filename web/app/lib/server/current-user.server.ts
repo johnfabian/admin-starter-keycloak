@@ -5,6 +5,7 @@ import { getStringValue, joinNonEmpty } from "~/lib/string-helper.shared";
 import type { CurrentUser } from "~/models/current-user";
 
 const TOKEN_ROLE_CLAIMS = {
+  realmAccess: "realm_access",
   resourceAccess: "resource_access",
   roles: "roles",
 } as const;
@@ -20,16 +21,31 @@ const USER_CLAIMS = {
 
 export function getRolesFromTokenPayload(payload: JWTPayload) {
   const { clientId } = getAuthConfig();
+  const realmAccess = payload[TOKEN_ROLE_CLAIMS.realmAccess];
   const resourceAccess = payload[TOKEN_ROLE_CLAIMS.resourceAccess];
-  if (!resourceAccess || typeof resourceAccess !== "object") return [];
+  const realmRoles =
+    realmAccess && typeof realmAccess === "object"
+      ? getStringArrayClaim(realmAccess as Record<string, unknown>, TOKEN_ROLE_CLAIMS.roles)
+      : [];
+
+  if (!resourceAccess || typeof resourceAccess !== "object") return uniqueValues(realmRoles);
 
   const clientAccess = (resourceAccess as Record<string, unknown>)[clientId];
-  if (!clientAccess || typeof clientAccess !== "object") return [];
+  if (!clientAccess || typeof clientAccess !== "object") return uniqueValues(realmRoles);
 
-  const roles = (clientAccess as Record<string, unknown>)[TOKEN_ROLE_CLAIMS.roles];
-  if (!Array.isArray(roles)) return [];
+  return uniqueValues([
+    ...realmRoles,
+    ...getStringArrayClaim(clientAccess as Record<string, unknown>, TOKEN_ROLE_CLAIMS.roles),
+  ]);
+}
 
-  return roles.filter((role): role is string => typeof role === "string");
+function getStringArrayClaim(payload: Record<string, unknown>, claim: string) {
+  const value = payload[claim];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function uniqueValues(values: string[]) {
+  return [...new Set(values)];
 }
 
 export function buildCurrentUser(idPayload: JWTPayload, accessPayload: JWTPayload): CurrentUser {

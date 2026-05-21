@@ -2,11 +2,15 @@ import { Link, useLocation } from "react-router";
 import {
   Blocks,
   Home,
+  LayoutDashboard,
+  ListTodo,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
   Shield,
   User,
+  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -26,6 +30,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { appInfo, appRoles, appRoutes } from "~/lib/app-settings.shared";
+import { hasRole } from "~/lib/auth-policy.shared";
 import { getInitials, isPathActive } from "~/lib/string-helper.shared";
 import { cn } from "~/lib/tw.shared";
 import type { CurrentUser } from "~/models/current-user";
@@ -41,22 +46,63 @@ interface NavItem {
   to: string;
   icon: LucideIcon;
   exact?: boolean;
-  adminOnly?: boolean;
 }
 
-const navItems: NavItem[] = [
+interface NavSection {
+  adminOnly?: boolean;
+  label: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
   {
-    label: appInfo.pageTitles.usersDashboard,
-    to: appRoutes.usersDashboard,
-    icon: Home,
-    exact: true,
+    adminOnly: true,
+    label: "Admin",
+    items: [
+      {
+        label: appInfo.pageTitles.adminsDashboard,
+        to: appRoutes.adminsDashboard,
+        icon: Shield,
+        exact: true,
+      },
+    ],
   },
   {
-    label: appInfo.pageTitles.adminsDashboard,
-    to: appRoutes.adminsDashboard,
-    icon: Shield,
-    exact: true,
-    adminOnly: true,
+    label: "User",
+    items: [
+      {
+        label: appInfo.pageTitles.usersDashboard,
+        to: appRoutes.usersDashboard,
+        icon: Home,
+        exact: true,
+      },
+      {
+        label: appInfo.pageTitles.profile,
+        to: appRoutes.profile,
+        icon: UserRound,
+      },
+      {
+        label: appInfo.pageTitles.settings,
+        to: appRoutes.settings,
+        icon: Settings,
+      },
+    ],
+  },
+  {
+    label: "Apps",
+    items: [
+      {
+        label: appInfo.pageTitles.appsDashboard,
+        to: appRoutes.appsDashboard,
+        icon: LayoutDashboard,
+        exact: true,
+      },
+      {
+        label: appInfo.pageTitles.todos,
+        to: appRoutes.todos,
+        icon: ListTodo,
+      },
+    ],
   },
 ];
 
@@ -69,11 +115,9 @@ export function DashboardLayout({
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isAdmin = user.roles.includes(appRoles.admins);
-
-  const visibleNavItems = useMemo(
-    () => navItems.filter((item) => !item.adminOnly || isAdmin),
-    [isAdmin]
+  const visibleNavSections = useMemo(
+    () => navSections.filter((section) => !section.adminOnly || hasRole(user, appRoles.admins)),
+    [user]
   );
 
   const collapsed = !sidebarOpen && !isMobile;
@@ -83,7 +127,7 @@ export function DashboardLayout({
       <div className="flex min-h-screen">
         <DashboardSidebar
           collapsed={collapsed}
-          navItems={visibleNavItems}
+          navSections={visibleNavSections}
           pathname={location.pathname}
           mobileOpen={mobileOpen}
           onCloseMobile={() => setMobileOpen(false)}
@@ -143,13 +187,13 @@ export function DashboardLayout({
 
 function DashboardSidebar({
   collapsed,
-  navItems,
+  navSections,
   pathname,
   mobileOpen,
   onCloseMobile,
 }: {
   collapsed: boolean;
-  navItems: NavItem[];
+  navSections: NavSection[];
   pathname: string;
   mobileOpen: boolean;
   onCloseMobile: () => void;
@@ -198,49 +242,51 @@ function DashboardSidebar({
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4" aria-label="Main navigation">
-        <div>
-          <p
-            className={cn(
-              "h-6 overflow-hidden px-2 pb-2 text-xs font-medium uppercase text-sidebar-foreground/60 opacity-100 transition-[height,padding,opacity] duration-200 ease-linear",
-              collapsed && "md:h-0 md:pb-0 md:opacity-0"
-            )}
-          >
-            Workspace
-          </p>
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isPathActive(pathname, item.to, item.exact);
+        {navSections.map((section) => (
+          <div key={section.label}>
+            <p
+              className={cn(
+                "h-6 overflow-hidden px-2 pb-2 text-xs font-medium uppercase text-sidebar-foreground/60 opacity-100 transition-[height,padding,opacity] duration-200 ease-linear",
+                collapsed && "md:h-0 md:pb-0 md:opacity-0"
+              )}
+            >
+              {section.label}
+            </p>
+            <ul className="space-y-1" aria-label={section.label}>
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const active = isPathActive(pathname, item.to, item.exact);
 
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to}
-                    onClick={onCloseMobile}
-                    aria-current={active ? "page" : undefined}
-                    title={collapsed ? item.label : undefined}
-                    className={cn(
-                      "flex h-9 items-center gap-2 rounded-md px-2 text-sm outline-none transition-[background-color,color,padding] duration-200 ease-linear hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                      active && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
-                      collapsed && "md:justify-center md:gap-0"
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" aria-hidden="true" />
-                    <span
-                      aria-hidden={collapsed}
+                return (
+                  <li key={item.to}>
+                    <Link
+                      to={item.to}
+                      onClick={onCloseMobile}
+                      aria-current={active ? "page" : undefined}
+                      title={collapsed ? item.label : undefined}
                       className={cn(
-                        "max-w-44 truncate opacity-100 transition-[max-width,opacity] duration-200 ease-linear",
-                        collapsed && "md:max-w-0 md:opacity-0"
+                        "flex h-9 items-center gap-2 rounded-md px-2 text-sm outline-none transition-[background-color,color,padding] duration-200 ease-linear hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+                        active && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
+                        collapsed && "md:justify-center md:gap-0"
                       )}
                     >
-                      {item.label}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                      <Icon className="size-4 shrink-0" aria-hidden="true" />
+                      <span
+                        aria-hidden={collapsed}
+                        className={cn(
+                          "max-w-44 truncate opacity-100 transition-[max-width,opacity] duration-200 ease-linear",
+                          collapsed && "md:max-w-0 md:opacity-0"
+                        )}
+                      >
+                        {item.label}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
     </aside>
   );

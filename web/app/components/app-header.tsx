@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Blocks, ExternalLink, Shield, UserRound } from "lucide-react";
+import { Blocks, ExternalLink, UserRound } from "lucide-react";
 
 import { LogoutButton, LogoutMenuItem } from "~/components/logout-control";
 import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { appInfo, appRoles, appRoutes } from "~/lib/app-settings.shared";
+import { appInfo, appRoutes } from "~/lib/app-settings.shared";
 import { getInitials } from "~/lib/string-helper.shared";
 import type { CurrentUser } from "~/models/current-user";
 
@@ -35,14 +35,6 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
         <div className="flex items-center gap-2">
           {user ? (
             <>
-              {user.roles.includes(appRoles.admins) ? (
-                <Button asChild variant="ghost" size="sm">
-                  <Link to={appRoutes.adminsDashboard}>
-                    <Shield className="h-4 w-4" aria-hidden="true" />
-                    {appRoles.admins}
-                  </Link>
-                </Button>
-              ) : null}
               <Button asChild variant="ghost" size="sm">
                 <Link to={appRoutes.usersDashboard}>
                   <UserRound className="h-4 w-4" aria-hidden="true" />
