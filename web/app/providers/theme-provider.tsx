@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useSyncExternalStore } 
 
 import { appTheme, type ColorMode, type ColorTheme } from "~/lib/app-settings.shared";
 import { getLocalStorageValue, setLocalStorageValue } from "~/lib/local-storage.shared";
+import { getValidColorMode, getValidColorTheme, themeColors, themeModes } from "~/lib/theme.shared";
 
 interface ThemeContextType {
   colorMode: ColorMode;
@@ -12,8 +13,6 @@ interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const VALID_MODES: ColorMode[] = appTheme.modes.map((mode) => mode.value);
-const VALID_THEMES: ColorTheme[] = appTheme.themes.map((theme) => theme.value);
 const DEFAULT_COLOR_MODE = appTheme.defaultMode;
 const DEFAULT_COLOR_THEME = appTheme.defaultTheme;
 
@@ -32,43 +31,57 @@ function subscribeToThemeStorage(callback: () => void) {
 function getSavedColorMode(): ColorMode {
   if (typeof window === "undefined") return DEFAULT_COLOR_MODE;
 
-  const savedMode = getLocalStorageValue(appTheme.storageKeys.mode) as ColorMode | null;
-  return savedMode && VALID_MODES.includes(savedMode) ? savedMode : DEFAULT_COLOR_MODE;
+  return getValidColorMode(getLocalStorageValue(appTheme.storageKeys.mode));
 }
 
 function getSavedColorTheme(): ColorTheme {
   if (typeof window === "undefined") return DEFAULT_COLOR_THEME;
 
-  const savedTheme = getLocalStorageValue(appTheme.storageKeys.theme) as ColorTheme | null;
-  return savedTheme && VALID_THEMES.includes(savedTheme) ? savedTheme : DEFAULT_COLOR_THEME;
+  return getValidColorTheme(getLocalStorageValue(appTheme.storageKeys.theme));
 }
 
 function notifyThemeStorage() {
   window.dispatchEvent(new Event(appTheme.storageEvent));
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+function setThemeCookie(key: string, value: string) {
+  document.cookie = `${key}=${encodeURIComponent(value)}; Max-Age=${
+    appTheme.cookieMaxAgeSeconds
+  }; Path=${appTheme.cookiePath}; SameSite=Lax`;
+}
+
+export function ThemeProvider({
+  children,
+  initialColorMode = DEFAULT_COLOR_MODE,
+  initialColorTheme = DEFAULT_COLOR_THEME,
+}: {
+  children: React.ReactNode;
+  initialColorMode?: ColorMode;
+  initialColorTheme?: ColorTheme;
+}) {
   const colorMode = useSyncExternalStore(
     subscribeToThemeStorage,
     getSavedColorMode,
-    () => DEFAULT_COLOR_MODE
+    () => initialColorMode
   );
   const colorTheme = useSyncExternalStore(
     subscribeToThemeStorage,
     getSavedColorTheme,
-    () => DEFAULT_COLOR_THEME
+    () => initialColorTheme
   );
 
   const setColorMode = useCallback((mode: ColorMode) => {
-    if (!VALID_MODES.includes(mode)) return;
+    if (!themeModes.includes(mode)) return;
     if (setLocalStorageValue(appTheme.storageKeys.mode, mode)) {
+      setThemeCookie(appTheme.cookieKeys.mode, mode);
       notifyThemeStorage();
     }
   }, []);
 
   const setColorTheme = useCallback((theme: ColorTheme) => {
-    if (!VALID_THEMES.includes(theme)) return;
+    if (!themeColors.includes(theme)) return;
     if (setLocalStorageValue(appTheme.storageKeys.theme, theme)) {
+      setThemeCookie(appTheme.cookieKeys.theme, theme);
       notifyThemeStorage();
     }
   }, []);
@@ -87,6 +100,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       applyDarkMode(colorMode === "dark");
     }
+
+    setThemeCookie(appTheme.cookieKeys.mode, colorMode);
+    setThemeCookie(appTheme.cookieKeys.theme, colorTheme);
   }, [colorMode, colorTheme]);
 
   useEffect(() => {
