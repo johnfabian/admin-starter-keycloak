@@ -2,7 +2,10 @@ name: admin-starter-auth-server
 
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: admin-starter-keycloak-auth:local
     container_name: app-keycloak
     restart: unless-stopped
     command: start-dev

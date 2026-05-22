@@ -25,7 +25,9 @@ import {
   createRefreshTokenParams,
   createTokenRequestBody,
   createTokenSet,
+  isUserDisabledTokenError,
   requestToken,
+  requestTokenResult,
   shouldRefreshAccessToken,
   verifyToken,
 } from "~/lib/server/oauth-token.service.server";
@@ -39,13 +41,13 @@ import type { CurrentUser } from "~/models/current-user";
 
 const AUTH_FLOW_CONFIG = {
   authorizationPath: "/protocol/openid-connect/auth",
+  registrationPath: "/protocol/openid-connect/registrations",
   logoutPath: "/protocol/openid-connect/logout",
   queryParams: {
     clientId: "client_id",
     codeChallenge: "code_challenge",
     codeChallengeMethod: "code_challenge_method",
     idTokenHint: "id_token_hint",
-    keycloakAction: "kc_action",
     postLogoutRedirectUri: "post_logout_redirect_uri",
     prompt: "prompt",
     redirectUri: "redirect_uri",
@@ -65,13 +67,21 @@ const AUTH_FLOW_CONFIG = {
     returnTo: "returnTo",
     sessionId: "sessionId",
   },
+  actions: {
+    register: "register",
+  },
   values: {
     promptLogin: "login",
-    registerAction: "register",
   },
 } as const;
 
-type AuthAction = typeof AUTH_FLOW_CONFIG.values.registerAction;
+type AuthAction = typeof AUTH_FLOW_CONFIG.actions.register;
+
+function clearAuthAttempt(session: Awaited<ReturnType<typeof getSession>>) {
+  session.unset(AUTH_FLOW_CONFIG.queryParams.state);
+  session.unset(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier);
+  session.unset(AUTH_FLOW_CONFIG.sessionKeys.returnTo);
+}
 
 async function refreshSessionIfNeeded(session: BffSession) {
   if (!shouldRefreshAccessToken(session.tokens)) return session;
@@ -166,7 +176,13 @@ export async function redirectToLogin(request: Request, action?: AuthAction) {
   session.set(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier, codeVerifier);
   session.set(AUTH_FLOW_CONFIG.sessionKeys.returnTo, returnTo);
 
-  const authorizationUrl = new URL(getIssuerUrl(AUTH_FLOW_CONFIG.authorizationPath));
+  const authorizationUrl = new URL(
+    getIssuerUrl(
+      action === AUTH_FLOW_CONFIG.actions.register
+        ? AUTH_FLOW_CONFIG.registrationPath
+        : AUTH_FLOW_CONFIG.authorizationPath
+    )
+  );
   authorizationUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.clientId, clientId);
   authorizationUrl.searchParams.set(AUTH_FLOW_CONFIG.queryParams.redirectUri, redirectUri);
   authorizationUrl.searchParams.set(
@@ -186,13 +202,6 @@ export async function redirectToLogin(request: Request, action?: AuthAction) {
     AUTH_FLOW_CONFIG.queryParams.codeChallengeMethod,
     pkceCodeChallengeMethod
   );
-
-  if (action === AUTH_FLOW_CONFIG.values.registerAction) {
-    authorizationUrl.searchParams.set(
-      AUTH_FLOW_CONFIG.queryParams.keycloakAction,
-      AUTH_FLOW_CONFIG.values.registerAction
-    );
-  }
 
   if (prompt === AUTH_FLOW_CONFIG.values.promptLogin) {
     authorizationUrl.searchParams.set(
@@ -220,20 +229,36 @@ export async function completeLogin(request: Request) {
     session.get(AUTH_FLOW_CONFIG.sessionKeys.returnTo) || new URL(postLoginRedirectUri).pathname;
 
   if (!code || !state || !expectedState || !codeVerifier || state !== expectedState) {
-    throw new Response("Invalid authentication callback.", { status: 400 });
+    clearAuthAttempt(session);
+
+    throw redirect(appRoutes.authLoginWithPrompt, {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
 
-  const tokenResponse = await requestToken(
+  const tokenResult = await requestTokenResult(
     createTokenRequestBody(createAuthorizationCodeParams(code, codeVerifier, redirectUri))
   );
 
-  if (!tokenResponse) {
+  if (!tokenResult.ok) {
+    if (isUserDisabledTokenError(tokenResult)) {
+      clearAuthAttempt(session);
+
+      throw redirect(appRoutes.authLoginWithPrompt, {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      });
+    }
+
     throw new Response("Could not complete authentication with Keycloak.", {
       status: 502,
     });
   }
 
-  const tokens = createTokenSet(tokenResponse);
+  const tokens = createTokenSet(tokenResult.tokens);
   const idPayload = await verifyToken(tokens.idToken, clientId);
   const accessPayload = await verifyToken(tokens.accessToken, resourceServerAudience || undefined);
   assertAccessTokenClient(accessPayload);
@@ -247,9 +272,7 @@ export async function completeLogin(request: Request) {
 
   const sessionId = await createBffSession(user, tokens);
 
-  session.unset(AUTH_FLOW_CONFIG.queryParams.state);
-  session.unset(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier);
-  session.unset(AUTH_FLOW_CONFIG.sessionKeys.returnTo);
+  clearAuthAttempt(session);
   session.set(AUTH_FLOW_CONFIG.sessionKeys.sessionId, sessionId);
 
   throw redirect(returnTo, {
