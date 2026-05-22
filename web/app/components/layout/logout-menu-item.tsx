@@ -1,20 +1,8 @@
 import { LogOut } from "lucide-react";
-import { Form, useSubmit } from "react-router";
+import { useSubmit } from "react-router";
 
-import { Button } from "~/components/ui/button";
 import { DropdownMenuItem } from "~/components/ui/dropdown-menu";
 import { appRoutes } from "~/lib/app-settings.shared";
-
-export function LogoutButton() {
-  return (
-    <Form method="post" action={appRoutes.authLogout}>
-      <Button type="submit" variant="outline" size="sm">
-        <LogOut className="h-4 w-4" aria-hidden="true" />
-        Logout
-      </Button>
-    </Form>
-  );
-}
 
 export function LogoutMenuItem() {
   const submit = useSubmit();

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { useLocation } from "react-router";
 
 import { DashboardHeader } from "~/components/layout/dashboard-header";
@@ -49,12 +49,8 @@ export function DashboardShell({ children, title, user }: DashboardShellProps) {
   const isMobile = isMobileViewport === true;
   const [sidebarOpen, setSidebarOpen] = useState(getSavedSidebarOpen);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const visibleNavSections = useMemo(
-    () =>
-      sidebarNavSections.filter(
-        (section) => !section.adminOnly || hasRole(user, appRoles.admins)
-      ),
-    [user]
+  const visibleNavSections = sidebarNavSections.filter(
+    (section) => !section.adminOnly || hasRole(user, appRoles.admins)
   );
   const collapsed = !sidebarOpen && !isMobile;
 

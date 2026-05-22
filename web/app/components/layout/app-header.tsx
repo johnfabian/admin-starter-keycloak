@@ -1,8 +1,9 @@
 import { Link } from "react-router";
 import { Blocks, ExternalLink, UserRound } from "lucide-react";
 
-import { LogoutButton, LogoutMenuItem } from "~/components/logout-control";
-import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
+import { LogoutButton } from "~/components/layout/logout-button";
+import { LogoutMenuItem } from "~/components/layout/logout-menu-item";
+import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {

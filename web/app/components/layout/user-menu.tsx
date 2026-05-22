@@ -1,6 +1,6 @@
 import { User } from "lucide-react";
 
-import { LogoutMenuItem } from "~/components/logout-control";
+import { LogoutMenuItem } from "~/components/layout/logout-menu-item";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {

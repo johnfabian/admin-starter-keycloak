@@ -45,6 +45,14 @@ function readSessionRecord(record: BffSessionRecord): BffSession {
   };
 }
 
+async function deleteBffSessionBestEffort(sessionId: string) {
+  try {
+    await deleteBffSession(sessionId);
+  } catch {
+    // Bad session records should not block treating the request as signed out.
+  }
+}
+
 export async function createBffSession(user: CurrentUser, tokens: BffTokenSet) {
   const id = crypto.randomUUID();
   const tokenPayload = encryptTokenPayload(tokens);
@@ -66,10 +74,17 @@ export async function getBffSession(sessionId: string) {
 
   if (!record) return null;
 
-  const session = readSessionRecord(record);
+  let session: BffSession;
+
+  try {
+    session = readSessionRecord(record);
+  } catch {
+    await deleteBffSessionBestEffort(sessionId);
+    return null;
+  }
 
   if (isExpired(session.tokens.refreshTokenExpiresAt)) {
-    await deleteBffSession(sessionId);
+    await deleteBffSessionBestEffort(sessionId);
     return null;
   }
 

@@ -1,6 +1,6 @@
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
-import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
+import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { UserMenu } from "~/components/layout/user-menu";
 import type { CurrentUser } from "~/models/current-user";

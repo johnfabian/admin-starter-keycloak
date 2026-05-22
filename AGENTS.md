@@ -23,3 +23,12 @@
 
 - Keep browser code free of Keycloak access and refresh tokens.
 - Keep the React Router server as the BFF boundary.
+- Do not add inline executable scripts, embedded JavaScript, or `dangerouslySetInnerHTML`.
+
+## Error Handling
+
+- Route errors should render reusable error UI instead of raw text responses.
+- Recoverable auth and session failures should clear session state and redirect to login.
+- Logout must clear the local browser cookie even if downstream cleanup fails.
+- Normalize Keycloak, token, and network failures before they reach UI.
+- Never expose tokens, raw stack traces, or sensitive backend details to browser UI.

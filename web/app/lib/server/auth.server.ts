@@ -25,8 +25,8 @@ import {
   createRefreshTokenParams,
   createTokenRequestBody,
   createTokenSet,
+  isTokenServiceUnavailable,
   isUserDisabledTokenError,
-  requestToken,
   requestTokenResult,
   shouldRefreshAccessToken,
   verifyToken,
@@ -77,42 +77,97 @@ const AUTH_FLOW_CONFIG = {
 
 type AuthAction = typeof AUTH_FLOW_CONFIG.actions.register;
 
+const AUTH_ERROR_CONFIG = {
+  keycloakUnavailableMessage: "Authentication service is temporarily unavailable.",
+  keycloakUnavailableStatus: 503,
+  tokenFailureStatus: 502,
+  recoverableTokenErrorCodes: new Set([
+    "ERR_JWS_SIGNATURE_VERIFICATION_FAILED",
+    "ERR_JWT_EXPIRED",
+    "ERR_JWT_INVALID",
+  ]),
+} as const;
+
 function clearAuthAttempt(session: Awaited<ReturnType<typeof getSession>>) {
   session.unset(AUTH_FLOW_CONFIG.queryParams.state);
   session.unset(AUTH_FLOW_CONFIG.sessionKeys.codeVerifier);
   session.unset(AUTH_FLOW_CONFIG.sessionKeys.returnTo);
 }
 
+function getErrorCode(error: unknown) {
+  if (!error || typeof error !== "object" || !("code" in error)) return null;
+
+  const code = (error as { code: unknown }).code;
+  return typeof code === "string" ? code : null;
+}
+
+export function isRecoverableSessionError(error: unknown) {
+  if (error instanceof SyntaxError) return true;
+
+  const code = getErrorCode(error);
+  return Boolean(code && AUTH_ERROR_CONFIG.recoverableTokenErrorCodes.has(code));
+}
+
+export async function clearBffSessionBestEffort(sessionId: string) {
+  try {
+    await deleteBffSession(sessionId);
+  } catch {
+    // Logout and session recovery must still clear the browser cookie.
+  }
+}
+
+function throwKeycloakUnavailable() {
+  throw new Response(AUTH_ERROR_CONFIG.keycloakUnavailableMessage, {
+    status: AUTH_ERROR_CONFIG.keycloakUnavailableStatus,
+  });
+}
+
 async function refreshSessionIfNeeded(session: BffSession) {
   if (!shouldRefreshAccessToken(session.tokens)) return session;
 
-  const refreshedTokens = await requestToken(
+  const refreshResult = await requestTokenResult(
     createTokenRequestBody(createRefreshTokenParams(session.tokens.refreshToken))
   );
 
-  if (!refreshedTokens) {
-    await deleteBffSession(session.id);
+  if (!refreshResult.ok) {
+    if (isTokenServiceUnavailable(refreshResult)) {
+      throwKeycloakUnavailable();
+    }
+
+    await clearBffSessionBestEffort(session.id);
     return null;
   }
 
-  const tokens = createTokenSet(refreshedTokens, session.tokens);
-  const { resourceServerAudience } = getAuthConfig();
-  const accessPayload = await verifyToken(tokens.accessToken, resourceServerAudience || undefined);
-  assertAccessTokenClient(accessPayload);
+  try {
+    const tokens = createTokenSet(refreshResult.tokens, session.tokens);
+    const { resourceServerAudience } = getAuthConfig();
+    const accessPayload = await verifyToken(
+      tokens.accessToken,
+      resourceServerAudience || undefined
+    );
+    assertAccessTokenClient(accessPayload);
 
-  const user = {
-    ...session.user,
-    roles: getRolesFromTokenPayload(accessPayload),
-  };
-  if (accessPayload.sub && accessPayload.sub !== session.user.id) {
-    await deleteBffSession(session.id);
+    const user = {
+      ...session.user,
+      roles: getRolesFromTokenPayload(accessPayload),
+    };
+    if (accessPayload.sub && accessPayload.sub !== session.user.id) {
+      await clearBffSessionBestEffort(session.id);
+      return null;
+    }
+
+    const updatedSession = { ...session, tokens, user };
+    await updateBffSession(updatedSession);
+
+    return updatedSession;
+  } catch (error) {
+    if (!isRecoverableSessionError(error)) {
+      throw error;
+    }
+
+    await clearBffSessionBestEffort(session.id);
     return null;
   }
-
-  const updatedSession = { ...session, tokens, user };
-  await updateBffSession(updatedSession);
-
-  return updatedSession;
 }
 
 export async function getCurrentSession(request: Request) {
@@ -243,6 +298,10 @@ export async function completeLogin(request: Request) {
   );
 
   if (!tokenResult.ok) {
+    if (isTokenServiceUnavailable(tokenResult)) {
+      throwKeycloakUnavailable();
+    }
+
     if (isUserDisabledTokenError(tokenResult)) {
       clearAuthAttempt(session);
 
@@ -254,7 +313,7 @@ export async function completeLogin(request: Request) {
     }
 
     throw new Response("Could not complete authentication with Keycloak.", {
-      status: 502,
+      status: AUTH_ERROR_CONFIG.tokenFailureStatus,
     });
   }
 
@@ -288,10 +347,18 @@ export async function logout(request: Request) {
   const { clientId, postLogoutRedirectUri } = getAuthConfig();
   const cookieSession = await getSession(request.headers.get("Cookie"));
   const sessionId = cookieSession.get(AUTH_FLOW_CONFIG.sessionKeys.sessionId);
-  const bffSession = sessionId ? await getBffSession(sessionId) : null;
+  let bffSession: BffSession | null = null;
 
   if (sessionId) {
-    await deleteBffSession(sessionId);
+    try {
+      bffSession = await getBffSession(sessionId);
+    } catch {
+      bffSession = null;
+    }
+  }
+
+  if (sessionId) {
+    await clearBffSessionBestEffort(sessionId);
   }
 
   const logoutUrl = new URL(getIssuerUrl(AUTH_FLOW_CONFIG.logoutPath));

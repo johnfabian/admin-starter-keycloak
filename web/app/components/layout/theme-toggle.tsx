@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Moon, Palette, Sun } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
@@ -12,20 +12,13 @@ import {
 import { useTheme } from "~/hooks/use-theme";
 import { appTheme, type ColorMode, type ColorTheme } from "~/lib/app-settings.shared";
 
-function subscribeToMediaQuery(callback: () => void) {
-  const mediaQuery = window.matchMedia(appTheme.systemDarkModeQuery);
-  mediaQuery.addEventListener("change", callback);
-  return () => mediaQuery.removeEventListener("change", callback);
-}
-
-function getSystemDarkMode() {
-  return window.matchMedia(appTheme.systemDarkModeQuery).matches;
-}
-
 export function ThemeToggle() {
   const { colorMode, colorTheme, setColorMode, setColorTheme } = useTheme();
   // Announces theme changes to screen readers through the hidden status region below.
   const [srAnnouncement, setSrAnnouncement] = useState("");
+  const [systemDark, setSystemDark] = useState(() =>
+    typeof window === "undefined" ? false : window.matchMedia(appTheme.systemDarkModeQuery).matches
+  );
   const srAnnouncementTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -34,11 +27,15 @@ export function ThemeToggle() {
     };
   }, []);
 
-  const systemDark = useSyncExternalStore(subscribeToMediaQuery, getSystemDarkMode, () => false);
-  const isDark = useMemo(
-    () => colorMode === "dark" || (colorMode === "system" && systemDark),
-    [colorMode, systemDark]
-  );
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(appTheme.systemDarkModeQuery);
+    const handleChange = (event: MediaQueryListEvent) => setSystemDark(event.matches);
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  const isDark = colorMode === "dark" || (colorMode === "system" && systemDark);
   const currentThemeLabel =
     appTheme.themes.find((theme) => theme.value === colorTheme)?.label ?? colorTheme;
 

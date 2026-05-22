@@ -24,6 +24,7 @@ export const appSettings = {
       home: "/",
       users: "/users",
       usersDashboard: "/users/dashboard",
+      usersDashboardErrorPreview: "/users/dashboard/errors",
       admins: "/admins",
       adminsDashboard: "/admins/dashboard",
       profile: "/profile",
@@ -42,6 +43,7 @@ export const appSettings = {
     patterns: {
       users: "users",
       usersDashboard: "users/dashboard",
+      usersDashboardErrorPreview: "users/dashboard/errors/:status",
       admins: "admins",
       adminsDashboard: "admins/dashboard",
       profile: "profile",
@@ -56,11 +58,13 @@ export const appSettings = {
       authAccount: "auth/account",
       authLogout: "auth/logout",
       chromeDevtools: ".well-known/appspecific/com.chrome.devtools.json",
+      notFound: "*",
     },
     modules: {
       splash: "routes/splash.tsx",
       users: "routes/users.tsx",
       usersDashboard: "routes/users-dashboard.tsx",
+      usersDashboardErrorPreview: "routes/users-dashboard-error-preview.tsx",
       admins: "routes/admins.tsx",
       adminsDashboard: "routes/admins-dashboard.tsx",
       profile: "routes/profile.tsx",
@@ -75,22 +79,18 @@ export const appSettings = {
       authAccount: "routes/auth-account.tsx",
       authLogout: "routes/auth-logout.tsx",
       chromeDevtools: "routes/chrome-devtools.ts",
+      notFound: "routes/not-found.tsx",
     },
   },
   ui: {
     mobileBreakpoint: 768,
     theme: {
-      storageKeys: {
-        mode: "color-mode",
-        theme: "color-theme",
-      },
       cookieKeys: {
         mode: "admin-starter-color-mode",
         theme: "admin-starter-color-theme",
       },
       cookieMaxAgeSeconds: 31_536_000,
       cookiePath: "/",
-      storageEvent: "admin-starter-theme-storage",
       systemDarkModeQuery: "(prefers-color-scheme: dark)",
       defaultMode: "dark",
       defaultTheme: "teal",

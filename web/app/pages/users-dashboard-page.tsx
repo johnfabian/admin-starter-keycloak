@@ -1,3 +1,4 @@
+import { ErrorPreviewPanel } from "~/components/dev-only/error-preview-panel";
 import { DashboardLayout } from "~/layouts/dashboard-layout";
 import { appInfo } from "~/lib/app-settings.shared";
 import { joinNonEmpty } from "~/lib/string-helper.shared";
@@ -49,6 +50,8 @@ export function UsersDashboardPage({ user }: { user: CurrentUser }) {
           />
         </div>
       </section>
+
+      <ErrorPreviewPanel />
     </DashboardLayout>
   );
 }

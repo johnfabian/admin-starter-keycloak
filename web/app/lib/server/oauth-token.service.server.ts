@@ -14,7 +14,8 @@ interface TokenResponse {
   refresh_expires_in?: number;
 }
 
-interface TokenRequestFailure {
+export interface TokenRequestFailure {
+  failureType: "http" | "network" | "timeout";
   ok: false;
   status: number;
   error?: string;
@@ -37,12 +38,16 @@ const TOKEN_SERVICE_CONFIG = {
     authorizationCode: "authorization_code",
     refreshToken: "refresh_token",
   },
+  requestTimeoutMs: 10_000,
+  serviceUnavailableStatus: 503,
   jwksPath: "/protocol/openid-connect/certs",
   tokenPath: "/protocol/openid-connect/token",
 } as const;
 
 export const TOKEN_REQUEST_ERRORS = {
   invalidGrant: "invalid_grant",
+  requestFailed: "token_request_failed",
+  requestTimeout: "token_request_timeout",
   userDisabled: "user_disabled",
 } as const;
 
@@ -171,18 +176,42 @@ export function isUserDisabledTokenError(result: TokenRequestResult) {
   );
 }
 
+export function isTokenServiceUnavailable(result: TokenRequestResult) {
+  return !result.ok && result.status === TOKEN_SERVICE_CONFIG.serviceUnavailableStatus;
+}
+
 export async function requestTokenResult(body: URLSearchParams): Promise<TokenRequestResult> {
-  const tokenResponse = await fetch(getIssuerUrl(TOKEN_SERVICE_CONFIG.tokenPath), {
-    method: "POST",
-    headers: {
-      "Content-Type": TOKEN_SERVICE_CONFIG.formContentType,
-    },
-    body,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TOKEN_SERVICE_CONFIG.requestTimeoutMs);
+  let tokenResponse: Response;
+
+  try {
+    tokenResponse = await fetch(getIssuerUrl(TOKEN_SERVICE_CONFIG.tokenPath), {
+      method: "POST",
+      headers: {
+        "Content-Type": TOKEN_SERVICE_CONFIG.formContentType,
+      },
+      body,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    const timedOut = error instanceof DOMException && error.name === "AbortError";
+    return {
+      ok: false,
+      failureType: timedOut ? "timeout" : "network",
+      status: TOKEN_SERVICE_CONFIG.serviceUnavailableStatus,
+      error: timedOut
+        ? TOKEN_REQUEST_ERRORS.requestTimeout
+        : TOKEN_REQUEST_ERRORS.requestFailed,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!tokenResponse.ok) {
     return {
       ok: false,
+      failureType: "http",
       status: tokenResponse.status,
       ...(await readTokenError(tokenResponse)),
     };

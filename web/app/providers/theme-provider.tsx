@@ -1,8 +1,7 @@
-import { createContext, useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 
 import { appTheme, type ColorMode, type ColorTheme } from "~/lib/app-settings.shared";
-import { getLocalStorageValue, setLocalStorageValue } from "~/lib/local-storage.shared";
-import { getValidColorMode, getValidColorTheme, themeColors, themeModes } from "~/lib/theme.shared";
+import { themeColors, themeModes } from "~/lib/theme.shared";
 
 interface ThemeContextType {
   colorMode: ColorMode;
@@ -15,34 +14,6 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(undefine
 
 const DEFAULT_COLOR_MODE = appTheme.defaultMode;
 const DEFAULT_COLOR_THEME = appTheme.defaultTheme;
-
-function subscribeToThemeStorage(callback: () => void) {
-  if (typeof window === "undefined") return () => {};
-
-  window.addEventListener("storage", callback);
-  window.addEventListener(appTheme.storageEvent, callback);
-
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener(appTheme.storageEvent, callback);
-  };
-}
-
-function getSavedColorMode(): ColorMode {
-  if (typeof window === "undefined") return DEFAULT_COLOR_MODE;
-
-  return getValidColorMode(getLocalStorageValue(appTheme.storageKeys.mode));
-}
-
-function getSavedColorTheme(): ColorTheme {
-  if (typeof window === "undefined") return DEFAULT_COLOR_THEME;
-
-  return getValidColorTheme(getLocalStorageValue(appTheme.storageKeys.theme));
-}
-
-function notifyThemeStorage() {
-  window.dispatchEvent(new Event(appTheme.storageEvent));
-}
 
 function setThemeCookie(key: string, value: string) {
   document.cookie = `${key}=${encodeURIComponent(value)}; Max-Age=${
@@ -59,31 +30,17 @@ export function ThemeProvider({
   initialColorMode?: ColorMode;
   initialColorTheme?: ColorTheme;
 }) {
-  const colorMode = useSyncExternalStore(
-    subscribeToThemeStorage,
-    getSavedColorMode,
-    () => initialColorMode
-  );
-  const colorTheme = useSyncExternalStore(
-    subscribeToThemeStorage,
-    getSavedColorTheme,
-    () => initialColorTheme
-  );
+  const [colorMode, setColorModeState] = useState(initialColorMode);
+  const [colorTheme, setColorThemeState] = useState(initialColorTheme);
 
   const setColorMode = useCallback((mode: ColorMode) => {
     if (!themeModes.includes(mode)) return;
-    if (setLocalStorageValue(appTheme.storageKeys.mode, mode)) {
-      setThemeCookie(appTheme.cookieKeys.mode, mode);
-      notifyThemeStorage();
-    }
+    setColorModeState(mode);
   }, []);
 
   const setColorTheme = useCallback((theme: ColorTheme) => {
     if (!themeColors.includes(theme)) return;
-    if (setLocalStorageValue(appTheme.storageKeys.theme, theme)) {
-      setThemeCookie(appTheme.cookieKeys.theme, theme);
-      notifyThemeStorage();
-    }
+    setColorThemeState(theme);
   }, []);
 
   useEffect(() => {
