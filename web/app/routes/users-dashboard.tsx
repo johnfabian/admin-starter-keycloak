@@ -1,6 +1,6 @@
 import { UsersDashboardPage } from "~/pages/users-dashboard-page";
 import { appInfo } from "~/lib/app-settings.shared";
-import { requireUserRoute } from "~/lib/server/route-guards.server";
+import { requireAuthenticatedRoute } from "~/lib/server/route-guards.server";
 import type { Route } from "./+types/users-dashboard";
 
 export function meta() {
@@ -9,7 +9,7 @@ export function meta() {
 
 export async function loader({ request }: Route.LoaderArgs) {
   return {
-    user: await requireUserRoute(request),
+    user: await requireAuthenticatedRoute(request),
   };
 }
 

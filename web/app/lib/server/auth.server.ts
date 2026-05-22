@@ -15,7 +15,10 @@ import {
   type BffSession,
 } from "~/lib/server/bff-session.service.server";
 import { getAuthConfig, getIssuerUrl, hasAuthConfig } from "~/lib/server/auth-config.server";
-import { buildCurrentUser, getRolesFromTokenPayload } from "~/lib/server/current-user.server";
+import {
+  buildCurrentUser,
+  getRolesFromTokenPayload,
+} from "~/lib/server/current-user.server";
 import {
   assertAccessTokenClient,
   createAuthorizationCodeParams,
@@ -87,7 +90,10 @@ async function refreshSessionIfNeeded(session: BffSession) {
   const accessPayload = await verifyToken(tokens.accessToken, resourceServerAudience || undefined);
   assertAccessTokenClient(accessPayload);
 
-  const user = { ...session.user, roles: getRolesFromTokenPayload(accessPayload) };
+  const user = {
+    ...session.user,
+    roles: getRolesFromTokenPayload(accessPayload),
+  };
   if (accessPayload.sub && accessPayload.sub !== session.user.id) {
     await deleteBffSession(session.id);
     return null;
