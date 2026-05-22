@@ -1,4 +1,4 @@
-export function getCookieValue(cookieHeader: string | null, key: string) {
+export function getCookieValue(cookieHeader: string | null | undefined, key: string) {
   const value = cookieHeader
     ?.split(";")
     .map((cookie) => cookie.trim())
@@ -13,4 +13,3 @@ export function getCookieValue(cookieHeader: string | null, key: string) {
     return null;
   }
 }
-

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 
-import { ThemeToggle } from "~/components/theme-toggle/theme-toggle";
+import { ThemeToggle } from "~/components/layout/theme-toggle";
 import { Button } from "~/components/ui/button";
 import { PublicLayout } from "~/layouts/public-layout";
 import { appInfo, appRoutes } from "~/lib/app-settings.shared";

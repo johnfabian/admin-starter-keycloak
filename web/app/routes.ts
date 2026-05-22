@@ -6,6 +6,7 @@ export default [
   index(appRouteModules.splash),
   route(appRoutePatterns.users, appRouteModules.users),
   route(appRoutePatterns.usersDashboard, appRouteModules.usersDashboard),
+  route(appRoutePatterns.usersDashboardErrorPreview, appRouteModules.usersDashboardErrorPreview),
   route(appRoutePatterns.admins, appRouteModules.admins),
   route(appRoutePatterns.adminsDashboard, appRouteModules.adminsDashboard),
   route(appRoutePatterns.profile, appRouteModules.profile),
@@ -20,4 +21,5 @@ export default [
   route(appRoutePatterns.authAccount, appRouteModules.authAccount),
   route(appRoutePatterns.authLogout, appRouteModules.authLogout),
   route(appRoutePatterns.chromeDevtools, appRouteModules.chromeDevtools),
+  route(appRoutePatterns.notFound, appRouteModules.notFound),
 ] satisfies RouteConfig;

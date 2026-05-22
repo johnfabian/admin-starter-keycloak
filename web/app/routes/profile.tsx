@@ -1,5 +1,6 @@
 import { UserRound } from "lucide-react";
 
+import { RouteErrorBoundary } from "~/components/error-page";
 import { DashboardPlaceholderPage } from "~/pages/dashboard-placeholder-page";
 import { appInfo } from "~/lib/app-settings.shared";
 import { requireAuthenticatedRoute } from "~/lib/server/route-guards.server";
@@ -25,4 +26,8 @@ export default function Profile({ loaderData }: Route.ComponentProps) {
       icon={UserRound}
     />
   );
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  return <RouteErrorBoundary error={error} />;
 }

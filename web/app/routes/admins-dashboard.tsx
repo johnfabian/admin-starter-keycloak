@@ -1,3 +1,4 @@
+import { RouteErrorBoundary } from "~/components/error-page";
 import { AdminsDashboardPage } from "~/pages/admins-dashboard-page";
 import { appInfo } from "~/lib/app-settings.shared";
 import { requireAdminRoute } from "~/lib/server/route-guards.server";
@@ -15,4 +16,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function AdminsDashboard({ loaderData }: Route.ComponentProps) {
   return <AdminsDashboardPage user={loaderData.user} />;
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  return <RouteErrorBoundary error={error} />;
 }

@@ -1,18 +1,20 @@
-import { AppHeader } from "~/components/app-header";
+import type { ReactNode } from "react";
+
+import { AppHeader } from "~/components/layout/app-header";
 import type { CurrentUser } from "~/models/current-user";
 
 interface PublicLayoutProps {
-  user: CurrentUser | null;
-  children: React.ReactNode;
   background?: "white" | "muted";
+  children: ReactNode;
   showHeader?: boolean;
+  user: CurrentUser | null;
 }
 
 export function PublicLayout({
-  user,
-  children,
   background = "muted",
+  children,
   showHeader = true,
+  user,
 }: PublicLayoutProps) {
   const backgroundClass =
     background === "white"
