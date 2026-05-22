@@ -196,6 +196,47 @@ In the production realm:
 After bootstrap, create named admin users and stop relying on the bootstrap
 admin credentials for daily use.
 
+### Registration Approval
+
+If public self-service registration is enabled, decide how new accounts are
+approved before production launch. Keycloak has an **Enabled** switch on each
+user, but it does not provide a built-in realm setting that makes
+self-registered users disabled by default.
+
+For this starter, the intended global approval model is:
+
+1. User self-registers in Keycloak.
+2. User verifies their email.
+3. A custom Keycloak event listener handles the `VERIFY_EMAIL` event.
+4. The listener sets the user **Enabled** value to off and can add an
+   `awaiting_admin_approval=true` user attribute for admin visibility.
+5. The listener removes active Keycloak sessions for that user.
+6. A Keycloak admin reviews the account.
+7. The admin sets **Enabled** back on.
+8. The user can then authenticate into any app in the realm.
+
+This keeps approval at the Keycloak layer. The React Router app should not add
+an app-level approval page or approval flag for this flow. Disabled users do not
+receive tokens, so they never reach `/auth/callback`.
+
+The default Keycloak disabled-account login message is acceptable for the MVP.
+Later Keycloakify theme work can style the login experience per client without
+changing this approval mechanism.
+
+This repo includes the `disable-after-email-verify` provider under
+`auth-server/providers/`. After deploying a Keycloak image that includes the
+provider, enable it in the realm:
+
+```text
+Realm settings -> Events -> Event listeners
+```
+
+Add this provider id:
+
+```text
+disable-after-email-verify
+```
+
 ## Keycloak Server Hardening
 
 For production Keycloak:
@@ -215,6 +256,13 @@ For production Keycloak:
 If Keycloak is containerized, avoid using `start-dev` in production. Use the
 production start mode and configure hostname/proxy settings for the deployment
 environment.
+
+Custom Keycloak providers should be built into the production Keycloak image
+instead of relying on ad hoc mounted jars. The `auth-server/Dockerfile` builds
+the registration-approval provider, copies the jar into
+`/opt/keycloak/providers/`, and runs `/opt/keycloak/bin/kc.sh build`. Local
+development can use `start-dev` for faster iteration, but production should run
+an optimized Keycloak image that already contains the provider.
 
 ## Postgres Hardening
 
@@ -383,6 +431,9 @@ After each production deploy:
 - Visit `/admins/dashboard` as a non-admin and confirm access is denied.
 - Log in as an Admin and confirm `/admins/dashboard` loads.
 - Click Register and confirm the intended Keycloak registration behavior.
+- If the registration-approval provider is enabled, register a new user, verify
+  email, confirm Keycloak disables the user, then enable the user manually and
+  confirm login succeeds.
 - Click Logout and confirm the local BFF session clears and Keycloak ends SSO.
 - Restart the app container and confirm existing users can still sign in.
 

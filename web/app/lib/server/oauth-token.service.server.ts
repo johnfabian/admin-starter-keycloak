@@ -14,6 +14,20 @@ interface TokenResponse {
   refresh_expires_in?: number;
 }
 
+interface TokenRequestFailure {
+  ok: false;
+  status: number;
+  error?: string;
+  errorDescription?: string;
+}
+
+interface TokenRequestSuccess {
+  ok: true;
+  tokens: TokenResponse;
+}
+
+export type TokenRequestResult = TokenRequestFailure | TokenRequestSuccess;
+
 const TOKEN_SERVICE_CONFIG = {
   bearerTokenType: "Bearer",
   defaultAccessTokenSeconds: 300,
@@ -25,6 +39,15 @@ const TOKEN_SERVICE_CONFIG = {
   },
   jwksPath: "/protocol/openid-connect/certs",
   tokenPath: "/protocol/openid-connect/token",
+} as const;
+
+export const TOKEN_REQUEST_ERRORS = {
+  invalidGrant: "invalid_grant",
+  userDisabled: "user_disabled",
+} as const;
+
+const TOKEN_ERROR_TEXT = {
+  disabled: "disabled",
 } as const;
 
 let remoteJwks: ReturnType<typeof createRemoteJWKSet> | undefined;
@@ -123,7 +146,32 @@ export function createTokenRequestBody(params: Record<string, string>) {
   return body;
 }
 
-export async function requestToken(body: URLSearchParams) {
+async function readTokenError(response: Response) {
+  try {
+    const payload = (await response.json()) as Record<string, unknown>;
+    return {
+      error: typeof payload.error === "string" ? payload.error : undefined,
+      errorDescription:
+        typeof payload.error_description === "string" ? payload.error_description : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+export function isUserDisabledTokenError(result: TokenRequestResult) {
+  if (result.ok) return false;
+
+  const errorDescription = result.errorDescription?.toLowerCase() ?? "";
+
+  return (
+    result.error === TOKEN_REQUEST_ERRORS.userDisabled ||
+    (result.error === TOKEN_REQUEST_ERRORS.invalidGrant &&
+      errorDescription.includes(TOKEN_ERROR_TEXT.disabled))
+  );
+}
+
+export async function requestTokenResult(body: URLSearchParams): Promise<TokenRequestResult> {
   const tokenResponse = await fetch(getIssuerUrl(TOKEN_SERVICE_CONFIG.tokenPath), {
     method: "POST",
     headers: {
@@ -133,10 +181,23 @@ export async function requestToken(body: URLSearchParams) {
   });
 
   if (!tokenResponse.ok) {
-    return null;
+    return {
+      ok: false,
+      status: tokenResponse.status,
+      ...(await readTokenError(tokenResponse)),
+    };
   }
 
-  return (await tokenResponse.json()) as TokenResponse;
+  return {
+    ok: true,
+    tokens: (await tokenResponse.json()) as TokenResponse,
+  };
+}
+
+export async function requestToken(body: URLSearchParams) {
+  const result = await requestTokenResult(body);
+
+  return result.ok ? result.tokens : null;
 }
 
 export function createAuthorizationCodeParams(code: string, codeVerifier: string, redirectUri: string) {
