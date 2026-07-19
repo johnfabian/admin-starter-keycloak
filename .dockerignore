@@ -1,4 +1,7 @@
 .git
+.env*
+!.env.example
+!.env.*.example
 .react-router
 build
 node_modules

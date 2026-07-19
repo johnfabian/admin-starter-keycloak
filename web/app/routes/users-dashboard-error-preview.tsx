@@ -10,11 +10,11 @@ const ERROR_PREVIEW_CONFIG = {
 } as const;
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  await requireAuthenticatedRoute(request);
-
   if (!import.meta.env.DEV) {
     throw new Response(null, { status: ERROR_PREVIEW_CONFIG.disabledStatus });
   }
+
+  await requireAuthenticatedRoute(request);
 
   const status = Number(params.status);
   if (!isErrorPreviewStatus(status)) {
