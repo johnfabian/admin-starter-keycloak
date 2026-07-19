@@ -1,3 +1,14 @@
  
  Keycloak Admin
  http://localhost:8080 
+
+default admin account - change before deployment
+admin
+admin
+
+
+
+ Skills
+ /start-app the project (starts all docker containers, front-end and back-end)
+
+ 

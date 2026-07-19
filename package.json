@@ -5,8 +5,6 @@
   "packageManager": "pnpm@11.1.2",
   "scripts": {
     "build": "dotenv -e .env.development -- corepack pnpm --dir web build",
-   
-    "start-app": "corepack pnpm start-app-containers",
     "dev": "dotenv -e .env.development -- corepack pnpm --dir web dev",
     "stop-app-containers": "docker compose -f auth-server/docker-compose.yml down && docker compose -f postgres/docker-compose.yml down && docker compose -f local-mail-server/docker-compose.yml down",
     "stop-app": "corepack pnpm stop-app-containers",
