@@ -4,7 +4,7 @@ import { Blocks, ExternalLink, UserRound } from "lucide-react";
 import { LogoutButton } from "~/components/layout/logout-button";
 import { LogoutMenuItem } from "~/components/layout/logout-menu-item";
 import { ThemeToggle } from "~/components/layout/theme-toggle";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -53,7 +53,6 @@ export function AppHeader({ user }: { user: CurrentUser | null }) {
                     aria-label="Open account menu"
                   >
                     <Avatar>
-                      {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
                       <AvatarFallback>
                         {getInitials([user.firstName, user.lastName], user.name)}
                       </AvatarFallback>

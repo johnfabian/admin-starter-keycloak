@@ -48,7 +48,10 @@ browser-unfriendly auth work:
 The browser does not read or store Keycloak tokens in `localStorage`, loader
 JSON, or non-HttpOnly cookies. Logout is a POST action that clears the local BFF
 session and redirects through Keycloak's end-session endpoint when an ID token
-hint is available.
+hint is available. That `id_token_hint` is an intentional OIDC logout exception:
+it is sent only to Keycloak over the logout redirect and should be protected in
+production with HTTPS, no-store auth responses, a strict referrer policy, and
+proxy logging that avoids full query strings.
 
 ## Auth Flow
 

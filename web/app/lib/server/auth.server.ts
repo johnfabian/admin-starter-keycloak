@@ -2,6 +2,7 @@ import { redirect } from "react-router";
 
 import { appRoutes } from "~/lib/app-settings.shared";
 import { hasAnyRole, hasRole } from "~/lib/auth-policy.shared";
+import { getNoStoreHeaders } from "~/lib/security-headers.shared";
 import {
   assertSameOriginPost,
   getRequestPath,
@@ -15,10 +16,7 @@ import {
   type BffSession,
 } from "~/lib/server/bff-session.service.server";
 import { getAuthConfig, getIssuerUrl, hasAuthConfig } from "~/lib/server/auth-config.server";
-import {
-  buildCurrentUser,
-  getRolesFromTokenPayload,
-} from "~/lib/server/current-user.server";
+import { buildCurrentUser, getRolesFromTokenPayload } from "~/lib/server/current-user.server";
 import {
   assertAccessTokenClient,
   createAuthorizationCodeParams,
@@ -266,9 +264,9 @@ export async function redirectToLogin(request: Request, action?: AuthAction) {
   }
 
   throw redirect(authorizationUrl.toString(), {
-    headers: {
+    headers: getNoStoreHeaders({
       "Set-Cookie": await commitSession(session),
-    },
+    }),
   });
 }
 
@@ -287,9 +285,9 @@ export async function completeLogin(request: Request) {
     clearAuthAttempt(session);
 
     throw redirect(appRoutes.authLoginWithPrompt, {
-      headers: {
+      headers: getNoStoreHeaders({
         "Set-Cookie": await commitSession(session),
-      },
+      }),
     });
   }
 
@@ -306,9 +304,9 @@ export async function completeLogin(request: Request) {
       clearAuthAttempt(session);
 
       throw redirect(appRoutes.authLoginWithPrompt, {
-        headers: {
+        headers: getNoStoreHeaders({
           "Set-Cookie": await commitSession(session),
-        },
+        }),
       });
     }
 
@@ -335,9 +333,9 @@ export async function completeLogin(request: Request) {
   session.set(AUTH_FLOW_CONFIG.sessionKeys.sessionId, sessionId);
 
   throw redirect(returnTo, {
-    headers: {
+    headers: getNoStoreHeaders({
       "Set-Cookie": await commitSession(session),
-    },
+    }),
   });
 }
 
@@ -373,9 +371,9 @@ export async function logout(request: Request) {
   }
 
   throw redirect(logoutUrl.toString(), {
-    headers: {
+    headers: getNoStoreHeaders({
       "Set-Cookie": await destroySession(cookieSession),
-    },
+    }),
   });
 }
 

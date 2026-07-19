@@ -292,6 +292,11 @@ Local app logout is a POST action that clears the BFF session cookie, deletes
 the server-side session record, and redirects through Keycloak's OIDC logout
 endpoint with `id_token_hint` when available.
 
+The `id_token_hint` logout parameter is an intentional OIDC logout exception.
+It preserves full Keycloak SSO logout behavior, but production deployments
+should use HTTPS, no-store auth responses, strict referrer policy, short-lived
+minimal ID token claims, and proxy logging that avoids full query strings.
+
 Logout callback options:
 
 - Use front-channel logout only if the browser app needs Keycloak to call a

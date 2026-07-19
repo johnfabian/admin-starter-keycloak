@@ -1,15 +1,9 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useRouteLoaderData,
-} from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteLoaderData } from "react-router";
 
 import { ErrorPage } from "./components/error-page";
 import { appTheme } from "./lib/app-settings.shared";
 import { getCookieValue } from "./lib/cookie.shared";
+import { getSecurityHeaders } from "./lib/security-headers.shared";
 import { getValidColorMode, getValidColorTheme } from "./lib/theme.shared";
 import type { Route } from "./+types/root";
 import { ThemeProvider } from "./providers/theme-provider";
@@ -28,6 +22,10 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+export function headers() {
+  return getSecurityHeaders();
+}
 
 export function loader({ request }: Route.LoaderArgs) {
   const cookieHeader = request.headers.get("Cookie");
@@ -67,10 +65,7 @@ function BaseLayout({
         <Links />
       </head>
       <body>
-        <ThemeProvider
-          initialColorMode={theme.colorMode}
-          initialColorTheme={theme.colorTheme}
-        >
+        <ThemeProvider initialColorMode={theme.colorMode} initialColorTheme={theme.colorTheme}>
           {children}
         </ThemeProvider>
         <ScrollRestoration />

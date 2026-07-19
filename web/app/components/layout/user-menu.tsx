@@ -1,7 +1,7 @@
 import { User } from "lucide-react";
 
 import { LogoutMenuItem } from "~/components/layout/logout-menu-item";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -27,8 +27,9 @@ export function UserMenu({ user }: { user: CurrentUser }) {
           aria-label="Open account menu"
         >
           <Avatar>
-            {user.image ? <AvatarImage src={user.image} alt={user.name} /> : null}
-            <AvatarFallback>{getInitials([user.firstName, user.lastName], user.name)}</AvatarFallback>
+            <AvatarFallback>
+              {getInitials([user.firstName, user.lastName], user.name)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
