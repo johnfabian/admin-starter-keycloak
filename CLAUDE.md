@@ -4,9 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-A pnpm monorepo admin starter. The only implemented app is `web/`, a React Router 7 framework-mode app that acts as its own Backend For Frontend (BFF) for Keycloak authentication. Other workspace folders (`api-python/`, `api-express/`, `api-dotnet/`, `mobile/`) are placeholders. Infrastructure (Postgres, Keycloak, Traefik, Mailpit) runs via Docker Compose files in `postgres/`, `auth-server/`, `api-gateway/`, and `local-mail-server/`.
-
-Also read `AGENTS.md` at the repo root — it holds binding repository rules (git workflow, file naming, security, error handling). Key ones:
+A pnpm monorepo admin starter. The only implemented app is `web/`, a React Router 7 framework-mode app that acts as its own Backend For Frontend (BFF) for Keycloak authentication. Other workspace folders (`api-express/`) are placeholders. Infrastructure (Postgres, Keycloak, Traefik, Mailpit) runs via Docker Compose files in `postgres/`, `auth-server/`, `api-gateway/`, and `local-mail-server/`.
 
 - Never make code changes directly on `master`; use a feature branch.
 - File naming: `.server.ts` (server-only), `.client.ts` (browser-only), `.shared.ts` (safe on both).

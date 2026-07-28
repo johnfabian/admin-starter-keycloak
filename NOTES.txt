@@ -7,8 +7,9 @@ admin
 admin
 
 
+ Skills To Try
 
- Skills
- /start-app the project (starts all docker containers, front-end and back-end)
+ //openwiki for claude code as a plugin - requires no api key
+ https://github.com/jatinmayekar/openwiki-for-claude-code
 
  
