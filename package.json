@@ -5,10 +5,8 @@
   "packageManager": "pnpm@11.1.2",
   "scripts": {
     "build": "dotenv -e .env.development -- corepack pnpm --dir web build",
-   
-    "start-app": "corepack pnpm start-app-containers",
     "dev": "dotenv -e .env.development -- corepack pnpm --dir web dev",
-    "stop-app-containers": "docker compose -f auth-server/docker-compose.yml down && docker compose -f postgres/docker-compose.yml down && docker compose -f local-mail-server/docker-compose.yml down",
+    "stop-app-containers": "docker compose -f auth-server/docker-compose.yml --env-file .env.development down && docker compose -f postgres/docker-compose.yml --env-file .env.development down && docker compose -f local-mail-server/docker-compose.yml down",
     "stop-app": "corepack pnpm stop-app-containers",
     "start-gateway": "docker compose -f local-mail-server/docker-compose.yml up -d --wait && docker compose -f api-gateway/docker-compose.yml --env-file .env.traefik up -d --wait && docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik up -d --wait && docker compose -f auth-server/docker-compose.gateway.yml --env-file .env.traefik up -d --build --wait && docker compose -f web/docker-compose.gateway.yml --env-file .env.traefik up -d --build --wait",
     "dev:gateway": "corepack pnpm start-gateway",
