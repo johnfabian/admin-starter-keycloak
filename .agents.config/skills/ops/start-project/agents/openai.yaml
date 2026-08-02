@@ -1,0 +1,6 @@
+interface:
+  display_name: "Start Project"
+  short_description: "Start the local development services"
+  default_prompt: "Use $start-project to start and verify this repository's local services."
+policy:
+  allow_implicit_invocation: false

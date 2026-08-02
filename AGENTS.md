@@ -6,11 +6,11 @@ Start at `wiki/index.md`. Retrieve only concepts relevant to the task; prefer cu
 
 ## Applying scoped rules
 
-Identify files that may change, open `.agents/rules/index.md`, and load only matching cards before planning, editing, or reviewing. Run the cards' mapped checks and record material rule IDs and evidence.
+Identify files that may change, open `.agents.config/rules/index.md`, and load only matching cards before planning, editing, or reviewing. `.agents/rules` is Codex's symlink to the same catalog. Run mapped checks and record material rule IDs and evidence.
 
 ## Using skills
 
-Use one relevant package from `.agents/skills/` for procedural work. Skills are the only capability layer: invoke them explicitly with `$skill-name` or discover them with `/skills`. Do not load every skill at startup.
+Use one relevant package from `.agents.config/skills/` for procedural work; `.agents/skills` contains flat Codex discovery symlinks. Invoke `meta/`, `ops/`, and hard-locked dev workflow anchors explicitly with `$skill-name`; let other `dev/` helpers load on demand from their descriptions. Use `$feature-plan` as the primary SDLC entry. After creating or moving a skill, explicitly run `$skills-audit`. Do not preload all skills.
 
 ## Durable checkpoints
 

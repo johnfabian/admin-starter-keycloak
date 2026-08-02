@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evaluate SDLC Pilot"
+  short_description: "Review pilot evidence and evaluation needs"
+  default_prompt: "Use $evaluate-sdlc-pilot to decide whether the repository needs a formal evaluation suite."

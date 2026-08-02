@@ -1,0 +1,4 @@
+interface:
+  display_name: "Find Edge Cases"
+  short_description: "Map edge cases to explicit dispositions"
+  default_prompt: "Use $find-edge-cases to identify material edge cases and assign dispositions."

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Rules Audit"
+  short_description: "Audit centralized rules and invocation policy"
+  default_prompt: "Use $rules-audit to check centralized rule scopes, provider links, and invocation policy without mutation."
+policy:
+  allow_implicit_invocation: false

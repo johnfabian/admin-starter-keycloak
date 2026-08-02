@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Impact"
+  short_description: "Assess architecture and security impact"
+  default_prompt: "Use $architecture-impact to assess affected boundaries, compatibility, and ADR needs."

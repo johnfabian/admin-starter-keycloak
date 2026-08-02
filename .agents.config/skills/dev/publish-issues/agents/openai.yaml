@@ -1,0 +1,6 @@
+interface:
+  display_name: "Publish Issues"
+  short_description: "Publish an approved preview idempotently"
+  default_prompt: "Use $publish-issues to publish an explicitly approved preview without semantic changes."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Critique Plan"
+  short_description: "Independently challenge a delivery plan"
+  default_prompt: "Use $critique-plan to review a plan from clean context and report evidence-backed findings."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adversarial Review"
+  short_description: "Challenge high-risk plans and changes"
+  default_prompt: "Use $adversarial-review to perform an independent negative-path review."

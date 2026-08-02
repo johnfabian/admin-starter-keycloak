@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Update"
+  short_description: "Update durable OKF knowledge safely"
+  default_prompt: "Use $wiki-update to make a scoped, evidence-backed OKF wiki change."
