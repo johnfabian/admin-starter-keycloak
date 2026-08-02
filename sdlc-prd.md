@@ -11,12 +11,12 @@ owner: Engineering Enablement
 
 ## Document control
 
-| Field | Value |
-|---|---|
-| Status | Draft for approval |
-| Decision requested | Approve phased implementation, governance model, and pilot scope |
-| Primary outcome | Repeatable, evidence-based AI-assisted delivery without making either model the system of record |
-| Execution surfaces | Claude Code and Codex remain interchangeable execution surfaces |
+| Field              | Value                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
+| Status             | Draft for approval                                                                               |
+| Decision requested | Approve phased implementation, governance model, and pilot scope                                 |
+| Primary outcome    | Repeatable, evidence-based AI-assisted delivery without making either model the system of record |
+| Execution surfaces | Claude Code and Codex remain interchangeable execution surfaces                                  |
 
 ## Executive summary
 
@@ -58,14 +58,14 @@ The opportunity is to introduce a lightweight control plane inside the existing 
 
 ## 3. Personas
 
-| Persona | Need | Framework response |
-|---|---|---|
-| Product owner | Clear scope, tradeoffs, and approved backlog | Feature brief, requirements, decisions, issue preview, approval gate |
-| Staff engineer | Architectural consistency and safe change boundaries | Repository reconnaissance, architecture-impact artifact, OKF knowledge retrieval, ADR links |
-| Implementer | A bounded story with testable behavior and relevant context | Story packet, task-specific skill, TDD workflow, handoff state |
-| Reviewer/security engineer | Independent evidence and a non-anchored view | Clean-context review packet, deterministic evidence, threat and authorization checks |
-| Engineering manager | Predictable throughput and measurable improvement | Project views, milestone gates, trend telemetry, evaluation dashboard |
-| Platform/SRE engineer | Secure edge configuration and traceable operations | Traefik/Keycloak boundary requirements, OpenTelemetry conventions, runtime evidence |
+| Persona                    | Need                                                        | Framework response                                                                          |
+| -------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Product owner              | Clear scope, tradeoffs, and approved backlog                | Feature brief, requirements, decisions, issue preview, approval gate                        |
+| Staff engineer             | Architectural consistency and safe change boundaries        | Repository reconnaissance, architecture-impact artifact, OKF knowledge retrieval, ADR links |
+| Implementer                | A bounded story with testable behavior and relevant context | Story packet, task-specific skill, TDD workflow, handoff state                              |
+| Reviewer/security engineer | Independent evidence and a non-anchored view                | Clean-context review packet, deterministic evidence, threat and authorization checks        |
+| Engineering manager        | Predictable throughput and measurable improvement           | Project views, milestone gates, trend telemetry, evaluation dashboard                       |
+| Platform/SRE engineer      | Secure edge configuration and traceable operations          | Traefik/Keycloak boundary requirements, OpenTelemetry conventions, runtime evidence         |
 
 ## 4. Product principles
 
@@ -90,10 +90,9 @@ GitHub Issues / Projects
         v
 Repository-native control plane
   AGENTS.md + CLAUDE.md: concise wiki/rule/skill routers
-  .agents/skills: canonical, self-contained shared capabilities
-  .claude/skills: symlinks only, for Claude Code discovery
-  .agents/rules: canonical, scoped implementation guidance
-  .claude/rules: adapters to scoped canonical rules for Claude Code
+  .agents.config/skills: canonical, typed, self-contained shared capabilities
+  .agents.config/rules: canonical, scoped implementation guidance
+  .agents + .claude: flat provider discovery symlinks to the shared configuration
   wiki/: OKF-compatible progressive-disclosure layer
   CI + branch protection: deterministic gates
         |
@@ -113,13 +112,16 @@ OpenTelemetry collector -> approved telemetry backends
 /
 ├── AGENTS.md                          # concise router: wiki retrieval, skills, evidence
 ├── CLAUDE.md                          # concise Claude peer of AGENTS.md
-├── .agents/
-│   ├── skills/                        # canonical shared skills; one package per capability
-│   │   └── feature-research/
-│   │       ├── SKILL.md
-│   │       ├── templates/
-│   │       ├── references/
-│   │       └── scripts/
+├── .agents.config/                    # canonical shared configuration
+│   ├── skills/
+│   │   ├── meta/                      # explicit configuration/audit workflows
+│   │   ├── ops/                       # explicit environment workflows
+│   │   └── dev/                       # contextual development helpers
+│   │       └── feature-research/
+│   │           ├── SKILL.md
+│   │           ├── templates/
+│   │           ├── references/
+│   │           └── scripts/
 │   └── rules/                         # canonical concise, imperative rule cards
 │       ├── index.md                   # path-to-rule catalog; loaded via router
 │       ├── global.md
@@ -127,9 +129,12 @@ OpenTelemetry collector -> approved telemetry backends
 │       ├── express.md
 │       ├── testing.md
 │       └── security.md
+├── .agents/
+│   ├── skills/                        # flat Codex symlinks to typed shared packages
+│   └── rules -> ../.agents.config/rules
 ├── .claude/
-│   └── skills/                        # Git-tracked directory symlinks to .agents/skills only
-│   └── rules/                         # adapters to matching canonical rule cards
+│   ├── skills/                        # flat Claude symlinks to typed shared packages
+│   └── rules -> ../.agents.config/rules
 ├── wiki/                              # OKF-compatible progressive-disclosure wiki
 │   ├── index.md
 │   ├── architecture/
@@ -145,22 +150,22 @@ OpenTelemetry collector -> approved telemetry backends
 
 `AGENTS.md` and `CLAUDE.md` must remain short bootstrap documents. Each shall include a **Using the wiki** section that directs the agent to start at `wiki/index.md`, search/retrieve only concepts relevant to the task, prefer current/high-trust concepts, verify claims against code or configuration, and record retrieved knowledge in the GitHub issue or PR when material. They shall also include an **Applying scoped rules** section that requires the agent to identify the changed-file paths, retrieve only matching rule cards before planning, editing, or reviewing, and run their mapped automated checks. They shall direct the agent to use a named skill for procedural work, not load all wiki concepts, rules, or skill instructions at session start. They must not become a second, ever-growing wiki.
 
-The canonical package lives in `.agents/skills/<skill-name>/`. Each entry in `.claude/skills/` is a directory symlink to the canonical package so Claude Code discovers the same source without copying it. This is a discovery adapter only; it contains no instructions, scripts, or templates of its own. The shared package uses the portable Agent Skills subset (`name`, `description`, Markdown instructions, templates, references, and scripts). Provider-specific enhancements are optional and must be isolated within that package; the core workflow cannot depend on them.
+The canonical package lives in `.agents.config/skills/<type>/<skill-name>/`, where `<type>` is `meta`, `ops`, or `dev`. Each entry in `.agents/skills/` and `.claude/skills/` is a flat directory symlink to the same typed canonical package so both providers discover one source without copying it. These are discovery adapters only; they contain no instructions, scripts, or templates of their own. Global flat adapters may be deployed to the provider application roots by the explicit `skills-audit` workflow. All `meta/` and `ops/` skills are explicit-only. `dev/` skills use contextual discovery by default, but workflow anchors that begin implementation, cross a human gate, or mutate external state use paired Claude and Codex invocation locks. The shared package uses the portable Agent Skills subset (`name`, `description`, Markdown instructions, templates, references, and scripts). Provider-specific enhancements are optional and must be isolated within that package; the core workflow cannot depend on them.
 
-`.agents/rules/` is distinct from the wiki and from skills: it is the canonical source for short, normative, implementation-time rule cards. A card declares applicable repository globs, concise required/prohibited practices, required checks, and authoritative style/lint configuration; explanation, tradeoffs, and architecture rationale link to the wiki instead of being copied into a rule. Claude adapters in `.claude/rules/` carry the same cards and `paths` frontmatter so Claude loads them when it reads matching files. Codex uses `AGENTS.md` to route to the same matching canonical card before it changes or reviews a file. Codex’s experimental `.codex/rules/*.rules` mechanism is a separate command-approval control and must not be used as the source-style/routing layer.
+`.agents.config/rules/` is distinct from the wiki and from skills: it is the canonical source for short, normative, implementation-time rule cards. A card declares applicable repository globs, concise required/prohibited practices, required checks, and authoritative style/lint configuration; explanation, tradeoffs, and architecture rationale link to the wiki instead of being copied into a rule. The `.agents/rules` and `.claude/rules` directory symlinks expose the same cards to both providers without duplicate bodies. Codex uses `AGENTS.md` to route to the matching canonical card before it changes or reviews a file. Codex’s experimental `.codex/rules/*.rules` mechanism is a separate command-approval control and must not be used as the source-style/routing layer.
 
 ### 5.2 Execution adapters
 
 The framework defines provider-neutral contracts; thin adapters map them to native features:
 
-| Concern | Claude Code adapter | Codex adapter |
-|---|---|---|
-| Durable repo guidance | `CLAUDE.md` plus project configuration | Layered `AGENTS.md` guidance |
-| Scoped implementation rules | `.claude/rules/` matching-file rules | `AGENTS.md` routes to matching `.agents/rules/` card |
-| User entry point | Project skill discovered through the `.claude/skills` symlink and invoked as `/skill-name` | Canonical `.agents/skills` package; portable explicit invocation is `$skill-name` or `/skills` in CLI/IDE; enabled skills also appear in the desktop slash menu |
-| Bounded parallel work | Named subagent with constrained tools and worktree isolation when writing | Scoped subagent or separate review task; separate implementation chats run in Git worktrees |
-| Mechanical enforcement | Lifecycle hook, reviewed and allowlisted | CI/policy checks; hooks only when appropriate to the active Codex surface |
-| Handoff | Structured GitHub issue/PR comment plus optional ephemeral JSON digest | Same GitHub handoff and digest; no conversation transcript required |
+| Concern                     | Claude Code adapter                                                       | Codex adapter                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Durable repo guidance       | `CLAUDE.md` plus project configuration                                    | Layered `AGENTS.md` guidance                                                                                        |
+| Scoped implementation rules | `.claude/rules` symlink exposes matching shared cards                     | `AGENTS.md` routes to matching `.agents.config/rules/` card through `.agents/rules`                                 |
+| User entry point            | Flat project symlink under `.claude/skills/`, invoked as `/skill-name`    | Flat project symlink under `.agents/skills/`; portable explicit invocation is `$skill-name` or `/skills` in CLI/IDE |
+| Bounded parallel work       | Named subagent with constrained tools and worktree isolation when writing | Scoped subagent or separate review task; separate implementation chats run in Git worktrees                         |
+| Mechanical enforcement      | Lifecycle hook, reviewed and allowlisted                                  | CI/policy checks; hooks only when appropriate to the active Codex surface                                           |
+| Handoff                     | Structured GitHub issue/PR comment plus optional ephemeral JSON digest    | Same GitHub handoff and digest; no conversation transcript required                                                 |
 
 Provider adapters may translate invocation syntax but may not change the GitHub record structure, evidence requirements, handoff contract, or approval policy. The framework calls these **skills**, not a separate command layer: Claude Code merges custom commands with skills, while Codex exposes skills through provider-specific explicit invocation and UI menus.
 
@@ -172,30 +177,30 @@ GitHub Issues and Projects shall be the durable record for feature intent, requi
 
 ### FR-2: Self-contained skills and commands
 
-Each canonical package shall live under `.agents/skills/` and include everything it needs inside its own folder: `SKILL.md`, templates, examples, scripts, and skill-local references. It shall not depend on external instruction files. Stage sequencing belongs in the orchestration skill; specialist workflow material and deterministic helper scripts belong in the relevant specialist skill, not a standalone workflows/scripts tree. A package may receive repository evidence, GitHub issue content, and retrieved wiki concepts as declared inputs, but its instructions must be portable and self-contained.
+Each canonical package shall live under `.agents.config/skills/<type>/` and include everything it needs inside its own folder: `SKILL.md`, templates, examples, scripts, and skill-local references. It shall not depend on external instruction files. Stage sequencing belongs in the orchestration skill; specialist workflow material and deterministic helper scripts belong in the relevant specialist skill, not a standalone workflows/scripts tree. A package may receive repository evidence, GitHub issue content, and retrieved wiki concepts as declared inputs, but its instructions must be portable and self-contained.
 
 Each capability shall be independently invokable. Required initial catalog:
 
-| Command | Skill responsibility | Required output |
-|---|---|---|
-| `feature-plan` | Thin orchestration: stage order, ephemeral resume state, approvals | GitHub draft/checklist update and next-stage request |
-| `feature-research` | Find analogous code, tests, GitHub history, and relevant wiki concepts | GitHub planning comment or draft issue section |
-| `requirements-interview` | Convert intent into testable requirements and decisions | Feature issue body/decision comment |
-| `architecture-impact` | Identify affected boundaries, contracts, ADR needs, compatibility | Feature issue architecture section and wiki/ADR links |
-| `find-edge-cases` | Tie edge cases to requirements and dispositions | Feature issue risk/test section |
-| `decompose-stories` | Produce smallest valuable vertical stories | Draft child issues/sub-issues |
-| `critique-plan` | Independently challenge scope, gaps, dependencies, and tests | Structured review comment |
-| `preview-issues` | Render proposed GitHub changes without mutation | Ephemeral preview or GitHub draft |
-| `publish-issues` | Publish only approved preview; create relationships idempotently | Created issue IDs/URLs and audit comment |
-| `handoff` | Produce a provider-neutral checkpoint/resume packet for planning or implementation | Structured GitHub handoff comment plus evidence links |
-| `adversarial-review` | Challenge plan, design, diff, tests, and controls from a clean, hostile-but-authorized perspective | Structured findings with evidence, exploit/precondition, severity, and disposition |
-| `parallel-implementation` | Create a bounded worktree/ownership plan for disjoint implementation slices | GitHub coordination comment: workers, path budgets, base ref, merge order, and integration owner |
-| `wiki-init` | Create and bootstrap a conformant wiki from repository evidence | Initial `wiki/` structure, indexes, log, draft concepts, validation report |
-| `wiki-update` | Safely add, refresh, deprecate, or correct durable knowledge | Reviewed concept/index/log updates and validation report |
-| `wiki-audit` | Validate conformance, stale concepts, sources, and link integrity | Read-only audit report; no silent mutations |
-| `wiki-visualize` | Generate a self-contained relationship viewer from the wiki | `wiki/viz.html` and a generation manifest |
-| `record-adr` | Convert an approved, durable architectural decision into an ADR concept | Reviewed `wiki/decisions/ADR-<id>-<slug>.md`, index/log updates, and GitHub cross-link |
-| `rules-audit` | Validate rule-card scope, conflicts, adapters, and automated enforcement mapping | Read-only rule coverage/conflict report; no silent mutations |
+| Command                   | Skill responsibility                                                                               | Required output                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `feature-plan`            | Thin orchestration: stage order, ephemeral resume state, approvals                                 | GitHub draft/checklist update and next-stage request                                             |
+| `feature-research`        | Find analogous code, tests, GitHub history, and relevant wiki concepts                             | GitHub planning comment or draft issue section                                                   |
+| `requirements-interview`  | Convert intent into testable requirements and decisions                                            | Feature issue body/decision comment                                                              |
+| `architecture-impact`     | Identify affected boundaries, contracts, ADR needs, compatibility                                  | Feature issue architecture section and wiki/ADR links                                            |
+| `find-edge-cases`         | Tie edge cases to requirements and dispositions                                                    | Feature issue risk/test section                                                                  |
+| `decompose-stories`       | Produce smallest valuable vertical stories                                                         | Draft child issues/sub-issues                                                                    |
+| `critique-plan`           | Independently challenge scope, gaps, dependencies, and tests                                       | Structured review comment                                                                        |
+| `preview-issues`          | Render proposed GitHub changes without mutation                                                    | Ephemeral preview or GitHub draft                                                                |
+| `publish-issues`          | Publish only approved preview; create relationships idempotently                                   | Created issue IDs/URLs and audit comment                                                         |
+| `handoff`                 | Produce a provider-neutral checkpoint/resume packet for planning or implementation                 | Structured GitHub handoff comment plus evidence links                                            |
+| `adversarial-review`      | Challenge plan, design, diff, tests, and controls from a clean, hostile-but-authorized perspective | Structured findings with evidence, exploit/precondition, severity, and disposition               |
+| `parallel-implementation` | Create a bounded worktree/ownership plan for disjoint implementation slices                        | GitHub coordination comment: workers, path budgets, base ref, merge order, and integration owner |
+| `wiki-init`               | Create and bootstrap a conformant wiki from repository evidence                                    | Initial `wiki/` structure, indexes, log, draft concepts, validation report                       |
+| `wiki-update`             | Safely add, refresh, deprecate, or correct durable knowledge                                       | Reviewed concept/index/log updates and validation report                                         |
+| `wiki-audit`              | Validate conformance, stale concepts, sources, and link integrity                                  | Read-only audit report; no silent mutations                                                      |
+| `wiki-visualize`          | Generate a self-contained relationship viewer from the wiki                                        | `wiki/viz.html` and a generation manifest                                                        |
+| `record-adr`              | Convert an approved, durable architectural decision into an ADR concept                            | Reviewed `wiki/decisions/ADR-<id>-<slug>.md`, index/log updates, and GitHub cross-link           |
+| `rules-audit`             | Validate rule-card scope, conflicts, adapters, and automated enforcement mapping                   | Read-only rule coverage/conflict report; no silent mutations                                     |
 
 ### FR-3: Thin orchestration
 
@@ -255,7 +260,7 @@ The framework shall provide `record-adr` to create or update a durable ADR only 
 
 ### FR-17: Scoped implementation rules
 
-The framework shall maintain a separate `.agents/rules/` catalog of concise, versioned rule cards. Each card shall declare repository path globs, intent, required and prohibited practices, mandatory checks, and links to the authoritative formatter, linter, test configuration, or wiki rationale. Initial cards shall cover global engineering conventions, React Router/UI, Express/API, tests, security, and infrastructure as applicable. Before modifying or reviewing scoped files, an agent shall load only the matching cards and record material rule use in the pull request or GitHub handoff. `rules-audit` shall detect unmatched protected paths, overlapping/conflicting rules, missing Claude adapters, stale wiki links, and rule claims that lack an automated enforcement mapping where one is feasible.
+The framework shall maintain a separate `.agents.config/rules/` catalog of concise, versioned rule cards. Each card shall declare repository path globs, intent, required and prohibited practices, mandatory checks, and links to the authoritative formatter, linter, test configuration, or wiki rationale. Initial cards shall cover global engineering conventions, React Router/UI, Express/API, tests, security, and infrastructure as applicable. Before modifying or reviewing scoped files, an agent shall load only the matching cards and record material rule use in the pull request or GitHub handoff. `rules-audit` shall detect unmatched protected paths, overlapping/conflicting rules, provider symlink drift, stale wiki links, and rule claims that lack an automated enforcement mapping where one is feasible.
 
 ### FR-18: Human-in-the-loop decision gates
 
@@ -275,43 +280,43 @@ The framework shall permit parallel implementation only after `parallel-implemen
 
 ## 7. Nonfunctional requirements
 
-| ID | Requirement |
-|---|---|
-| NFR-1 | Durable repository knowledge is version-controlled; durable feature planning, decisions, status, and handoffs are reviewable and traceable in GitHub; evidence links identify the relevant commit, check run, or immutable external reference. |
-| NFR-2 | Skills have declared inputs/outputs, version IDs, and deterministic validation where possible. |
-| NFR-3 | Routine planning stages must avoid loading unrelated files; retrieval evidence must permit audit of context used. |
-| NFR-4 | No production change may be marked complete solely from an agent claim. |
-| NFR-5 | Publication and other external mutation require explicit authorization and idempotency keys/checks. |
-| NFR-6 | Framework execution must support least-privilege roles and secrets isolation. |
-| NFR-7 | The same artifact contract must be usable by Claude Code and Codex without translation of meaning. |
-| NFR-8 | When the team adopts formal evaluations, their results must be reproducible from pinned commits, fixture versions, prompts, model/provider, and policy version. |
-| NFR-9 | Telemetry must correlate a feature/story, revision, deploy, and runtime trace without including sensitive prompts, tokens, or PII by default. |
-| NFR-10 | The pilot must add no mandatory third-party planning SaaS or custom agent harness. |
-| NFR-11 | Wiki concepts must expose provenance, trust, lifecycle, and freshness signals without treating them as authorization controls. |
-| NFR-12 | The static wiki viewer must be reproducible from a known source revision and usable without network access at viewing time. |
-| NFR-13 | Scoped rules must remain concise, path-specific, version-controlled, traceable to automated enforcement or an explicit exception, and separate from narrative wiki knowledge. |
-| NFR-14 | Human approvals and risk acceptances must be attributable, role-authorized, durable, and linked to the relevant artifact/revision. |
-| NFR-15 | Parallel writers must be isolated by worktree and path ownership; integration verification must run from a declared combined revision. |
+| ID     | Requirement                                                                                                                                                                                                                                    |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR-1  | Durable repository knowledge is version-controlled; durable feature planning, decisions, status, and handoffs are reviewable and traceable in GitHub; evidence links identify the relevant commit, check run, or immutable external reference. |
+| NFR-2  | Skills have declared inputs/outputs, version IDs, and deterministic validation where possible.                                                                                                                                                 |
+| NFR-3  | Routine planning stages must avoid loading unrelated files; retrieval evidence must permit audit of context used.                                                                                                                              |
+| NFR-4  | No production change may be marked complete solely from an agent claim.                                                                                                                                                                        |
+| NFR-5  | Publication and other external mutation require explicit authorization and idempotency keys/checks.                                                                                                                                            |
+| NFR-6  | Framework execution must support least-privilege roles and secrets isolation.                                                                                                                                                                  |
+| NFR-7  | The same artifact contract must be usable by Claude Code and Codex without translation of meaning.                                                                                                                                             |
+| NFR-8  | When the team adopts formal evaluations, their results must be reproducible from pinned commits, fixture versions, prompts, model/provider, and policy version.                                                                                |
+| NFR-9  | Telemetry must correlate a feature/story, revision, deploy, and runtime trace without including sensitive prompts, tokens, or PII by default.                                                                                                  |
+| NFR-10 | The pilot must add no mandatory third-party planning SaaS or custom agent harness.                                                                                                                                                             |
+| NFR-11 | Wiki concepts must expose provenance, trust, lifecycle, and freshness signals without treating them as authorization controls.                                                                                                                 |
+| NFR-12 | The static wiki viewer must be reproducible from a known source revision and usable without network access at viewing time.                                                                                                                    |
+| NFR-13 | Scoped rules must remain concise, path-specific, version-controlled, traceable to automated enforcement or an explicit exception, and separate from narrative wiki knowledge.                                                                  |
+| NFR-14 | Human approvals and risk acceptances must be attributable, role-authorized, durable, and linked to the relevant artifact/revision.                                                                                                             |
+| NFR-15 | Parallel writers must be isolated by worktree and path ownership; integration verification must run from a declared combined revision.                                                                                                         |
 
 ## 8. Workflow and gates
 
-| Stage | Owner / mode | Input | Output | Gate |
-|---|---|---|---|---|
-| Intake | Product + planner | Raw request | Draft parent feature issue | Feature ID assigned |
-| Research | Read-only skill | Request, runtime retrieval | Evidence-backed issue comment/section | Evidence links valid |
-| Requirements | Planner + product | Request, research | Feature issue requirements and decisions | Decisions identified/answered |
-| Architecture impact | Staff/security review | Requirements, research | Feature issue impact section and wiki/ADR links | ADR/security review if triggered |
-| ADR record | `record-adr` + architecture owner | Approved durable decision | `wiki/decisions/` ADR and GitHub cross-link | Human approval; index/log/audit pass |
-| Edge cases | Analyst | Requirements, architecture | Feature issue risk/test section | Every material case disposed |
-| Story map | Decomposer | Approved feature record | Draft child issues/sub-issues | Verticality and testability checks pass |
-| Critique | Clean-context reviewer | Feature issue and linked evidence | Structured review comment | Critical findings resolved or accepted |
-| Feature approval | Product owner | GitHub feature and draft story preview | Attributable approval record in GitHub | No implicit approval |
-| GitHub preview/publish | Deterministic publisher | Approved issue draft/preview | Published IDs/relationships | Preview approved; idempotency pass |
-| Implement | Single code owner | Story packet | Diff + evidence | Tests/policy gates pass |
-| Adversarial review | Independent clean-context reviewer | Plan/design/diff/evidence | Findings and dispositions | Critical findings resolved or risk-accepted |
-| Merge approval | Code owner + security owner when triggered | Diff, evidence, reviews | PR approval | Required checks and approvals pass |
-| Release approval | Release/change authority | Merge-ready revision, rollout and operational evidence | Authorized deployment/change record | Release controls satisfied |
-| Learn | Owners | Delivery/production evidence | Knowledge/eval update proposal | Normal review process |
+| Stage                  | Owner / mode                               | Input                                                  | Output                                          | Gate                                        |
+| ---------------------- | ------------------------------------------ | ------------------------------------------------------ | ----------------------------------------------- | ------------------------------------------- |
+| Intake                 | Product + planner                          | Raw request                                            | Draft parent feature issue                      | Feature ID assigned                         |
+| Research               | Read-only skill                            | Request, runtime retrieval                             | Evidence-backed issue comment/section           | Evidence links valid                        |
+| Requirements           | Planner + product                          | Request, research                                      | Feature issue requirements and decisions        | Decisions identified/answered               |
+| Architecture impact    | Staff/security review                      | Requirements, research                                 | Feature issue impact section and wiki/ADR links | ADR/security review if triggered            |
+| ADR record             | `record-adr` + architecture owner          | Approved durable decision                              | `wiki/decisions/` ADR and GitHub cross-link     | Human approval; index/log/audit pass        |
+| Edge cases             | Analyst                                    | Requirements, architecture                             | Feature issue risk/test section                 | Every material case disposed                |
+| Story map              | Decomposer                                 | Approved feature record                                | Draft child issues/sub-issues                   | Verticality and testability checks pass     |
+| Critique               | Clean-context reviewer                     | Feature issue and linked evidence                      | Structured review comment                       | Critical findings resolved or accepted      |
+| Feature approval       | Product owner                              | GitHub feature and draft story preview                 | Attributable approval record in GitHub          | No implicit approval                        |
+| GitHub preview/publish | Deterministic publisher                    | Approved issue draft/preview                           | Published IDs/relationships                     | Preview approved; idempotency pass          |
+| Implement              | Single code owner                          | Story packet                                           | Diff + evidence                                 | Tests/policy gates pass                     |
+| Adversarial review     | Independent clean-context reviewer         | Plan/design/diff/evidence                              | Findings and dispositions                       | Critical findings resolved or risk-accepted |
+| Merge approval         | Code owner + security owner when triggered | Diff, evidence, reviews                                | PR approval                                     | Required checks and approvals pass          |
+| Release approval       | Release/change authority                   | Merge-ready revision, rollout and operational evidence | Authorized deployment/change record             | Release controls satisfied                  |
+| Learn                  | Owners                                     | Delivery/production evidence                           | Knowledge/eval update proposal                  | Normal review process                       |
 
 ### 8.1 Implementation patterns
 
@@ -326,28 +331,28 @@ The framework shall permit parallel implementation only after `parallel-implemen
 
 ### 8.2 Human authority and intervention model
 
-| Decision or transition | Required human | Agent role | Durable record |
-|---|---|---|---|
-| Feature scope, priorities, non-goals, and issue publication | Product owner or delegated delivery owner | Prepare options, identify ambiguity, preview only | Approved GitHub feature/preview |
-| Reusable architecture decision / ADR | Architecture owner; security owner if triggered | Analyze alternatives and consequences; never self-accept | Approved GitHub decision linked to ADR |
-| Security-sensitive design, exception, or risk acceptance | Designated security/risk owner | Produce evidence, threat/abuse cases, and mitigations | Signed-off issue/PR/change record with expiry where applicable |
-| Merge to protected branch | Required code owner(s) and reviewers | Implement, test, summarize, remediate findings | Pull-request approvals and required checks |
-| Production release, rollback, or emergency change | Release/change authority | Provide rollout/rollback evidence; do not deploy by default | Change/deployment record |
-| Unclear authority, evidence, requirements, or conflict | Named decision owner | Stop safely and ask a bounded question | GitHub blocker/comment or handoff |
+| Decision or transition                                      | Required human                                  | Agent role                                                  | Durable record                                                 |
+| ----------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------- |
+| Feature scope, priorities, non-goals, and issue publication | Product owner or delegated delivery owner       | Prepare options, identify ambiguity, preview only           | Approved GitHub feature/preview                                |
+| Reusable architecture decision / ADR                        | Architecture owner; security owner if triggered | Analyze alternatives and consequences; never self-accept    | Approved GitHub decision linked to ADR                         |
+| Security-sensitive design, exception, or risk acceptance    | Designated security/risk owner                  | Produce evidence, threat/abuse cases, and mitigations       | Signed-off issue/PR/change record with expiry where applicable |
+| Merge to protected branch                                   | Required code owner(s) and reviewers            | Implement, test, summarize, remediate findings              | Pull-request approvals and required checks                     |
+| Production release, rollback, or emergency change           | Release/change authority                        | Provide rollout/rollback evidence; do not deploy by default | Change/deployment record                                       |
+| Unclear authority, evidence, requirements, or conflict      | Named decision owner                            | Stop safely and ask a bounded question                      | GitHub blocker/comment or handoff                              |
 
 ### 8.2.1 Risk-triggered specialist checkpoints
 
 These are proposed checkpoints, invoked only when their trigger is present; they are not a blanket committee for ordinary changes.
 
-| Trigger | Specialist checkpoint | Minimum decision evidence |
-|---|---|---|
-| Public API, event, or cross-service contract change | Architecture/API owner | Compatibility plan, versioning/deprecation decision, consumer test evidence |
-| Schema migration, backfill, deletion, or data ownership change | Data owner + operations owner | Migration/rollback plan, data validation, capacity/locking impact, recovery evidence |
-| Personal, regulated, or newly classified data | Privacy/security owner | Data-flow/classification review, retention/access decision, redaction/logging controls |
-| New dependency, privileged integration, or supply-chain exception | Platform/security owner | Provenance/license/vulnerability review, least-privilege configuration, owner and update plan |
-| Material user journey or accessibility impact | Product/design/accessibility owner | User acceptance evidence, accessibility checks, rollout/support plan |
-| SLO, capacity, cost, or operational resilience impact | SRE/service owner | Load/failure evidence, telemetry/alerting changes, error budget/cost decision, rollback readiness |
-| Emergency production change or active incident | Incident commander/change authority | Time-bound scope, compensating controls, communications, post-change verification, follow-up record |
+| Trigger                                                           | Specialist checkpoint               | Minimum decision evidence                                                                           |
+| ----------------------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Public API, event, or cross-service contract change               | Architecture/API owner              | Compatibility plan, versioning/deprecation decision, consumer test evidence                         |
+| Schema migration, backfill, deletion, or data ownership change    | Data owner + operations owner       | Migration/rollback plan, data validation, capacity/locking impact, recovery evidence                |
+| Personal, regulated, or newly classified data                     | Privacy/security owner              | Data-flow/classification review, retention/access decision, redaction/logging controls              |
+| New dependency, privileged integration, or supply-chain exception | Platform/security owner             | Provenance/license/vulnerability review, least-privilege configuration, owner and update plan       |
+| Material user journey or accessibility impact                     | Product/design/accessibility owner  | User acceptance evidence, accessibility checks, rollout/support plan                                |
+| SLO, capacity, cost, or operational resilience impact             | SRE/service owner                   | Load/failure evidence, telemetry/alerting changes, error budget/cost decision, rollback readiness   |
+| Emergency production change or active incident                    | Incident commander/change authority | Time-bound scope, compensating controls, communications, post-change verification, follow-up record |
 
 ### 8.3 Session continuity and handoff protocol
 
@@ -357,13 +362,13 @@ This protocol complements—not replaces—native facilities. Claude Code can re
 
 ### 8.4 Parallel worktree policy
 
-| Work type | Parallel? | Isolation and ownership |
-|---|---|---|
-| Repository/wiki/GitHub research, log analysis, test-gap discovery | Yes | Read-only agents; summarized findings; no worktree required |
-| Design critique or adversarial review | Yes | Clean context and read-only checkout; no implementation ownership |
-| Disjoint implementation stories | Conditionally | One worktree and branch per writer; non-overlapping path budget and integration owner |
-| Shared contracts, migrations, lockfiles, generators, CI, Traefik/Keycloak, release state | No during pilot | Single owner; other agents may review read-only |
-| Final integration, merge, and deployment | No | Designated integration/release owner; protected-branch and release gates |
+| Work type                                                                                | Parallel?       | Isolation and ownership                                                               |
+| ---------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| Repository/wiki/GitHub research, log analysis, test-gap discovery                        | Yes             | Read-only agents; summarized findings; no worktree required                           |
+| Design critique or adversarial review                                                    | Yes             | Clean context and read-only checkout; no implementation ownership                     |
+| Disjoint implementation stories                                                          | Conditionally   | One worktree and branch per writer; non-overlapping path budget and integration owner |
+| Shared contracts, migrations, lockfiles, generators, CI, Traefik/Keycloak, release state | No during pilot | Single owner; other agents may review read-only                                       |
+| Final integration, merge, and deployment                                                 | No              | Designated integration/release owner; protected-branch and release gates              |
 
 ## 9. Artifact standards
 
@@ -382,14 +387,17 @@ status: draft
 # STORY-001: Grant delegated access
 
 ## User outcome
+
 An authorized account administrator grants a scoped delegated role to an eligible active user.
 
 ## Acceptance criteria
+
 - [ ] Only authorized administrators may grant access.
 - [ ] The operation is idempotent and auditable.
 - [ ] The BFF and API reject an expired or unauthorized session.
 
 ## Test requirements
+
 - Authorization integration test
 - Duplicate-request test
 - React Router action test
@@ -404,9 +412,14 @@ JSON shall be used for state, contracts, schemas, deterministic grader output, t
   "featureId": "FEAT-104",
   "workflowVersion": "1.0.0",
   "currentStage": "edge-case-analysis",
-  "stages": {"research": "complete", "requirements": "complete", "architectureImpact": "complete", "edgeCases": "in_progress"},
+  "stages": {
+    "research": "complete",
+    "requirements": "complete",
+    "architectureImpact": "complete",
+    "edgeCases": "in_progress"
+  },
   "approved": false,
-  "github": {"parentIssue": "https://github.com/org/repo/issues/104"},
+  "github": { "parentIssue": "https://github.com/org/repo/issues/104" },
   "draftDigest": "sha256:..."
 }
 ```
@@ -474,7 +487,7 @@ type: Architecture
 title: React Router BFF boundary
 description: Browser-facing composition boundary between React Router and the Express API.
 tags: [react-router, bff, authorization]
-status: stable                         # draft | stable | deprecated
+status: stable # draft | stable | deprecated
 generated: { by: codex/<version>, at: 2026-08-02T00:00:00Z }
 verified: { by: human:<id>, at: 2026-08-02T00:00:00Z }
 stale_after: 2027-02-02
@@ -542,14 +555,14 @@ Knowledge ingestion is reviewed, attributable, and freshness-aware. Runtime retr
 
 Rules are the implementation-time complement to the wiki: they tell an agent exactly how to work in a bounded area, while the wiki explains why the architecture or convention exists. They are not skills, architecture documents, or an alternative policy engine. A global card provides small universal defaults; every other card is path-scoped. Rule text must be short, imperative, testable, and non-duplicative. It must point to the repository’s actual formatter/linter/test configuration rather than restating it.
 
-| Rule card | Illustrative scope | Required content |
-|---|---|---|
-| `global.md` | All repository changes | Repository hygiene, evidence, accessibility/security baseline, required check discovery |
-| `react-router.md` | `apps/web/**/*.{ts,tsx,css}` | Route/module conventions, loader/action BFF boundary, accessibility, component/style guidance, UI tests |
-| `express.md` | `services/api/**/*.ts` | Input validation, authentication/authorization, error contract, idempotency/audit behavior, API tests |
-| `testing.md` | Test files and changes that add behavior | Test level and fixtures, deterministic isolation, coverage/evidence expectations |
-| `security.md` | Identity, authorization, secrets, dependency, and edge changes | Threat/authorization checks, secrets handling, reviewer/escalation triggers |
-| Infrastructure card(s) | `infra/**`, Traefik/Keycloak configuration | Approved topology, config validation, observability, rollback and security review triggers |
+| Rule card              | Illustrative scope                                             | Required content                                                                                        |
+| ---------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `global.md`            | All repository changes                                         | Repository hygiene, evidence, accessibility/security baseline, required check discovery                 |
+| `react-router.md`      | `apps/web/**/*.{ts,tsx,css}`                                   | Route/module conventions, loader/action BFF boundary, accessibility, component/style guidance, UI tests |
+| `express.md`           | `services/api/**/*.ts`                                         | Input validation, authentication/authorization, error contract, idempotency/audit behavior, API tests   |
+| `testing.md`           | Test files and changes that add behavior                       | Test level and fixtures, deterministic isolation, coverage/evidence expectations                        |
+| `security.md`          | Identity, authorization, secrets, dependency, and edge changes | Threat/authorization checks, secrets handling, reviewer/escalation triggers                             |
+| Infrastructure card(s) | `infra/**`, Traefik/Keycloak configuration                     | Approved topology, config validation, observability, rollback and security review triggers              |
 
 The canonical card format is Markdown with a small YAML header. `paths` supports Claude’s native conditional loading; `applies_to` supports the provider-neutral catalog and Codex routing. `checks` names repository commands/configuration by category, not copied command strings that may drift.
 
@@ -564,7 +577,7 @@ wiki: [/architecture/bff-boundary.md, /conventions/frontend.md]
 ---
 ```
 
-`AGENTS.md` routes Codex to `.agents/rules/index.md` and the matching card(s); it must instruct the agent to apply them before it reads or changes scoped implementation files. `CLAUDE.md` remains a short common router. The `.claude/rules/` adapter tree exposes matching cards to Claude Code with `paths` frontmatter so the instructions load as matching files are read, rather than at session start. On Windows, use a generated adapter or `@` import when a checked-in symlink is not practical. The adapter is tested to ensure no behavioral drift from the canonical card.
+`AGENTS.md` routes Codex to `.agents.config/rules/index.md` and the matching card(s); it must instruct the agent to apply them before it reads or changes scoped implementation files. `CLAUDE.md` remains a short common router. The `.agents/rules` and `.claude/rules` directory symlinks expose the same path-scoped cards without imports or copied bodies. The audit verifies that both links resolve to the canonical catalog and are tracked as symlinks.
 
 Rules govern agent behavior but do not guarantee correctness. Formatters, linters, type checks, tests, architecture tests, policy-as-code, branch protection, and human review remain the enforcement layers. Codex’s `.codex/rules/*.rules` is retained only if needed to govern out-of-sandbox command approval; it is not a replacement for this path-scoped engineering rules layer.
 
@@ -614,15 +627,15 @@ The framework shall treat context as a controlled input budget.
 
 Quality is evaluated per skill, not only end-to-end. Formal evaluation infrastructure is intentionally deferred until the pilot skills and their GitHub-based delivery evidence are stable. In the pilot, retain a small, reviewed set of scenario cases and observed failures with the relevant skill, record model/provider, skill version, source revision, environment, duration, outcome, and evidence. Promote only proven cases into a formal evaluation suite later; do not create a central `evals/` directory as an initial prerequisite.
 
-| Area | Deterministic measures | Review/rubric measures |
-|---|---|---|
-| Feature research | Evidence paths exist; relevant tests/rules found | Precision, useful coverage, uncertainty calibration |
-| Requirements | Required headings/IDs; criteria are present | Clarity, ambiguity removal, decision quality |
-| Decomposition | Dependencies resolve; stories have tests | Verticality, sizing, absence of hidden work |
-| Critique | Seeded defects found; output schema valid | Recall, precision, severity calibration |
+| Area               | Deterministic measures                                                           | Review/rubric measures                                              |
+| ------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Feature research   | Evidence paths exist; relevant tests/rules found                                 | Precision, useful coverage, uncertainty calibration                 |
+| Requirements       | Required headings/IDs; criteria are present                                      | Clarity, ambiguity removal, decision quality                        |
+| Decomposition      | Dependencies resolve; stories have tests                                         | Verticality, sizing, absence of hidden work                         |
+| Critique           | Seeded defects found; output schema valid                                        | Recall, precision, severity calibration                             |
 | Adversarial review | Findings include evidence/preconditions/disposition; critical-gate rule enforced | Realism, threat coverage, severity calibration, false-positive rate |
-| Handoff | Clean agent can resume using artifacts | Sufficiency, context efficiency, no hidden assumptions |
-| Implementation | CI/policy/test results; worker path budget respected | Maintainability, scope discipline, integration friction, no AI slop |
+| Handoff            | Clean agent can resume using artifacts                                           | Sufficiency, context efficiency, no hidden assumptions              |
+| Implementation     | CI/policy/test results; worker path budget respected                             | Maintainability, scope discipline, integration friction, no AI slop |
 
 Seeded-defect fixtures, redacted incident regressions, adversarial repository-content cases, and contract/security cases are required. The framework shall measure false positives as well as defect recall. No model or rule change is promoted on anecdotal success alone.
 
@@ -659,19 +672,19 @@ Traefik provides logs, access logs, metrics, and tracing; its metrics can be exp
 
 ## 17. Phased roadmap and milestones
 
-| Phase | Scope | Milestone / exit criteria |
-|---|---|---|
-| 0. Baseline (2 weeks) | Inventory current rules, CI, issue patterns, architecture, risks; select one pilot feature | Baseline report, pilot owner, initial rule map and enforcement inventory |
-| 1. Foundations (2-3 weeks) | Bootstrap routers, shared skills location/symlinks, canonical/adapted scoped rules, `wiki-init`, `wiki-audit`, OKF root/child indexes and log, GitHub issue templates, lightweight staging state | One planning run publishes a complete, reviewable parent feature record; baseline wiki and rule catalog pass audit without a parallel feature-document archive |
-| 2. Planning and wiki skills (3-4 weeks) | Research, requirements, architecture, edge cases, stories, critic, thin orchestrator, `wiki-update`, `record-adr`, `wiki-visualize`, `rules-audit` | Two planned features pass review; each command independently usable; accepted architecture decision creates a valid ADR; `wiki/viz.html` renders the baseline relationship graph |
-| 3. GitHub, handoff, and human gates (2-3 weeks) | Preview/publisher, issue forms/types/project fields, `handoff`, authority matrix, approval evidence | Approved preview publishes idempotently; clean provider/session switch demonstrated without a transcript |
-| 4. Implementation controls (3-4 weeks) | Story packet gate, TDD/characterization workflows, adversarial-review packet, worktree coordination, policy checks | Pilot story reaches done with complete evidence; two disjoint writers integrate safely in separate worktrees |
-| 5. Evaluation decision and security resilience (ongoing) | Review pilot evidence; decide whether a formal suite is warranted; add prompt injection and regression cases first | Approved evaluation design or an explicit decision to continue with lightweight evidence collection |
-| 6. Observability and scale (ongoing) | OTel correlation, dashboards, governance cadence, portfolio rollout | Measurable trend improvement with reviewed telemetry controls |
+| Phase                                                    | Scope                                                                                                                                                                                            | Milestone / exit criteria                                                                                                                                                        |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0. Baseline (2 weeks)                                    | Inventory current rules, CI, issue patterns, architecture, risks; select one pilot feature                                                                                                       | Baseline report, pilot owner, initial rule map and enforcement inventory                                                                                                         |
+| 1. Foundations (2-3 weeks)                               | Bootstrap routers, shared skills location/symlinks, canonical/adapted scoped rules, `wiki-init`, `wiki-audit`, OKF root/child indexes and log, GitHub issue templates, lightweight staging state | One planning run publishes a complete, reviewable parent feature record; baseline wiki and rule catalog pass audit without a parallel feature-document archive                   |
+| 2. Planning and wiki skills (3-4 weeks)                  | Research, requirements, architecture, edge cases, stories, critic, thin orchestrator, `wiki-update`, `record-adr`, `wiki-visualize`, `rules-audit`                                               | Two planned features pass review; each command independently usable; accepted architecture decision creates a valid ADR; `wiki/viz.html` renders the baseline relationship graph |
+| 3. GitHub, handoff, and human gates (2-3 weeks)          | Preview/publisher, issue forms/types/project fields, `handoff`, authority matrix, approval evidence                                                                                              | Approved preview publishes idempotently; clean provider/session switch demonstrated without a transcript                                                                         |
+| 4. Implementation controls (3-4 weeks)                   | Story packet gate, TDD/characterization workflows, adversarial-review packet, worktree coordination, policy checks                                                                               | Pilot story reaches done with complete evidence; two disjoint writers integrate safely in separate worktrees                                                                     |
+| 5. Evaluation decision and security resilience (ongoing) | Review pilot evidence; decide whether a formal suite is warranted; add prompt injection and regression cases first                                                                               | Approved evaluation design or an explicit decision to continue with lightweight evidence collection                                                                              |
+| 6. Observability and scale (ongoing)                     | OTel correlation, dashboards, governance cadence, portfolio rollout                                                                                                                              | Measurable trend improvement with reviewed telemetry controls                                                                                                                    |
 
 ## 18. Acceptance criteria for the pilot
 
-- A product owner can start a feature with `/feature-plan` or invoke any listed planning command independently.
+- A product owner can explicitly start a feature with `/feature-plan` in Claude or `$feature-plan` in Codex, or independently invoke any listed planning skill. Implementation and publication workflow anchors also require explicit invocation; contextual specialist skills remain available through progressive disclosure.
 - The orchestrator resumes correctly after a stopped stage using the GitHub feature record, targeted wiki retrieval, and any available ephemeral state.
 - Every skill package is portable and self-contained; package lint verifies it has no external instruction-file dependency.
 - `wiki-init` creates a valid `wiki/` bundle with root/child indexes and log; `wiki-audit` reports conformance, stale concepts, sources, and links without mutation.
@@ -694,23 +707,23 @@ Traefik provides logs, access logs, metrics, and tracing; its metrics can be exp
 
 ## 19. Risks and mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Process overhead outpaces benefit | Pilot on one vertical slice; require each artifact to earn its place; track cycle time and rework |
-| Skill duplication/drift across providers | Provider-neutral schemas/templates; thin adapters; contract tests for both paths |
-| False confidence from agent reviews | Independent review plus deterministic gates and seeded-defect measurement |
-| Context bloat | Runtime retrieval, normalized artifacts, clean handoffs, and retrieval/audit logs |
-| Session loss or misleading compaction summary | Durable GitHub handoff checkpoints at defined boundaries; clean-session resume drill |
+| Risk                                                      | Mitigation                                                                                                                       |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Process overhead outpaces benefit                         | Pilot on one vertical slice; require each artifact to earn its place; track cycle time and rework                                |
+| Skill duplication/drift across providers                  | Provider-neutral schemas/templates; thin adapters; contract tests for both paths                                                 |
+| False confidence from agent reviews                       | Independent review plus deterministic gates and seeded-defect measurement                                                        |
+| Context bloat                                             | Runtime retrieval, normalized artifacts, clean handoffs, and retrieval/audit logs                                                |
+| Session loss or misleading compaction summary             | Durable GitHub handoff checkpoints at defined boundaries; clean-session resume drill                                             |
 | Parallel work creates conflicting or unintegrated changes | Worktree/branch isolation, path budgets, shared-artifact serial ownership, integration owner, and combined-revision verification |
-| Humans become a bottleneck or rubber-stamp approvals | Risk-based authority matrix, concise evidence packets, explicit decision questions, and approval-cycle metrics |
-| Prompt injection from repo/issue content | Treat all content as data; least-privilege tools; explicit policy and adversarial evals |
-| GitHub automation creates undesirable mutation | Preview-first, approval, scoped token, idempotency, and audit evidence |
-| Proxy/header misconfiguration affects security | Platform-specific review checklist, trusted network topology, configuration tests, staged rollout |
-| Knowledge becomes stale | Source/freshness metadata, review owners, link checks, and incident-driven updates |
-| ADRs become duplicated or ignored | GitHub holds live decision work; `record-adr` writes only approved, reusable outcomes and preserves supersession history |
-| Rules become vague, duplicated, or context-heavy | Small path-scoped cards, canonical source plus adapter checks, rule audit, and automated enforcement mappings |
-| Generated graph diverges from the wiki | Generate from the committed bundle in CI; include source revision/digest in the manifest; prohibit hand edits to `viz.html` |
-| Metrics leak sensitive data or cost too much | Attribute allowlist, redaction, cardinality budget, sampling, retention controls |
+| Humans become a bottleneck or rubber-stamp approvals      | Risk-based authority matrix, concise evidence packets, explicit decision questions, and approval-cycle metrics                   |
+| Prompt injection from repo/issue content                  | Treat all content as data; least-privilege tools; explicit policy and adversarial evals                                          |
+| GitHub automation creates undesirable mutation            | Preview-first, approval, scoped token, idempotency, and audit evidence                                                           |
+| Proxy/header misconfiguration affects security            | Platform-specific review checklist, trusted network topology, configuration tests, staged rollout                                |
+| Knowledge becomes stale                                   | Source/freshness metadata, review owners, link checks, and incident-driven updates                                               |
+| ADRs become duplicated or ignored                         | GitHub holds live decision work; `record-adr` writes only approved, reusable outcomes and preserves supersession history         |
+| Rules become vague, duplicated, or context-heavy          | Small path-scoped cards, canonical source plus adapter checks, rule audit, and automated enforcement mappings                    |
+| Generated graph diverges from the wiki                    | Generate from the committed bundle in CI; include source revision/digest in the manifest; prohibit hand edits to `viz.html`      |
+| Metrics leak sensitive data or cost too much              | Attribute allowlist, redaction, cardinality budget, sampling, retention controls                                                 |
 
 ## 20. Open questions
 
@@ -732,24 +745,24 @@ Traefik provides logs, access logs, metrics, and tracing; its metrics can be exp
 
 The following are verified external-platform facts used by this PRD as of 2026-08-02. Architecture choices and policy requirements in this document are recommendations, not claims that the platforms enforce automatically.
 
-| Area | Verified fact and implication | Source |
-|---|---|---|
-| Claude Code subagents | Custom subagents have separate contexts, configurable tool access/permissions, and project scope. Use them for bounded research and independent review, not overlapping production edits. | [S1] |
-| Claude Code skills/commands | A project skill directory under `.claude/skills/` exposes a slash command based on its directory name; skills support arguments and isolated forked context. This supports directly invokable capabilities and a thin orchestration skill. | [S2] |
-| Claude Code hooks | Hooks can execute shell commands, HTTP endpoints, or LLM prompts during lifecycle events; command hooks run with the user’s full permissions. Treat hooks as high-risk reviewed automation. | [S3] |
-| Claude Code scoped rules | Claude Code discovers Markdown rules under `.claude/rules/`; rules with `paths` frontmatter load when matching files are read, while unscoped rules load at launch. Use path-scoped adapters to keep React/Express guidance out of unrelated context. | [S23] |
-| Codex guidance | Codex reads layered `AGENTS.md` files from global/project scopes; closer files override earlier guidance and the combined project guidance has a configured size limit. Keep bootstrap instructions concise and scoped. | [S4] |
-| Codex command rules | Codex `.rules` files control which commands run outside the sandbox and are experimental; they are not file-type style or engineering-practice rules. Keep command approval separate from the shared implementation rule-card layer. | [S24] |
-| Skill invocation semantics | Claude Code invokes project skills as `/skill-name`. In Codex CLI/IDE, direct skill invocation uses `$skill-name` or `/skills`; in the desktop app enabled skills also appear in the slash menu. Treat the shared capability as a skill, not as a portable literal slash command. | [S2], [S20], [S25] |
-| Sessions, compaction, and handoff | Claude Code can resume/compact local sessions; Codex offers long-running goals, context compaction, and desktop handoff between Local and Worktree. These are useful ergonomics, but the durable GitHub checkpoint remains the cross-provider recovery record. | [S26]-[S28] |
-| Parallel subagents and worktrees | Both providers support bounded parallel work and Git worktrees. Codex explicitly advises against two concurrent chats writing the same files; Claude documents worktree isolation for parallel sessions/subagents. Use the framework’s worktree and path-ownership policy for all parallel writes. | [S1], [S21], [S27], [S29]-[S30] |
-| Shared skills | Codex discovers repository skills from `.agents/skills`; Claude Code discovers project skills from `.claude/skills` and documents symlink support. The PRD therefore uses `.agents/skills` as the canonical source with `.claude/skills` symlinks. | [S2], [S20] |
-| GitHub Issues/Projects | GitHub supports sub-issues, issue types, dependencies, Projects fields/views, and constrained project auto-add workflows. Use a shallow hierarchy and preview-first publication. | [S5]-[S8] |
-| OKF | Google’s OKF v0.2 specification defines a directory of Markdown concepts with YAML frontmatter, progressive-disclosure indexes, logs, cross-links, provenance, trust, freshness, and lifecycle signals. Google’s reference repository also includes a static interactive graph viewer generated from an OKF bundle. | [S9]-[S10], [S22] |
-| React Router 7 | Framework Mode adds framework capabilities around React Router’s data features, and React Router documents the BFF pattern where loaders/actions call an existing backend API. Preserve the Express domain API and keep BFF logic browser-specific. | [S11]-[S12] |
-| Keycloak behind proxy | Keycloak documents re-encryption, edge, and passthrough TLS modes; its guidance requires trustworthy forwarded headers/network restrictions and says management port 9000 should not be proxied publicly. | [S13] |
-| Traefik | Traefik documents security headers, trusted forwarded-header configuration, logs/access logs/metrics/tracing, and OTLP metrics. Avoid insecure forwarded-header trust in production. | [S14]-[S17] |
-| OpenTelemetry | OpenTelemetry is a vendor-neutral observability framework for traces, metrics, and logs, with a tracing API/specification. Use a collector and governance controls rather than embedding a vendor coupling in application code. | [S18]-[S19] |
+| Area                              | Verified fact and implication                                                                                                                                                                                                                                                                                       | Source                          |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Claude Code subagents             | Custom subagents have separate contexts, configurable tool access/permissions, and project scope. Use them for bounded research and independent review, not overlapping production edits.                                                                                                                           | [S1]                            |
+| Claude Code skills/commands       | A project skill directory under `.claude/skills/` exposes a slash command based on its directory name; skills support arguments and isolated forked context. This supports directly invokable capabilities and a thin orchestration skill.                                                                          | [S2]                            |
+| Claude Code hooks                 | Hooks can execute shell commands, HTTP endpoints, or LLM prompts during lifecycle events; command hooks run with the user’s full permissions. Treat hooks as high-risk reviewed automation.                                                                                                                         | [S3]                            |
+| Claude Code scoped rules          | Claude Code discovers Markdown rules under `.claude/rules/`; rules with `paths` frontmatter load when matching files are read, while unscoped rules load at launch. Use path-scoped adapters to keep React/Express guidance out of unrelated context.                                                               | [S23]                           |
+| Codex guidance                    | Codex reads layered `AGENTS.md` files from global/project scopes; closer files override earlier guidance and the combined project guidance has a configured size limit. Keep bootstrap instructions concise and scoped.                                                                                             | [S4]                            |
+| Codex command rules               | Codex `.rules` files control which commands run outside the sandbox and are experimental; they are not file-type style or engineering-practice rules. Keep command approval separate from the shared implementation rule-card layer.                                                                                | [S24]                           |
+| Skill invocation semantics        | Claude Code invokes project skills as `/skill-name`. In Codex CLI/IDE, direct skill invocation uses `$skill-name` or `/skills`; in the desktop app enabled skills also appear in the slash menu. Treat the shared capability as a skill, not as a portable literal slash command.                                   | [S2], [S20], [S25]              |
+| Sessions, compaction, and handoff | Claude Code can resume/compact local sessions; Codex offers long-running goals, context compaction, and desktop handoff between Local and Worktree. These are useful ergonomics, but the durable GitHub checkpoint remains the cross-provider recovery record.                                                      | [S26]-[S28]                     |
+| Parallel subagents and worktrees  | Both providers support bounded parallel work and Git worktrees. Codex explicitly advises against two concurrent chats writing the same files; Claude documents worktree isolation for parallel sessions/subagents. Use the framework’s worktree and path-ownership policy for all parallel writes.                  | [S1], [S21], [S27], [S29]-[S30] |
+| Shared skills                     | Codex discovers repository skills from `.agents/skills`; Claude Code discovers project skills from `.claude/skills`, and both support symlinked packages. The PRD therefore keeps typed canonical packages in `.agents.config/skills` and exposes flat provider-specific discovery symlinks.                        | [S2], [S20]                     |
+| GitHub Issues/Projects            | GitHub supports sub-issues, issue types, dependencies, Projects fields/views, and constrained project auto-add workflows. Use a shallow hierarchy and preview-first publication.                                                                                                                                    | [S5]-[S8]                       |
+| OKF                               | Google’s OKF v0.2 specification defines a directory of Markdown concepts with YAML frontmatter, progressive-disclosure indexes, logs, cross-links, provenance, trust, freshness, and lifecycle signals. Google’s reference repository also includes a static interactive graph viewer generated from an OKF bundle. | [S9]-[S10], [S22]               |
+| React Router 7                    | Framework Mode adds framework capabilities around React Router’s data features, and React Router documents the BFF pattern where loaders/actions call an existing backend API. Preserve the Express domain API and keep BFF logic browser-specific.                                                                 | [S11]-[S12]                     |
+| Keycloak behind proxy             | Keycloak documents re-encryption, edge, and passthrough TLS modes; its guidance requires trustworthy forwarded headers/network restrictions and says management port 9000 should not be proxied publicly.                                                                                                           | [S13]                           |
+| Traefik                           | Traefik documents security headers, trusted forwarded-header configuration, logs/access logs/metrics/tracing, and OTLP metrics. Avoid insecure forwarded-header trust in production.                                                                                                                                | [S14]-[S17]                     |
+| OpenTelemetry                     | OpenTelemetry is a vendor-neutral observability framework for traces, metrics, and logs, with a tracing API/specification. Use a collector and governance controls rather than embedding a vendor coupling in application code.                                                                                     | [S18]-[S19]                     |
 
 ### Sources
 

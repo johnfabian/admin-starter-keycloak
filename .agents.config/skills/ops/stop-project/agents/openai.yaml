@@ -1,0 +1,6 @@
+interface:
+  display_name: "Stop Project"
+  short_description: "Stop local services without deleting data"
+  default_prompt: "Use $stop-project to stop this repository's local services while preserving volumes."
+policy:
+  allow_implicit_invocation: false

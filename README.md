@@ -84,8 +84,8 @@ The gate runs repository-wide Prettier checking, web ESLint, React Router type g
 ## Project knowledge and agent workflow
 
 - [Wiki index](wiki/index.md) — retrieve only concepts relevant to the current task.
-- [Canonical skills](.agents/skills/) — procedural capabilities such as repository inventory, wiki/rules audits, and handoff.
-- [Scoped rule catalog](.agents/rules/index.md) — imperative rules selected by changed paths.
+- [Shared skills](.agents.config/skills/) — typed procedural capabilities shared by Codex and Claude through discovery symlinks.
+- [Scoped rule catalog](.agents.config/rules/index.md) — shared imperative rules selected by changed paths.
 - [Local stack runbook](wiki/operations/local-stack.md) and [environment variables](wiki/operations/environment-variables.md).
 - [Keycloak realm/client facts](wiki/integrations/keycloak/realm-and-client-facts.md), [email verification](wiki/operations/verify-email-flows.md), and [admin-user workflow](wiki/operations/create-admin-user.md).
 - [Local backup](wiki/operations/local-backup.md), [restore drill](wiki/operations/backup-restore-drill.md), and [known production gaps](wiki/architecture/known-production-gaps.md).

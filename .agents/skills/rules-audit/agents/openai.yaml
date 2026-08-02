@@ -1,4 +1,0 @@
-interface:
-  display_name: "Rules Audit"
-  short_description: "Audit scoped rules and Claude adapters"
-  default_prompt: "Use $rules-audit to check scoped rule coverage, conflicts, links, and adapters without mutation."

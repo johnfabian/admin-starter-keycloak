@@ -1,4 +1,0 @@
-interface:
-  display_name: "Implement Story"
-  short_description: "Run a test-first implementation story"
-  default_prompt: "Use $implement-story to execute an approved story packet with test-first evidence."

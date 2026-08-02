@@ -1,0 +1,6 @@
+interface:
+  display_name: "Prune Deleted Branches"
+  short_description: "Prune only selected merged local branches"
+  default_prompt: "Use $prune-deleted-branches to identify and remove only explicitly selected merged local branches."
+policy:
+  allow_implicit_invocation: false
