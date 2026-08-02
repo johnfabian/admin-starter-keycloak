@@ -1,6 +1,6 @@
 import { RouteErrorBoundary } from "~/components/error-page";
 import { isErrorPreviewStatus } from "~/lib/error-preview.shared";
-import { requireAuthenticatedRoute } from "~/lib/server/route-guards.server";
+import { requireUserRoute } from "~/lib/server/route-guards.server";
 import type { Route } from "./+types/users-dashboard-error-preview";
 
 const ERROR_PREVIEW_CONFIG = {
@@ -14,7 +14,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw new Response(null, { status: ERROR_PREVIEW_CONFIG.disabledStatus });
   }
 
-  await requireAuthenticatedRoute(request);
+  await requireUserRoute(request);
 
   const status = Number(params.status);
   if (!isErrorPreviewStatus(status)) {

@@ -48,7 +48,7 @@ The server-side auth stack in `web/app/lib/server/`:
 
 - `auth-config.server.ts` — server-only Keycloak/OIDC env config and issuer URL helpers
 - `auth.server.ts` / `auth-request.server.ts` — core auth operations and request-level helpers (`requireUser`, `requireAnyRole`)
-- `route-guards.server.ts` — centralized loader guards (`requireUserRoute`, `requireAdminRoute`); all protected loaders call these
+- `route-guards.server.ts` — centralized loader guards (`requireAuthenticatedRoute`, `requireAccessRoute`, `requireUserRoute`, `requireAdminRoute`); all protected loaders call these
 - `oauth-pkce.server.ts` / `oauth-token.service.server.ts` — PKCE and token exchange/refresh
 - `token-crypto.server.ts` — token encryption at rest
 - `bff-session.service.server.ts` → `data/bff-session.repository.server.ts` → `data/database.server.ts` — session service, SQL repository, and the `postgres` client singleton
@@ -66,9 +66,10 @@ Route modules in `web/app/routes/` are intentionally slim: `meta`, `loader` (cal
 
 ### Access model
 
-- `/users/*` requires the `Users` or `Admins` client role; `/admins/*` requires `Admins`.
+- Every page in the signed-in shell — `/users/*`, `/profile`, `/settings`, `/apps/*` — requires the `Users` or `Admins` role (`requireUserRoute`); `/admins/*` requires `Admins` (`requireAdminRoute`). Authentication alone is never enough.
 - Signed-in users lacking a role land on `/forbidden`.
-- Bare section paths (`/users`, `/admins`) redirect to their `/dashboard` pages.
+- Roles are read from the access token as the union of realm roles and client roles under the web client id, and matched case-sensitively against `appRoles` — so a realm role named `Admins` grants admin access just as a client role does.
+- Bare section paths (`/users`, `/admins`, `/apps`) redirect to their `/dashboard` pages.
 
 ### Keycloak customization
 

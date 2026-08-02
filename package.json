@@ -23,6 +23,7 @@
     "mail:logs": "docker compose -f local-mail-server/docker-compose.yml logs -f",
     "db:up": "docker compose -f postgres/docker-compose.yml --env-file .env.development up -d --wait",
     "db:down": "docker compose -f postgres/docker-compose.yml down",
+    "db:logs": "docker compose -f postgres/docker-compose.yml logs -f",
     "auth:up": "docker compose -f auth-server/docker-compose.yml --env-file .env.development up -d --build --wait",
     "auth:down": "docker compose -f auth-server/docker-compose.yml down",
     "auth:logs": "docker compose -f auth-server/docker-compose.yml logs -f",

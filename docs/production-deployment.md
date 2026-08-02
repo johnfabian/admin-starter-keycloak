@@ -461,7 +461,10 @@ Known items from the current proof of concept:
 
 - The included Traefik Compose stack is local HTTP only. Create a hardened
   DigitalOcean production Compose file or deployment manifest before launch.
-- Formal app database migrations are not defined yet; the BFF session table is
-  created lazily by the web server.
+- Formal app database migrations are not defined yet. The BFF session table is
+  created by `postgres/init-app-schema.sql`, which Docker runs only on the first
+  boot of an empty Postgres volume — so schema changes have to be applied by
+  hand or by recreating the volume. The web server contains no DDL and performs
+  no migration at startup.
 - Health checks for the app container are not defined yet.
 - Production observability, backups, and restore tests are not configured yet.
