@@ -18,16 +18,11 @@ Inside each realm, use separate clients for each application surface:
 
 ```text
 admin-starter-web          React Router browser app
-admin-starter-api-python   FastAPI resource server
-admin-starter-mobile       Expo mobile app
+admin-starter-api-express  Express resource server (not built yet)
 ```
 
-Future API examples can follow the same convention:
-
-```text
-admin-starter-api-express
-admin-starter-api-dotnet
-```
+Any additional resource server follows the same convention:
+`admin-starter-api-<name>`.
 
 Use groups for assigning app access:
 
@@ -41,8 +36,8 @@ Use client roles for what the app/API authorizes:
 ```text
 admin-starter-web:Users
 admin-starter-web:Admins
-admin-starter-api-python:api-users
-admin-starter-api-python:api-admins
+admin-starter-api-express:api-users
+admin-starter-api-express:api-admins
 ```
 
 Use Organizations when the product needs B2B tenants, customer workspaces,
@@ -78,9 +73,8 @@ Keycloak to authenticate users or issue tokens.
 For this project:
 
 - `admin-starter-web` is the browser-facing React Router app.
-- `admin-starter-api-python` represents the FastAPI resource server and token
+- `admin-starter-api-express` represents the Express resource server and token
   audience.
-- `admin-starter-mobile` is the Expo mobile app.
 
 The client boundary matters because roles are usually scoped to clients. A user
 can be an admin in the web app without automatically receiving API admin
@@ -107,18 +101,18 @@ authorization because the role's owner is clear:
 
 ```text
 admin-starter-web:Admins
-admin-starter-api-python:api-admins
+admin-starter-api-express:api-admins
 ```
 
 Use client roles for:
 
 - route access in the React Router app
-- API access in FastAPI
+- API access in Express
 - admin UI visibility
 - coarse product permissions
 
 The web app should read `admin-starter-web` roles. The API should read
-`admin-starter-api-python` roles. Mobile can display UI from token claims, but the API
+`admin-starter-api-express` roles. A client may display UI from token claims, but the API
 must still enforce permissions server-side.
 
 ### Composite Roles
@@ -131,8 +125,8 @@ Example:
 ```text
 admin-starter-web:Admins
   includes admin-starter-web:Users
-  includes admin-starter-api-python:api-users
-  includes admin-starter-api-python:api-admins
+  includes admin-starter-api-express:api-users
+  includes admin-starter-api-express:api-admins
 ```
 
 Composite roles are useful when one role should imply another. They can also
@@ -161,12 +155,12 @@ Recommended groups:
 Application Users
   role mappings:
     admin-starter-web:Users
-    admin-starter-api-python:api-users
+    admin-starter-api-express:api-users
 
 Application Admins
   role mappings:
     admin-starter-web:Admins
-    admin-starter-api-python:api-admins
+    admin-starter-api-express:api-admins
 ```
 
 Use groups for:
@@ -193,7 +187,7 @@ React Router app
   manages the web session cookie
   shows or hides UI affordances
 
-FastAPI
+Express
   validates bearer tokens
   enforces API roles
   enforces tenant and resource ownership
@@ -210,7 +204,7 @@ Keycloak should answer:
 - Which organizations is the user a member of?
 - Which identity provider authenticated the user?
 
-FastAPI should answer:
+Express should answer:
 
 - Is the token valid?
 - Was this token intended for this API?
@@ -218,7 +212,7 @@ FastAPI should answer:
 - Does the user belong to the tenant/organization for this record?
 - Does the user own or have permission to mutate this resource?
 
-Do not rely on front-end checks alone. Browser and mobile UI checks are helpful
+Do not rely on front-end checks alone. Browser UI checks are helpful
 for usability, but the API is the enforcement point for protected data.
 
 ## Token Claims
@@ -231,7 +225,7 @@ Client roles commonly appear in access tokens under `resource_access`:
     "admin-starter-web": {
       "roles": ["Users"]
     },
-    "admin-starter-api-python": {
+    "admin-starter-api-express": {
       "roles": ["api-users"]
     }
   }
@@ -248,17 +242,17 @@ Realm roles commonly appear under `realm_access`:
 }
 ```
 
-When the API audience mapper is configured, access tokens issued for the web or
-mobile client should include the API audience:
+When the API audience mapper is configured, access tokens issued for the web
+client should include the API audience:
 
 ```json
 {
-  "aud": ["admin-starter-api-python"]
+  "aud": ["admin-starter-api-express"]
 }
 ```
 
-FastAPI should validate `iss`, `aud`, signature, expiration, and required
-roles. A token that lacks `admin-starter-api-python` in `aud` should not be accepted by
+Express should validate `iss`, `aud`, signature, expiration, and required
+roles. A token that lacks `admin-starter-api-express` in `aud` should not be accepted by
 the API.
 
 ## Organizations
@@ -358,14 +352,14 @@ Realm: admin-starter-prod
   Organization: acme
   Organization: globex
   Organization: initech
-  Clients: web, api, mobile
+  Clients: web, api
 ```
 
 Pros:
 
 - one client setup to maintain
 - one login domain
-- shared app/API/mobile clients
+- shared app and API clients
 - organization claims can describe tenant membership
 - easier to support users who belong to multiple tenants
 
@@ -430,13 +424,13 @@ GET /organizations/acme/todos
 Authorization: Bearer <token>
 ```
 
-FastAPI should:
+Express should:
 
 1. Validate token signature against Keycloak JWKS.
 2. Validate `iss`.
-3. Validate `aud` includes `admin-starter-api-python`.
-4. Validate the user has `admin-starter-api-python:api-users` or
-   `admin-starter-api-python:api-admins`.
+3. Validate `aud` includes `admin-starter-api-express`.
+4. Validate the user has `admin-starter-api-express:api-users` or
+   `admin-starter-api-express:api-admins`.
 5. Validate the token organization claim includes `acme`, or look up
    membership server-side.
 6. Query data with a tenant filter such as `organization_id = acme-id`.
@@ -471,8 +465,7 @@ Clients:
 
 ```text
 admin-starter-web
-admin-starter-api-python
-admin-starter-mobile
+admin-starter-api-express
 ```
 
 Web roles:
@@ -516,8 +509,8 @@ change the display name, not the alias used by URLs and Postgres records.
 - Treating a role like `Admins` as tenant membership.
 - Putting every permission into realm roles.
 - Enabling `Full scope allowed` and exposing more roles than needed.
-- Reusing the browser client for native mobile.
-- Putting a client secret in an Expo app.
+- Reusing the browser client for a different application surface.
+- Putting a client secret in a public client.
 - Creating one realm per customer before the product actually needs hard
   isolation.
 - Assuming organization membership alone protects data without API checks.
@@ -526,19 +519,18 @@ change the display name, not the alias used by URLs and Postgres records.
 ## Setup Checklist
 
 - Create realm `admin-starter`.
-- Create clients `admin-starter-web`, `admin-starter-api-python`, and
-  `admin-starter-mobile`.
+- Create clients `admin-starter-web` and `admin-starter-api-express`.
 - Create web roles `Users` and `Admins`.
 - Create API roles `api-users` and `api-admins`.
 - Create groups `Application Users` and `Application Admins`.
 - Assign client roles to groups.
 - Add users to groups, not directly to roles, unless testing.
-- Create `admin-starter-api-python-audience` client scope.
-- Add the API audience scope to web and mobile clients.
+- Create `admin-starter-api-express-audience` client scope.
+- Add the API audience scope to the web client.
 - Keep `Full scope allowed` off once role scope mappings are explicit.
 - Add organizations when tenant membership is needed.
 - Request `organization` scope only when the app/API needs organization claims.
-- Enforce tenant permissions in FastAPI.
+- Enforce tenant permissions in Express.
 
 ## References
 

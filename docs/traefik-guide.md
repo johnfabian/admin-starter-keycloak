@@ -19,12 +19,12 @@ For this application, Traefik is the public front door for:
 
 - the React Router app, currently served by the `app` container on port `3000`
 - Keycloak, currently served by the `keycloak` container on port `8080`
-- a future FastAPI resource server, likely served by an `api-python` container on
-  port `8000`
+- a future Express resource server, served by an `api-express` container on port
+  `8001`
 
-Traefik lets browser and mobile clients use clean hostnames such as
-`app.localhost`, `auth.localhost`, and eventually `api.localhost` instead of
-internal container names and ports. In production, the same model becomes
+Traefik lets browser clients use clean hostnames such as `app.localhost`,
+`auth.localhost`, and eventually `api.localhost` instead of internal container
+names and ports. In production, the same model becomes
 `https://app.example.com`, `https://auth.example.com`, and later
 `https://api.example.com`.
 
@@ -38,27 +38,21 @@ and `web/docker-compose.gateway.yml`.
 ```mermaid
 flowchart LR
   browser[Browser]
-  mobile[Expo mobile app<br/>development build]
   traefik[Traefik<br/>ports 80 and 8081]
   app[React Router app<br/>app:3000]
   keycloak[Keycloak<br/>keycloak:8080]
-  api[FastAPI API<br/>future api-python:8000]
+  api[Express API<br/>future api-express:8001]
   postgres[(Postgres<br/>private network)]
-  secure_store[Expo SecureStore<br/>mobile session material]
 
   browser -->|http://app.localhost| traefik
   browser -->|http://auth.localhost| traefik
   browser -. future .->|http://api.localhost| traefik
   browser -->|http://localhost:8081<br/>local dashboard only| traefik
-  mobile -->|opens auth session<br/>reachable auth URL| traefik
 
   traefik -->|Host app.localhost| app
   traefik -->|Host auth.localhost| keycloak
   traefik -. future Host api.localhost .-> api
   app -. OIDC redirects and token exchange .-> keycloak
-  mobile -. PKCE auth flow .-> keycloak
-  mobile -. Bearer token API calls .-> api
-  mobile --> secure_store
   api -. validate JWT issuer/JWKS .-> keycloak
   keycloak --> postgres
   api -. app data .-> postgres
@@ -82,15 +76,10 @@ Key points in the current local stack:
 - Traefik listens on port `80` for browser traffic.
 - The app is exposed at `http://app.localhost`.
 - Keycloak is exposed at `http://auth.localhost`.
-- The future FastAPI service should be exposed at `http://api.localhost` once
-  the `api-python` container exists.
-- Additional API examples can use `http://api-express.localhost` and
-  `http://api-dotnet.localhost`.
+- The future Express service should be exposed at `http://api.localhost` once
+  the `api-express` container exists. `http://api-express.localhost` is
+  reserved as an alternative host so both can be routed at once.
 - The Traefik dashboard is exposed at `http://localhost:8081`.
-- Expo mobile development should use a development build and a Keycloak/API URL
-  the device or simulator can actually reach. A physical phone usually cannot
-  resolve `*.localhost` on the development machine without extra DNS, hosts, or
-  tunnel setup.
 - Postgres is not published to the host and is only on the private Docker
   network.
 - Services are not exposed by default. Each public service must opt in with
@@ -98,7 +87,7 @@ Key points in the current local stack:
 - The stack is local HTTP only. It is useful for production-like routing, but it
   is not a hardened production proxy.
 
-When the FastAPI container is added, keep the same label pattern as the app and
+When the Express container is added, keep the same label pattern as the app and
 Keycloak services:
 
 ```yaml
@@ -107,11 +96,11 @@ labels:
   - traefik.docker.network=admin-starter-public
   - traefik.http.routers.api.rule=Host(`api.localhost`)
   - traefik.http.routers.api.entrypoints=web
-  - traefik.http.services.api.loadbalancer.server.port=8000
+  - traefik.http.services.api.loadbalancer.server.port=8001
 ```
 
-See [../api-gateway/README.md](../api-gateway/README.md) for the route labels
-for `api-python`, `api-express`, and `api-dotnet`.
+See [../api-gateway/README.md](../api-gateway/README.md) for the Express route
+labels.
 
 ## Production Target Architecture
 
@@ -124,7 +113,7 @@ flowchart TD
   dns[DNS<br/>app.example.com<br/>auth.example.com<br/>api.example.com]
   traefik[Traefik<br/>80 -> 443 redirect<br/>TLS termination<br/>routing and middleware]
   app[React Router BFF<br/>app container]
-  api[FastAPI resource server<br/>future container]
+  api[Express resource server<br/>future container]
   keycloak[Keycloak<br/>auth server]
   db[(Postgres<br/>managed or private)]
   observability[Logs, metrics, traces]
@@ -140,217 +129,6 @@ flowchart TD
   app --> db
   traefik --> observability
 ```
-
-## Mobile App Architecture With Expo
-
-Traefik still matters for mobile apps, but it does not replace native mobile
-authentication. The Expo app should not use the React Router app's browser
-session cookie as its primary auth model. Native mobile apps should use an
-OAuth/OIDC authorization code flow with PKCE and a mobile redirect URI.
-
-Recommended mobile shape:
-
-```mermaid
-flowchart TD
-  mobile[Expo mobile app<br/>iOS and Android]
-  system_browser[System browser / auth session]
-  traefik[Traefik<br/>HTTPS edge]
-  keycloak[Keycloak<br/>auth.example.com]
-  api[FastAPI API<br/>api.example.com]
-  secure_store[Expo SecureStore<br/>refresh token or app session]
-
-  mobile -->|opens login| system_browser
-  system_browser -->|https://auth.example.com| traefik
-  traefik --> keycloak
-  keycloak -->|redirects to app scheme<br/>adminstarter://auth/callback| mobile
-  mobile -->|token exchange with PKCE| keycloak
-  mobile -->|Bearer access token| traefik
-  traefik --> api
-  mobile --> secure_store
-```
-
-Traefik's production responsibilities for mobile are:
-
-- serve Keycloak at a stable HTTPS URL such as `https://auth.example.com`
-- serve the API at a stable HTTPS URL such as `https://api.example.com`
-- terminate TLS and route traffic to Keycloak and the API
-- add edge protections such as rate limits, request limits, logs, and security
-  headers where they fit
-- keep Postgres and internal service ports private
-
-The Expo app's responsibilities are:
-
-- start the login flow with `expo-auth-session`
-- use the system browser or native auth session, not an embedded webview
-- use authorization code with PKCE
-- receive the redirect through a custom scheme or universal/app link
-- exchange the authorization code for tokens without a client secret, or send
-  the code to a trusted backend if using a confidential client
-- store sensitive session material with `expo-secure-store`
-- attach access tokens as `Authorization: Bearer ...` when calling the API
-- refresh or replace sessions when access tokens expire
-
-### Mobile Keycloak Client
-
-Create a separate Keycloak client for mobile instead of reusing the web client.
-A good starting point:
-
-```text
-Client ID: admin-starter-mobile
-Client authentication: Off / public client
-Standard flow: On
-PKCE: Required, S256
-Implicit flow: Off
-Direct access grants: Off unless there is a specific trusted need
-Service accounts: Off
-Valid redirect URIs:
-  adminstarter://auth/callback
-  com.yourcompany.adminstarter://auth/callback
-Web origins:
-  leave empty for native-only clients unless using Expo web
-```
-
-Use exact redirect URIs where possible. Broad mobile redirect patterns are
-convenient during development, but Keycloak warns that overly broad redirect
-URIs can create open redirect and unauthorized-entry risks for public clients.
-
-For Expo web, register a separate web redirect URI such as:
-
-```text
-https://app.example.com/auth/callback
-```
-
-Do not put a Keycloak client secret in the mobile app. Native app code is not a
-secret storage boundary. If a flow requires a confidential client secret, the
-code exchange must happen on a backend service controlled by the app team.
-
-### Expo Auth Flow
-
-Expo's `expo-auth-session` is the right starting library for OpenID Connect
-with Keycloak. It opens the auth flow, receives the redirect, and returns the
-authorization response to the app.
-
-Expected package set:
-
-```bash
-npx expo install expo-auth-session expo-web-browser expo-crypto expo-secure-store
-```
-
-The important Expo rules:
-
-- call `WebBrowser.maybeCompleteAuthSession()` near app startup
-- create redirect URIs with `AuthSession.makeRedirectUri()`
-- build the auth request with `AuthSession.useAuthRequest()`
-- wait until the request object exists before enabling the login action
-- use a development build for OAuth/OIDC testing; Expo Go cannot customize the
-  app scheme the way a production app can
-
-Example shape:
-
-```ts
-import * as AuthSession from "expo-auth-session";
-import * as SecureStore from "expo-secure-store";
-import * as WebBrowser from "expo-web-browser";
-
-WebBrowser.maybeCompleteAuthSession();
-
-const issuer = "https://auth.example.com/realms/admin-starter";
-const redirectUri = AuthSession.makeRedirectUri({
-  scheme: "adminstarter",
-  path: "auth/callback",
-});
-
-const discovery = await AuthSession.fetchDiscoveryAsync(issuer);
-
-const requestConfig = {
-  clientId: "admin-starter-mobile",
-  redirectUri,
-  scopes: ["openid", "profile", "email", "offline_access"],
-  usePKCE: true,
-};
-```
-
-Treat this as a shape, not final app code. The actual implementation should
-centralize token handling, refresh behavior, logout, and API calls behind a
-small auth module.
-
-### Mobile Tokens And API Calls
-
-The mobile app has two reasonable patterns:
-
-| Pattern                         | How it works                                                                                                                                                     | When to use                                                                                   |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Native public client with PKCE  | Expo app receives the auth code, exchanges it with Keycloak using PKCE, stores refresh/session material in `SecureStore`, and calls the API with a bearer token. | Best first mobile architecture for this app when FastAPI validates Keycloak JWTs directly.    |
-| Backend-assisted mobile session | Expo app receives the auth code, sends it to a backend, and the backend exchanges it with Keycloak, then returns an app-specific session/JWT.                    | Useful if you need confidential client secrets, token exchange policy, or app-owned sessions. |
-
-For the current project direction, prefer the native public client with PKCE
-plus a FastAPI resource server that validates Keycloak tokens.
-
-The future API should validate:
-
-- issuer: `https://auth.example.com/realms/admin-starter`
-- audience/client expectations for the API
-- token signature using Keycloak JWKS
-- expiration and not-before timestamps
-- required roles or groups for each protected route
-
-Do not send mobile API calls through the React Router BFF just to reuse the web
-cookie session. The React Router server is a browser-facing web shell. Mobile
-apps should call the API over HTTPS with bearer tokens or use a deliberate
-mobile session endpoint.
-
-### Mobile Local Development
-
-Mobile development has one extra networking problem: `localhost` on a physical
-phone means the phone itself, not the development machine.
-
-For local mobile testing:
-
-- run Keycloak behind a URL the device can reach
-- avoid `auth.localhost` on a physical device unless the device can resolve it
-  to the development machine
-- use a development build so the custom scheme works
-- consider a LAN hostname, local DNS entry, reverse tunnel, or temporary HTTPS
-  URL for Keycloak and the API
-- keep redirect URIs in Keycloak aligned with the redirect URI generated by
-  `AuthSession.makeRedirectUri()`
-
-Example development values might become:
-
-```env
-EXPO_PUBLIC_KEYCLOAK_ISSUER=https://auth-dev.example-tunnel.com/realms/admin-starter
-EXPO_PUBLIC_API_URL=https://api-dev.example-tunnel.com
-EXPO_PUBLIC_KEYCLOAK_CLIENT_ID=admin-starter-mobile
-```
-
-These `EXPO_PUBLIC_*` values are bundled into the app and must not contain
-secrets.
-
-For simulator-only local testing where `*.localhost` resolves as expected, the
-same shape can point at Traefik's local hosts:
-
-```env
-EXPO_PUBLIC_KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
-EXPO_PUBLIC_API_URL=http://api.localhost
-EXPO_PUBLIC_KEYCLOAK_CLIENT_ID=admin-starter-mobile
-```
-
-On a physical phone, prefer a LAN-reachable hostname or HTTPS tunnel for the
-same services.
-
-### Mobile Logout
-
-Mobile logout should clear local app state and remove stored tokens/session
-material from `SecureStore`. If you also want to end the Keycloak SSO browser
-session, route the user through Keycloak's end-session endpoint with the
-expected post-logout redirect URI.
-
-Plan for both cases:
-
-- local logout: remove app tokens/session and return to a signed-out screen
-- SSO logout: open the Keycloak logout URL and redirect back to the app
-- account switch: prefer a login action that can force the Keycloak login prompt
-  when the previous SSO browser session is still active
 
 ## Core Traefik Concepts
 
@@ -425,7 +203,7 @@ For this app, host-based routing is the clearest production shape:
 
 - `app.example.com` routes to React Router
 - `auth.example.com` routes to Keycloak
-- `api.example.com` routes to FastAPI when it exists
+- `api.example.com` routes to the Express API when it exists
 
 ### Services
 
@@ -468,7 +246,7 @@ Traefik should own the public URL map:
 ```text
 https://app.example.com  -> React Router app container
 https://auth.example.com -> Keycloak container
-https://api.example.com  -> FastAPI container, once added
+https://api.example.com  -> Express container, once added
 ```
 
 Keep route ownership simple. React Router owns app routes after the request
@@ -585,7 +363,7 @@ the app, Keycloak, or the future API.
 Useful places:
 
 - `/auth/*` app endpoints if public abuse becomes an issue
-- `api.example.com` once FastAPI exists
+- `api.example.com` once the Express API exists
 - Keycloak public endpoints, but with careful testing to avoid breaking normal
   login flows
 
@@ -724,7 +502,7 @@ Keycloak are scaled beyond one container.
 For this app:
 
 - add an app health endpoint before relying on proxy health checks
-- add a FastAPI health endpoint when the API is introduced
+- add an Express health endpoint when the API is introduced
 - be cautious scaling Keycloak without planning Postgres, cache, and session
   behavior
 - use sticky sessions only when a backend truly requires affinity
@@ -753,7 +531,7 @@ https://api.example.com
 Path-based routing is also possible:
 
 ```text
-https://app.example.com/api -> FastAPI
+https://app.example.com/api -> Express API
 ```
 
 If using path-based routing, decide whether the API expects the `/api` prefix.
@@ -826,7 +604,7 @@ WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://app.localhost/users/dashboard
 WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://app.localhost
 ```
 
-`API_EXTERNAL_URL` is the intended local value for the future FastAPI service.
+`API_EXTERNAL_URL` is the intended local value for the future Express service.
 It is not used by the current Compose stack until an `api` service is added.
 
 ## Common Failure Modes
@@ -901,7 +679,7 @@ http://api.localhost
 http://localhost:8081
 ```
 
-`http://api.localhost` will return a Traefik 404 until the FastAPI container and
+`http://api.localhost` will return a Traefik 404 until the Express container and
 router labels are added.
 
 View logs:
@@ -961,12 +739,6 @@ docker compose -f postgres/docker-compose.gateway.yml --env-file .env.traefik do
   <https://doc.traefik.io/traefik/v3.5/reference/install-configuration/observability/logs-and-accesslogs/>
 - HTTP services and load balancing:
   <https://doc.traefik.io/traefik/v3.5/reference/routing-configuration/http/load-balancing/service/>
-- Expo authentication with OAuth or OpenID providers:
-  <https://docs.expo.dev/guides/authentication/>
-- Expo authentication in Expo and React Native apps:
-  <https://docs.expo.dev/develop/authentication/>
-- Expo SecureStore:
-  <https://docs.expo.dev/versions/latest/sdk/securestore/>
 - Keycloak securing applications and services:
   <https://www.keycloak.org/docs/25.0.6/securing_apps/index.html>
 - Existing deployment runbook:

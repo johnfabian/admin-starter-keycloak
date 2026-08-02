@@ -34,7 +34,7 @@ corepack pnpm plan:new -- "name" # scaffold an implementation plan in specs/plan
 
 There is no test suite; `corepack pnpm check` is the verification command.
 
-Local env lives in `.env.development` (template: `.env.example`; gateway mode: `.env.traefik.example`). Keycloak expects realm `admin-starter`, client `admin-starter-web`, and client roles `Admins` and `Users` — setup guides are in `docs/`.
+Local env lives in `.env.development` (template: `.env.example`; gateway mode: `.env.traefik.example`). Keycloak expects realm `admin-starter`, client `admin-starter-web`, and roles `Admins` and `Users` — normally client roles, though realm roles of the same name work identically (see the access model below). Setup guides are in `docs/`.
 
 `pnpm-workspace.yaml` enforces supply-chain hardening (`minimumReleaseAge` of 7 days, strict dep builds, blocked exotic subdeps). Installing a just-published package version will fail by design; see `docs/supply-chain-security.md` before relaxing anything.
 

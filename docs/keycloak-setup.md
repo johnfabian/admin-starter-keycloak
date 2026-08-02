@@ -65,7 +65,8 @@ http://localhost:8081
 `http://localhost:8081` is the local Traefik dashboard. The app and Keycloak
 should be opened through `app.localhost` and `auth.localhost` so the same
 host-based routing model matches real DigitalOcean domains. Use
-`api.localhost` for the FastAPI service when the API stack is running.
+`api.localhost` for the Express resource server once it exists. Until then it
+returns a Traefik 404, since nothing is routed there yet.
 
 ## Docker Desktop Project Names
 
@@ -73,15 +74,24 @@ The local Compose files include explicit project names so Docker Desktop groups
 them by boundary:
 
 ```text
-admin-starter-postgres
-admin-starter-auth-server
-admin-starter-api-gateway
-admin-starter-web-gateway
+admin-starter-local-mail-server   local-mail-server/docker-compose.yml
+admin-starter-postgres            postgres/docker-compose.yml
+admin-starter-auth-server         auth-server/docker-compose.yml
+admin-starter-api-gateway         api-gateway/docker-compose.yml
+admin-starter-postgres-gateway    postgres/docker-compose.gateway.yml
+admin-starter-auth-gateway        auth-server/docker-compose.gateway.yml
+admin-starter-web-gateway         web/docker-compose.gateway.yml
 ```
 
-The direct local containers are currently named `app-postgres` and
-`app-keycloak`. Gateway mode uses `app-traefik-postgres` and
-`app-traefik-keycloak`.
+Container names, which are what `docker ps` and `docker exec` need:
+
+```text
+direct   app-mailpit, app-postgres, app-keycloak
+gateway  app-mailpit, app-traefik, app-traefik-postgres,
+         app-traefik-keycloak, app-traefik-web
+```
+
+Mailpit is shared by both stacks and has no gateway variant.
 
 ## Realm
 
@@ -222,7 +232,7 @@ Recommended client scopes and role scope settings:
   - `email`
   - `roles`
   - `web-origins`
-  - `admin-starter-api-python-audience` after the API audience scope is created
+  - `admin-starter-api-express-audience` after the API audience scope is created
 - Optional client scopes:
   - `organization`
   - `offline_access` only if the app intentionally requests offline tokens
@@ -233,8 +243,8 @@ Recommended client scopes and role scope settings:
 - Role scope mappings:
   - Allow `admin-starter-web:Users`
   - Allow `admin-starter-web:Admins`
-  - Allow `admin-starter-api-python:api-users`
-  - Allow `admin-starter-api-python:api-admins`
+  - Allow `admin-starter-api-express:api-users`
+  - Allow `admin-starter-api-express:api-admins`
 
 Recommended Advanced tab settings:
 
@@ -327,386 +337,26 @@ http://localhost:5173/auth/callback
 Registration uses the Keycloak registration action. Enable realm self-service
 registration if the app's Register button should create new users.
 
-## FastAPI API Client
+## API Client
 
-The API-specific setup instructions now live with each API example:
+API-specific Keycloak setup lives with the API service that needs it:
 
-- [Python/FastAPI setup](../api-python/README.md)
-- [Express setup](../api-express/README.md)
-- [.NET setup](../api-dotnet/README.md)
-- [Traefik API gateway setup](../api-gateway/README.md)
+- [Express API setup](../api-express/README.md) - client creation, audience
+  mapper, and token validation settings
+- [Traefik API gateway setup](../api-gateway/README.md) - routing and hostnames
 
-Keep the FastAPI resource server behind Traefik at:
-
-```text
-http://api.localhost
-```
-
-In production, use:
-
-```text
-https://api.example.com
-```
-
-FastAPI should not use the browser cookie session from the React Router app.
-It should validate Keycloak access tokens sent as bearer tokens:
+The pattern is the same for any resource server. Create a separate Keycloak
+client to represent the API, add an audience mapper so tokens issued to
+`admin-starter-web` carry the API audience in the `aud` claim, and have the API
+validate bearer tokens against Keycloak JWKS. A resource server must never use
+the browser cookie session from the React Router app:
 
 ```http
 Authorization: Bearer <access-token>
 ```
 
-Create a separate Keycloak client to represent the API:
-
-```text
-admin-starter-api-python
-```
-
-Recommended API client settings:
-
-- Client type: `OpenID Connect`
-  - Keeps the API represented in the same OIDC realm as the web and mobile
-    clients.
-- Client authentication: `Off` to start
-  - Use this if the client exists only as a token audience and role container.
-    Turn it on only if the API needs confidential client credentials for
-    machine-to-machine calls.
-- Authorization: `Off`
-  - Leave Keycloak Authorization Services off unless the API intentionally
-    adopts Keycloak resources, scopes, policies, UMA, and RPT tokens.
-- Standard flow: `Off`
-  - The API should not redirect users to login.
-- Direct access grants: `Off`
-  - Do not let the API client accept username/password grant requests.
-- Implicit flow: `Off`
-  - The API should never receive tokens from an implicit browser flow.
-- Service accounts roles: `Off` to start
-  - Turn this on only if a trusted background process needs client credentials.
-- Root URL:
-  - Local Traefik value: `http://api.localhost`
-  - Production value: `https://api.example.com`
-- Home URL:
-  - Local Traefik value: `http://api.localhost`
-  - Production value: `https://api.example.com`
-- Valid redirect URIs:
-  - Leave blank if Keycloak allows it for this client, or set only the exact API
-    admin/docs URL if a tool requires redirects.
-- Web origins:
-  - Leave blank to start.
-  - Keycloak web origins affect browser calls to Keycloak, not FastAPI CORS.
-    Configure FastAPI CORS separately in the API.
-
-Recommended API client scopes and advanced settings:
-
-- Default client scopes:
-  - `roles`
-- Optional client scopes:
-  - `organization` if the API authorizes tenant access from organization claims
-- Full scope allowed: `Off`
-  - The API should receive only the role and audience claims it needs.
-- Role scope mappings:
-  - Allow `admin-starter-api-python:api-users`
-  - Allow `admin-starter-api-python:api-admins`
-- Advanced tab:
-  - Access Token Lifespan: leave empty to inherit the realm `5 minutes`
-  - Client Session Idle: leave empty unless service accounts are enabled
-  - Client Session Max: leave empty unless service accounts are enabled
-  - Client Offline Session Idle: leave empty
-  - Client Offline Session Max: leave empty
-  - Proof Key for Code Exchange Code Challenge Method: leave blank
-  - OAuth 2.0 Device Authorization Grant: `Off`
-  - OIDC CIBA Grant: `Off`
-  - Valid request URIs: leave blank
-  - Access Token Signature Algorithm: `RS256`
-
-Recommended API roles on the `admin-starter-api-python` client:
-
-```text
-api-users
-api-admins
-```
-
-Assign these roles to the same Keycloak groups that receive the web roles:
-
-- `Application Users` group: `admin-starter-web:Users` and
-  `admin-starter-api-python:api-users`
-- `Application Admins` group: `admin-starter-web:Admins` and
-  `admin-starter-api-python:api-admins`
-
-The API can then authorize from `resource_access.admin-starter-api-python.roles`
-instead of depending on browser-app roles. This keeps the API permission model
-portable for both web and mobile clients.
-
-The mobile client does not need its own app roles at first. Assign user access
-through the web and API client roles, then let the Expo app display UI based on
-the token claims it receives.
-
-### API Audience Mapper
-
-FastAPI should validate that access tokens were intended for the API. To make
-that practical, add an audience mapper so tokens issued to the web and mobile
-clients include `admin-starter-api-python` in the `aud` claim.
-
-Recommended setup:
-
-1. Go to **Client scopes**.
-2. Create a client scope named `admin-starter-api-python-audience`.
-3. Set protocol to `openid-connect`.
-4. Open the new client scope.
-5. Go to **Mappers**.
-6. Choose **Configure a new mapper**.
-7. Choose **Audience**.
-8. Name it `admin-starter-api-python-audience`.
-9. Set **Included Client Audience** to `admin-starter-api-python`.
-10. Turn **Add to access token** on.
-11. Save.
-12. Open the `admin-starter-web` client.
-13. Add `admin-starter-api-python-audience` as a default client scope.
-14. Repeat for the `admin-starter-mobile` client.
-
-Suggested FastAPI validation settings:
-
-```env
-KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
-API_PYTHON_KEYCLOAK_AUDIENCE=admin-starter-api-python
-KEYCLOAK_JWKS_URL=http://auth.localhost/realms/admin-starter/protocol/openid-connect/certs
-```
-
-Production values should use HTTPS:
-
-```env
-KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
-API_PYTHON_KEYCLOAK_AUDIENCE=admin-starter-api-python
-KEYCLOAK_JWKS_URL=https://auth.example.com/realms/admin-starter/protocol/openid-connect/certs
-```
-
-When `api-express` and `api-dotnet` are added, use the same pattern with
-`API_EXPRESS_KEYCLOAK_AUDIENCE=admin-starter-api-express` and
-`API_DOTNET_KEYCLOAK_AUDIENCE=admin-starter-api-dotnet`.
-
-## Expo Mobile Client
-
-Create a separate mobile client for the React Native Expo app:
-
-```text
-admin-starter-mobile
-```
-
-Do not reuse `admin-starter-web` for native mobile. The web app uses a
-server-side React Router/BFF session cookie. Native mobile should use OIDC
-Authorization Code with PKCE and a mobile redirect URI.
-
-Recommended mobile client settings:
-
-- Client type: `OpenID Connect`
-  - Expo mobile auth should use OIDC.
-- Client authentication: `Off`
-  - Native mobile apps are public clients. Do not put a client secret in the
-    Expo app.
-- Authorization: `Off`
-  - Keep Keycloak Authorization Services off unless the mobile/API permission
-    model intentionally adopts them.
-- Standard flow: `On`
-  - Enables Authorization Code flow.
-- Direct access grants: `Off`
-  - Avoid password grant from the mobile app.
-- Implicit flow: `Off`
-  - Do not return tokens directly from the authorization endpoint.
-- Service accounts roles: `Off`
-  - Mobile apps should not use service accounts.
-- PKCE method: `S256`
-  - Required for native mobile OAuth clients.
-- Root URL:
-  - Leave blank for native-only mobile, or use the Expo web URL if this client
-    also supports web.
-- Home URL:
-  - Leave blank for native-only mobile.
-- Valid redirect URIs:
-  - `adminstarter://auth/callback`
-  - `adminstarter:///auth/callback` if Expo generates a triple-slashed value
-  - `com.yourcompany.adminstarter://auth/callback` if you choose a reverse-DNS
-    scheme
-- Valid post logout redirect URIs:
-  - `adminstarter://auth/logout`
-  - `adminstarter:///auth/logout` if Expo generates a triple-slashed value
-- Web origins:
-  - Leave blank for native-only mobile.
-  - Add the exact Expo web origin only if the mobile app also ships as web.
-
-Recommended mobile client scopes and advanced settings:
-
-- Default client scopes:
-  - `profile`
-  - `email`
-  - `roles`
-  - `admin-starter-api-python-audience`
-- Optional client scopes:
-  - `organization`
-  - `offline_access` only if the mobile app needs long-lived refresh after app
-    restarts
-- Full scope allowed: `Off`
-  - Keep mobile tokens tight. Add only the API and web roles the app needs.
-- Role scope mappings:
-  - Allow `admin-starter-api-python:api-users`
-  - Allow `admin-starter-api-python:api-admins`
-  - Allow `admin-starter-web:Users` if the app displays shared app roles
-  - Allow `admin-starter-web:Admins` if the app exposes admin UI
-- Advanced tab:
-  - Access Token Lifespan: leave empty to inherit the realm `5 minutes`
-  - Client Session Idle: `30 minutes` or shorter
-  - Client Session Max: `8 hours` or shorter
-  - Client Offline Session Idle: set only if `offline_access` is used
-  - Client Offline Session Max: set only if `offline_access` is used
-  - Proof Key for Code Exchange Code Challenge Method: `S256`
-  - OAuth 2.0 Device Authorization Grant: `Off`
-  - OIDC CIBA Grant: `Off`
-  - Valid request URIs: leave blank
-  - Access Token Signature Algorithm: `RS256`
-
-In the Expo app, log the exact value returned by
-`AuthSession.makeRedirectUri()` during setup and add that exact value to
-Keycloak. Redirect URI mismatches are the most common mobile auth setup issue.
-
-Expected Expo auth packages:
-
-```bash
-npx expo install expo-auth-session expo-web-browser expo-crypto expo-secure-store
-```
-
-Recommended Expo environment values:
-
-```env
-EXPO_PUBLIC_KEYCLOAK_ISSUER=http://auth.localhost/realms/admin-starter
-EXPO_PUBLIC_KEYCLOAK_CLIENT_ID=admin-starter-mobile
-EXPO_PUBLIC_API_URL=http://api.localhost
-```
-
-These `EXPO_PUBLIC_*` values are bundled into the app. They are fine for public
-URLs and public client IDs, but never put secrets there.
-
-Mobile tokens should be stored with `expo-secure-store`, not AsyncStorage or
-plain local files. Access tokens should be short-lived. If the app uses refresh
-tokens or offline sessions, treat them as sensitive session credentials and
-clear them on logout.
-
-## Expo Simulator And Device Development
-
-Expo OAuth/OIDC testing should use a development build, not Expo Go. Expo Go is
-excellent for simple UI work, but customized OAuth redirect schemes need a
-development build that belongs to your app.
-
-Recommended mobile app setup:
-
-```bash
-npx expo install expo-dev-client
-```
-
-Add a stable scheme in the Expo app config:
-
-```json
-{
-  "expo": {
-    "scheme": "adminstarter"
-  }
-}
-```
-
-Then use `AuthSession.makeRedirectUri()` in the app and register the generated
-redirect URI in Keycloak.
-
-### iPhone Simulator
-
-The iPhone Simulator requires macOS and Xcode. It cannot run directly on this
-Windows development machine. To test iOS without a physical iPhone, use one of
-these options:
-
-- develop on a Mac with Xcode installed
-- use a remote Mac, Mac mini, or Mac cloud provider
-- build with EAS for an iOS Simulator target, then run that build on a Mac's
-  Simulator
-
-On a Mac:
-
-1. Install Xcode from the Mac App Store.
-2. Open Xcode once so it can finish installing required components.
-3. Install an iOS Simulator runtime if Xcode prompts for one.
-4. Install the Expo app dependencies.
-5. Create or run the development build:
-
-   ```bash
-   npx expo run:ios
-   ```
-
-6. Start the Expo dev server for the development client:
-
-   ```bash
-   npx expo start --dev-client
-   ```
-
-7. Press `i` in the Expo terminal if the simulator is not already open.
-
-For local Keycloak testing from the iOS Simulator on the same Mac, the simulator
-can usually reach services on the Mac through `localhost`. If Traefik is running
-on another machine, use a LAN-reachable hostname or an HTTPS tunnel and update
-both the Expo env vars and Keycloak redirect/client settings.
-
-### Android Emulator
-
-The Android Emulator is the practical no-phone simulator option on Windows.
-
-Recommended setup:
-
-1. Install Android Studio.
-2. In Android Studio, install the Android SDK, Android SDK Platform-Tools,
-   Android SDK Build-Tools, and Android Emulator.
-3. Open **Device Manager**.
-4. Create a virtual device, for example a recent Pixel device.
-5. Choose a current stable Android system image.
-6. Start the emulator.
-7. From the Expo project, create or run the development build:
-
-   ```bash
-   npx expo run:android
-   ```
-
-8. Start the Expo dev server for the development client:
-
-   ```bash
-   npx expo start --dev-client
-   ```
-
-For Android Emulator networking, `localhost` points at the emulator itself.
-Use Android's special host alias for services running on the development
-machine:
-
-```text
-http://10.0.2.2
-```
-
-If Traefik is on the Windows host and listening on port `80`, the Android
-Emulator can usually reach it through:
-
-```text
-http://10.0.2.2
-```
-
-Host-based routing still needs the `Host` header to be `auth.localhost` or
-`api.localhost`, so plain `10.0.2.2` is not a perfect substitute for Traefik
-host rules. For smoother mobile auth testing, prefer one of these:
-
-- a LAN DNS name that resolves to the development machine
-- a local DNS/hosts setup in the emulator
-- a temporary HTTPS tunnel with stable auth and API hostnames
-- direct Keycloak/API ports only for early mobile experiments, then Traefik
-  hostnames before integration testing
-
-When using a tunnel or LAN hostname, update:
-
-- Expo `EXPO_PUBLIC_KEYCLOAK_ISSUER`
-- Expo `EXPO_PUBLIC_API_URL`
-- Keycloak mobile client redirect URIs
-- Keycloak web origins if testing Expo web
-- API `KEYCLOAK_ISSUER` and the API-specific audience variable, such as
-  `API_PYTHON_KEYCLOAK_AUDIENCE`
+Behind Traefik the API is reachable at `http://api.localhost` locally and
+`https://api.example.com` in production.
 
 ## Application Roles
 
@@ -781,42 +431,41 @@ and check for the exact role names documented above.
 
 ## App Routes
 
-Dashboard routes:
+Routes that exist today, as wired in `web/app/lib/app-settings.shared.ts`:
 
 ```text
-/admins/dashboard
-/admins/manage-users
-/admins/manage-groups
-/admins/manage-group-permissions
+/                      splash (public)
 /users/dashboard
-/apps
-/apps/todos
+/profile
+/settings
+/apps/dashboard
+/apps/todos            placeholder page
+/admins/dashboard
+/forbidden
+/auth/login|register|callback|account|logout
 ```
 
-Expected route behavior:
+Route behavior:
 
-- `/admins` and all Admin child routes require `Admins`.
-- Admin edit and delete controls are available to `Admins`.
-- `/apps` and `/apps/todos` require an authenticated user with `Users` or
-  `Admins`.
-- `/apps/todos` is scoped to the current user.
-
-Reusable admin UI should live in the shared components area chosen for this
-React Router app, with feature-oriented groups such as:
-
-```text
-components/admin/manage-users
-components/admin/manage-groups
-components/admin/manage-group-permissions
-```
+- `/` is the only app page an unauthenticated visitor can reach. The `/auth/*`
+  routes are public because login has to be reachable.
+- Everything in the signed-in shell — `/users/*`, `/profile`, `/settings`,
+  `/apps/*` — requires the `Users` role.
+- `/admins/*` requires `Admins`.
+- `Admins` reaches every route, since it belongs to both access groups.
+- `/users`, `/admins`, and `/apps` redirect to their `/dashboard` pages.
+- A signed-in user without either role lands on `/forbidden`.
 
 Use shadcn UI controls for tables, buttons, forms, dialogs, sidebars, dropdowns,
 badges, and navigation primitives.
 
-## Todos And Local User Data
+## Local User Data
 
-Todos should be persisted in Postgres and scoped to the current Keycloak user.
-Use the Keycloak token `sub` claim as the stable user id:
+There is no todos table yet — `/apps/todos` renders a placeholder page. This
+section records the intended shape for when app-owned data is added.
+
+Application data should be persisted in Postgres and scoped to the current
+Keycloak user. Use the Keycloak token `sub` claim as the stable user id:
 
 ```text
 todos.keycloak_user_id = token.sub
@@ -839,16 +488,6 @@ Recommended starting point for Todos:
 
 ## References
 
-- Expo authentication with OAuth or OpenID providers:
-  <https://docs.expo.dev/guides/authentication/>
-- Expo development builds:
-  <https://docs.expo.dev/develop/development-builds/introduction/>
-- Expo iOS Simulator:
-  <https://docs.expo.dev/workflow/ios-simulator/>
-- Expo Android Emulator:
-  <https://docs.expo.dev/workflow/android-studio-emulator/>
-- Expo SecureStore:
-  <https://docs.expo.dev/versions/latest/sdk/securestore/>
 - Local roles and permissions guide:
   [keycloak-roles-and-permissions.md](keycloak-roles-and-permissions.md)
 - Local email verification setup:

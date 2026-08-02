@@ -220,12 +220,12 @@ Production values:
 web_root_url = "https://app.example.com"
 ```
 
-### FastAPI API Client
+### Express API Client
 
 ```hcl
 resource "keycloak_openid_client" "api" {
   realm_id  = keycloak_realm.admin_starter.id
-  client_id = "admin-starter-api-python"
+  client_id = "admin-starter-api-express"
   name      = "Admin Starter API"
   enabled   = true
 
@@ -250,36 +250,6 @@ Production values:
 
 ```hcl
 api_root_url = "https://api.example.com"
-```
-
-### Expo Mobile Client
-
-```hcl
-resource "keycloak_openid_client" "mobile" {
-  realm_id  = keycloak_realm.admin_starter.id
-  client_id = "admin-starter-mobile"
-  name      = "Admin Starter Mobile"
-  enabled   = true
-
-  access_type                  = "PUBLIC"
-  standard_flow_enabled        = true
-  implicit_flow_enabled        = false
-  direct_access_grants_enabled = false
-  service_accounts_enabled     = false
-
-  valid_redirect_uris = [
-    "adminstarter://auth/callback",
-    "adminstarter:///auth/callback",
-    "com.yourcompany.adminstarter://auth/callback",
-  ]
-
-  valid_post_logout_redirect_uris = [
-    "adminstarter://auth/logout",
-    "adminstarter:///auth/logout",
-  ]
-
-  pkce_code_challenge_method = "S256"
-}
 ```
 
 ## Example Roles And Groups
@@ -325,23 +295,22 @@ are assigned to groups, not directly to roles.
 
 ## Example API Audience Scope
 
-The web and mobile clients should receive an API audience claim so FastAPI can
+The web client should receive an API audience claim so Express can
 validate that the token was intended for the API.
 
 Desired outcome:
 
 ```json
 {
-  "aud": ["admin-starter-api-python"]
+  "aud": ["admin-starter-api-express"]
 }
 ```
 
 Terraform should manage:
 
-- a client scope named `admin-starter-api-python-audience`
-- an audience protocol mapper that adds `admin-starter-api-python`
+- a client scope named `admin-starter-api-express-audience`
+- an audience protocol mapper that adds `admin-starter-api-express`
 - default client scope assignment for `admin-starter-web`
-- default client scope assignment for `admin-starter-mobile`
 
 Provider resource names for protocol mappers are version-specific. Confirm the
 exact resource names in the provider registry before implementing.

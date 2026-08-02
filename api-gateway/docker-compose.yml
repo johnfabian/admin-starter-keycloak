@@ -22,9 +22,7 @@ services:
           - app.localhost
           - auth.localhost
           - api.localhost
-          - api-python.localhost
           - api-express.localhost
-          - api-dotnet.localhost
 
 networks:
   public:

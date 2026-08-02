@@ -11,11 +11,8 @@ postgres/      Shared Postgres Compose files
 auth-server/   Keycloak Compose files
 api-gateway/   Traefik Compose file
 local-mail-server/  Mailpit local SMTP inbox Compose file
-api-python/    FastAPI placeholder
-api-express/   Express API placeholder
-api-dotnet/    .NET API placeholder
+api-express/   Express API placeholder (next service to build)
 web/           React Router web app
-mobile/        Expo placeholder
 docs/          setup guides and runbooks
 specs/plans/   implementation plans
 scripts/       shared automation
@@ -65,12 +62,16 @@ proxy logging that avoids full query strings.
 7. User lands on /users/dashboard
 ```
 
-Protected routes:
+Access model:
 
-- `/users/dashboard`, `/profile`, `/settings`, `/apps/dashboard`, and
-  `/apps/todos` require the `Users` or `Admins` role. Being signed in is not
-  enough on any page of the app shell.
-- `/admins/dashboard` requires the `Admins` role.
+- The splash page (`/`) is the only app page an unauthenticated visitor can
+  reach. The `/auth/*` routes are necessarily public too, since login has to be
+  reachable.
+- Everything in the signed-in shell — `/users/*`, `/profile`, `/settings`,
+  `/apps/*` — requires the `Users` role. Being signed in is not enough.
+- `/admins/*` requires the `Admins` role.
+- `Admins` reaches every route, because it is included in both access groups
+  (`appAccess` in `app-settings.shared.ts`).
 - `/users`, `/admins`, and `/apps` redirect to their `/dashboard` pages.
 - `/forbidden` displays when a signed-in user lacks the required role.
 - Roles are the union of realm roles and client roles under the web client id,
@@ -97,25 +98,24 @@ Auth routes:
 - `/auth/login`
 - `/auth/register`
 - `/auth/callback`
+- `/auth/account`
 - `/auth/logout`
 
-## Future FastAPI Resource Server
+## Future Express Resource Server
 
-If this proof of concept grows into a web + Expo mobile architecture, FastAPI
-should own business APIs and authorization enforcement:
+`api-express/` is the next service to build. Once it exists, it should own
+business APIs and authorization enforcement:
 
 ```text
 React web
   -> React Router BFF
-    -> FastAPI resource server
-
-Expo mobile
-  -> FastAPI resource server
+    -> Express resource server
 ```
 
-React Router should stay focused on the web shell, secure-cookie session, and
-web-specific auth bridge. FastAPI should validate Keycloak access tokens,
-enforce roles and ownership, and read/write application data.
+React Router stays focused on the web shell, secure-cookie session, and the
+web-specific auth bridge. Express validates Keycloak access tokens, enforces
+roles and ownership, and reads/writes application data. `bff-fetch.server.ts`
+is the seam that will call it.
 
 ## Local Development
 
@@ -133,23 +133,31 @@ WEB_KEYCLOAK_CLIENT_ID=admin-starter-web
 WEB_AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
 WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://localhost:5173/users/dashboard
 WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
-WEB_SESSION_SECRET=dev-admin-starter-keycloak-session-secret-change-me
+WEB_SESSION_SECRET=
 WEB_DATABASE_URL=postgresql://app:app@localhost:5434/admin_starter
-WEB_TOKEN_ENCRYPTION_KEY=dev-admin-starter-token-encryption-secret-change-me
-WEB_RESOURCE_SERVER_BASE_URL=http://localhost:8000
+WEB_TOKEN_ENCRYPTION_KEY=
+WEB_RESOURCE_SERVER_BASE_URL=
 WEB_KEYCLOAK_API_AUDIENCE=
 WEB_TOKEN_REFRESH_LEEWAY_SECONDS=60
 WEB_SESSION_LAST_SEEN_UPDATE_SECONDS=300
 ```
 
+`.env.example` ships `WEB_SESSION_SECRET` and `WEB_TOKEN_ENCRYPTION_KEY` empty
+and you must fill both in. Each needs **at least 32 characters** or the server
+throws on startup. If any required value is missing entirely the app does not
+error — it silently behaves as though nobody is signed in, which is the most
+confusing failure mode in local setup. Generate them with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
 Env names are intentionally scoped for multiple clients:
 
 - `WEB_*` values belong to the React Router web/BFF client.
-- `EXPO_PUBLIC_*` values belong to the future Expo mobile public client.
-- `API_*_KEYCLOAK_AUDIENCE` values belong to future API resource server
-  examples.
-- `KEYCLOAK_*` values without a web/mobile/API prefix are shared Keycloak realm
-  or server settings.
+- `API_*` values belong to the future Express resource server.
+- `KEYCLOAK_*` values without a web or API prefix are shared Keycloak realm or
+  server settings.
 
 Install dependencies:
 
@@ -186,9 +194,7 @@ For dependency install hardening and pnpm supply-chain settings, see
 
 API-specific Keycloak and Traefik setup instructions live in each API folder:
 
-- [api-python/README.md](api-python/README.md)
 - [api-express/README.md](api-express/README.md)
-- [api-dotnet/README.md](api-dotnet/README.md)
 - [api-gateway/README.md](api-gateway/README.md)
 
 Minimum local client requirements:
