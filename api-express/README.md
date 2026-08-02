@@ -67,7 +67,7 @@ Application Admins -> admin-starter-api-express:api-admins
 
 ## Audience Mapper
 
-Tokens issued to the web and mobile clients should include the Express API in
+Tokens issued to the web client should include the Express API in
 the `aud` claim.
 
 1. Go to **Client scopes**.
@@ -80,7 +80,6 @@ the `aud` claim.
 8. Turn **Add to access token** on.
 9. Save.
 10. Add this client scope as a default scope on `admin-starter-web`.
-11. Add this client scope as a default scope on `admin-starter-mobile`.
 
 The API should validate:
 
