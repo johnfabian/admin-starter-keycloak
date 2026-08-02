@@ -25,8 +25,15 @@ OPS_SKILLS = {
     "stop-project",
     "stop-server",
 }
-LOCKED_CATEGORIES = {"meta", "ops"}
-REQUIRED_EXPLICIT_DEV_SKILLS = {"feature-plan", "implement-story", "publish-issues"}
+REQUIRED_EXPLICIT_SKILLS = (
+    META_SKILLS
+    | OPS_SKILLS
+    | {
+        "feature-plan",
+        "implement-story",
+        "publish-issues",
+    }
+)
 PROJECT_ADAPTERS = (Path(".agents/skills"), Path(".claude/skills"))
 GLOBAL_ADAPTERS = (Path(".claude/skills"), Path(".codex/skills"))
 
@@ -108,7 +115,7 @@ def main() -> int:
     args = parse_args()
     root = args.root.resolve()
     home = (args.home or Path.home()).expanduser().resolve()
-    canonical_root = root / ".agents.config" / "skills"
+    canonical_root = root / ".agents-config" / "skills"
     errors: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
     fixes: list[dict[str, str]] = []
@@ -162,6 +169,16 @@ def main() -> int:
     if comparable_path(git_root) != comparable_path(root):
         print(f"Expected repository root {git_root}, received {root}.", file=sys.stderr)
         return 2
+
+    for legacy_name in (".agents.config", ".agent-config", ".agent.config"):
+        legacy_root = root / legacy_name
+        if lexists(legacy_root):
+            issue(
+                errors,
+                "legacy-canonical-root",
+                legacy_root,
+                "Canonical shared configuration must use .agents-config/.",
+            )
 
     if not canonical_root.exists():
         if args.fix:
@@ -366,10 +383,7 @@ def main() -> int:
                 if sidecar.is_file()
                 else None
             )
-            requires_explicit = (
-                category in LOCKED_CATEGORIES
-                or skill_path.name in REQUIRED_EXPLICIT_DEV_SKILLS
-            )
+            requires_explicit = skill_path.name in REQUIRED_EXPLICIT_SKILLS
             if requires_explicit and disable_model != "true":
                 issue(
                     errors,
@@ -384,14 +398,12 @@ def main() -> int:
                     sidecar,
                     "Explicit-only skills require policy.allow_implicit_invocation: false.",
                 )
-            if category == "dev" and (disable_model == "true") != (
-                implicit_policy == "false"
-            ):
+            if (disable_model == "true") != (implicit_policy == "false"):
                 issue(
                     errors,
                     "provider-invocation-lock-mismatch",
                     skill_path,
-                    "Dev skills must use both provider invocation locks or neither lock.",
+                    "Every skill must use both provider invocation locks or neither lock.",
                 )
 
             for target in markdown_links(body or ""):

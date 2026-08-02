@@ -182,7 +182,7 @@ def uncommitted_generation_inputs(root: Path) -> list[str]:
         "--untracked-files=all",
         "--",
         "wiki",
-        ".agents.config/skills/dev/wiki-visualize",
+        ".agents-config/skills/dev/wiki-visualize",
     )
     generated_outputs = {"wiki/viz.html", "wiki/viz-manifest.json"}
     dirty = []
@@ -269,7 +269,7 @@ def main() -> int:
     ).hexdigest()
     manifest = {
         "sourceRevision": source_revision,
-        "skillVersion": f"{source_revision}:.agents.config/skills/dev/wiki-visualize",
+        "skillVersion": f"{source_revision}:.agents-config/skills/dev/wiki-visualize",
         "generationTime": generation_time,
         "generatorVersion": GENERATOR_VERSION,
         "conceptCount": len(nodes),

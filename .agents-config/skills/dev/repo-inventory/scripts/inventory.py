@@ -129,7 +129,7 @@ def main() -> int:
         files,
         lambda path: (
             path in {"AGENTS.md", "CLAUDE.md"}
-            or path.startswith((".agents.config/", ".agents/", ".claude/"))
+            or path.startswith((".agents-config/", ".agents/", ".claude/"))
         ),
     )
     deployment_files = selected(
