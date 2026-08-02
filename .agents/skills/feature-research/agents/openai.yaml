@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Research"
+  short_description: "Gather evidence for feature planning"
+  default_prompt: "Use $feature-research to produce an evidence-backed feature research artifact."

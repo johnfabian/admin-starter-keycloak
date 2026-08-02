@@ -1,0 +1,4 @@
+interface:
+  display_name: "Preview Issues"
+  short_description: "Render exact non-mutating GitHub previews"
+  default_prompt: "Use $preview-issues to render exact GitHub issue and comment mutations for approval."

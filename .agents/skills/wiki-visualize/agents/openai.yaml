@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Visualize"
+  short_description: "Generate the offline wiki relationship viewer"
+  default_prompt: "Use $wiki-visualize to generate and validate the self-contained OKF relationship viewer."

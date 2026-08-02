@@ -1,0 +1,4 @@
+interface:
+  display_name: "Parallel Implementation"
+  short_description: "Plan bounded implementation ownership"
+  default_prompt: "Use $parallel-implementation to create a safe ownership and integration plan."

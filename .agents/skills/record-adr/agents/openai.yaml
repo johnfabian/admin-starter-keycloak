@@ -1,0 +1,4 @@
+interface:
+  display_name: "Record ADR"
+  short_description: "Record an approved durable decision"
+  default_prompt: "Use $record-adr to convert an approved GitHub decision into a durable ADR."

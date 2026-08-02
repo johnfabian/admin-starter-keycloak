@@ -1,5 +1,7 @@
 ## AI SDLC checkpoint
 
+- Handoff skill version: `<full Git commit containing this package>`
+
 ### Objective and scope
 
 - Objective: `<observable outcome>`
@@ -13,6 +15,7 @@
 - Current revision: `<full commit SHA>`
 - Branch: `<branch>`
 - Worktree: `<absolute path or stable worktree identifier>`
+- Isolation policy: `<topic branch/no-worktree or approved exception>`
 - Owned paths: `<paths>`
 - Excluded/shared paths: `<paths>`
 
@@ -35,6 +38,8 @@
 ### Decisions and gates
 
 - Decisions/assumptions: `<durable record links or explicit unknown>`
+- Approved artifact digests: `<digest + attributable approval record, or none>`
+- Independent reviewer: `<identity/context and artifact revision, or not-triggered>`
 - Product gate: `<approved/pending/not-triggered; approver record>`
 - Architecture gate: `<approved/pending/not-triggered; approver record>`
 - Security gate: `<approved/pending/not-triggered; approver record>`

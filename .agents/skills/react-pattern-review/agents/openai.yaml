@@ -1,0 +1,4 @@
+interface:
+  display_name: "React Pattern Review"
+  short_description: "Review React patterns before refactoring"
+  default_prompt: "Use $react-pattern-review to assess React code and define characterization needs."

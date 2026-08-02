@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirements Interview"
+  short_description: "Turn intent into testable requirements"
+  default_prompt: "Use $requirements-interview to resolve material decisions and draft testable requirements."

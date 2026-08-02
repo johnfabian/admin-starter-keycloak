@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Strategy"
+  short_description: "Design risk-based test coverage"
+  default_prompt: "Use $test-strategy to design a layered, risk-based verification strategy."
