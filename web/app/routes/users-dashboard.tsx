@@ -1,7 +1,7 @@
 import { RouteErrorBoundary } from "~/components/error-page";
 import { UsersDashboardPage } from "~/pages/users-dashboard-page";
 import { appInfo } from "~/lib/app-settings.shared";
-import { requireAuthenticatedRoute } from "~/lib/server/route-guards.server";
+import { requireUserRoute } from "~/lib/server/route-guards.server";
 import type { Route } from "./+types/users-dashboard";
 
 export function meta() {
@@ -10,7 +10,7 @@ export function meta() {
 
 export async function loader({ request }: Route.LoaderArgs) {
   return {
-    user: await requireAuthenticatedRoute(request),
+    user: await requireUserRoute(request),
   };
 }
 

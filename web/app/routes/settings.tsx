@@ -3,7 +3,7 @@ import { Settings } from "lucide-react";
 import { RouteErrorBoundary } from "~/components/error-page";
 import { DashboardPlaceholderPage } from "~/pages/dashboard-placeholder-page";
 import { appInfo } from "~/lib/app-settings.shared";
-import { requireAuthenticatedRoute } from "~/lib/server/route-guards.server";
+import { requireUserRoute } from "~/lib/server/route-guards.server";
 import type { Route } from "./+types/settings";
 
 export function meta() {
@@ -12,7 +12,7 @@ export function meta() {
 
 export async function loader({ request }: Route.LoaderArgs) {
   return {
-    user: await requireAuthenticatedRoute(request),
+    user: await requireUserRoute(request),
   };
 }
 

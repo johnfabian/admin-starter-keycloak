@@ -14,22 +14,33 @@ corepack pnpm db:logs
 corepack pnpm db:down
 ```
 
-Direct local Postgres listens on `localhost:5432` and uses the
-`admin-starter-postgres` Docker network.
+Direct local Postgres publishes `${POSTGRES_PORT:-5434}` on the host and uses
+the `admin-starter-postgres` Docker network. Inside Docker it still listens on
+`5432` — the published port is what `WEB_DATABASE_URL` connects to.
 
 ## Gateway Stack
 
+Gateway Postgres has no dedicated up/down scripts; it comes up and goes down
+with the rest of the gateway stack:
+
 ```bash
-corepack pnpm db:gateway:up
+corepack pnpm dev:gateway
 corepack pnpm db:gateway:logs
-corepack pnpm db:gateway:down
+corepack pnpm stop-gateway
 ```
 
 Gateway Postgres uses the internal `admin-starter-postgres-gateway` Docker
-network. Traefik does not expose Postgres.
+network and publishes no host port. Traefik does not expose Postgres.
 
 ## Databases
 
-`postgres/init-keycloak-db.sql` creates the `keycloak` database on the first
-Postgres boot. The default app database still comes from `POSTGRES_DB` in the
-active root env file.
+Both init scripts are mounted into `docker-entrypoint-initdb.d` and therefore
+run **only on the first boot of an empty volume** — changing them afterwards
+has no effect until the volume is recreated or the SQL is applied by hand.
+
+- `postgres/init-keycloak-db.sql` creates the `keycloak` database, which
+  Keycloak owns.
+- `postgres/init-app-schema.sql` creates the `web_bff_sessions` table and its
+  two indexes in the app database.
+
+The app database name comes from `POSTGRES_DB` in the active root env file.

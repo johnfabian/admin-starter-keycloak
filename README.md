@@ -67,11 +67,15 @@ proxy logging that avoids full query strings.
 
 Protected routes:
 
-- `/users/dashboard` requires the `Users` or `Admins` Keycloak client role.
-- `/users` redirects to `/users/dashboard`.
-- `/admins/dashboard` requires the `Admins` Keycloak client role.
-- `/admins` redirects to `/admins/dashboard`.
+- `/users/dashboard`, `/profile`, `/settings`, `/apps/dashboard`, and
+  `/apps/todos` require the `Users` or `Admins` role. Being signed in is not
+  enough on any page of the app shell.
+- `/admins/dashboard` requires the `Admins` role.
+- `/users`, `/admins`, and `/apps` redirect to their `/dashboard` pages.
 - `/forbidden` displays when a signed-in user lacks the required role.
+- Roles are the union of realm roles and client roles under the web client id,
+  compared case-sensitively — a realm role named `Admins` works exactly like the
+  client role of the same name.
 
 Route modules are kept intentionally slim. They define `meta`, `loader`, and
 redirect behavior, then render page components from `web/app/pages`.
@@ -153,19 +157,19 @@ Install dependencies:
 corepack pnpm install
 ```
 
-Start Mailpit, Postgres, Keycloak, and the React Router dev server:
+Start the containers, then the dev server. `corepack pnpm dev` runs
+`react-router dev` only — it does not start Docker, and the web app needs
+Postgres and Keycloak reachable before it will work:
 
 ```bash
-corepack pnpm dev
+corepack pnpm mail:up   # Mailpit  — http://localhost:8025
+corepack pnpm db:up     # Postgres — localhost:5434
+corepack pnpm auth:up   # Keycloak — http://localhost:8080
+corepack pnpm dev       # Web app  — http://localhost:5173
 ```
 
-The dev script prints local URLs:
-
-```text
-Frontend: http://localhost:5173
-Keycloak: http://localhost:8080
-Mailpit: http://localhost:8025
-```
+`auth:up` builds the custom Keycloak SPI image, so the first run takes several
+minutes. `/start-project` runs this whole sequence for you.
 
 ## Keycloak Setup
 
@@ -210,8 +214,11 @@ corepack pnpm plan:new -- "keycloak auth splash users dashboard"
 ## Scripts
 
 ```bash
-corepack pnpm dev               # start Mailpit, Postgres, auth, and web
+corepack pnpm dev               # web dev server only (containers must already be up)
+corepack pnpm check             # format:check + lint + typecheck — the verification gate
+corepack pnpm format            # prettier --write
 corepack pnpm dev:gateway       # start Mailpit, Traefik, gateway Postgres, auth, and web
+corepack pnpm stop-gateway      # tear the gateway stack down
 corepack pnpm web:typecheck     # generate route types and run TypeScript
 corepack pnpm web:build         # production web build
 corepack pnpm web:start         # serve the production web build
@@ -220,9 +227,12 @@ corepack pnpm mail:down         # stop local Mailpit SMTP inbox
 corepack pnpm mail:logs         # follow local Mailpit logs
 corepack pnpm db:up             # start local shared Postgres
 corepack pnpm db:down           # stop local shared Postgres
+corepack pnpm db:logs           # follow local Postgres logs
 corepack pnpm auth:up           # start local Keycloak
 corepack pnpm auth:down         # stop local Keycloak
 corepack pnpm auth:logs         # follow local auth service logs
 corepack pnpm gateway:up        # start Traefik only
-./backup-all           # run local backup scripts
+corepack pnpm stop-app          # stop auth, Postgres, and Mailpit
+corepack pnpm plan:new -- "name" # scaffold a plan in specs/plans/
+./backup-all                    # run local backup scripts
 ```
