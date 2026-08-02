@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Audit"
+  short_description: "Audit OKF wiki structure without mutation"
+  default_prompt: "Use $wiki-audit to run a read-only conformance and freshness audit of the repository wiki."

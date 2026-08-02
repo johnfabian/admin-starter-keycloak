@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repository Inventory"
+  short_description: "Inventory repository evidence and uncertainty"
+  default_prompt: "Use $repo-inventory to produce a read-only evidence-backed repository inventory."

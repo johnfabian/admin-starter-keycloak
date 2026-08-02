@@ -47,7 +47,7 @@ Create a dedicated Keycloak client for the Express resource server.
 10. Turn **Implicit flow** `Off`.
 11. Turn **Service accounts roles** `Off` unless the API needs machine-to-machine auth.
 12. Set Root URL and Home URL to `http://api-express.localhost` locally.
-13. Leave Valid redirect URIs blank unless an API docs/admin tool needs redirects.
+13. Leave Valid redirect URIs blank unless an API documentation or admin tool needs redirects.
 14. Leave Web origins blank; configure CORS in Express.
 15. Save.
 
@@ -103,5 +103,6 @@ labels:
 ```
 
 See [../api-gateway/README.md](../api-gateway/README.md) for the shared gateway
-rules and [../docs/keycloak-roles-and-permissions.md](../docs/keycloak-roles-and-permissions.md)
-for the authorization model.
+rules. The current authorization behavior and this placeholder's actual repository
+state are recorded in the [access-control model](../wiki/architecture/access-control-model.md)
+and [Express resource API concept](../wiki/integrations/express-resource-api.md).

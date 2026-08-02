@@ -1,6 +1,6 @@
 # API Gateway
 
-Local Traefik gateway for routing browser, auth, web, and API traffic.
+Local Traefik gateway for routing browser, mobile, auth, web, and API traffic.
 
 The gateway compose file only runs Traefik. Each app or API service opts into
 Traefik by joining the `admin-starter-public` Docker network and adding Docker
@@ -14,11 +14,13 @@ The gateway currently reserves these local hostnames:
 app.localhost
 auth.localhost
 api.localhost
+api-python.localhost
 api-express.localhost
+api-dotnet.localhost
 ```
 
-`api.localhost` is the default friendly API host. `api-express.localhost` is
-reserved for the Express resource server so both can be routed at once.
+`api.localhost` is the default friendly API host. Use the technology-specific
+hosts when running more than one API example at the same time.
 
 ## Start And Stop
 
@@ -46,15 +48,17 @@ Every API container exposed through Traefik should:
 - route by `Host(...)`
 - point the Traefik service port at the API container's internal listen port
 
-## Express Route
+## Python/FastAPI Route
+
+Default single-API host:
 
 ```yaml
 labels:
   - traefik.enable=true
   - traefik.docker.network=admin-starter-public
-  - traefik.http.routers.api-express.rule=Host(`api-express.localhost`)
-  - traefik.http.routers.api-express.entrypoints=web
-  - traefik.http.services.api-express.loadbalancer.server.port=8001
+  - traefik.http.routers.api-python.rule=Host(`api.localhost`)
+  - traefik.http.routers.api-python.entrypoints=web
+  - traefik.http.services.api-python.loadbalancer.server.port=8000
 networks:
   - public
 
@@ -64,13 +68,38 @@ networks:
     name: admin-starter-public
 ```
 
-To serve it on the default `api.localhost` host instead:
+Side-by-side API host:
 
 ```yaml
-- traefik.http.routers.api-express.rule=Host(`api.localhost`)
+- traefik.http.routers.api-python.rule=Host(`api-python.localhost`)
 ```
 
-## Related Docs
+## Express Route
 
-- [Traefik guide](../docs/traefik-guide.md)
-- [Express API setup](../api-express/README.md)
+```yaml
+labels:
+  - traefik.enable=true
+  - traefik.docker.network=admin-starter-public
+  - traefik.http.routers.api-express.rule=Host(`api-express.localhost`)
+  - traefik.http.routers.api-express.entrypoints=web
+  - traefik.http.services.api-express.loadbalancer.server.port=8001
+```
+
+## .NET Route
+
+```yaml
+labels:
+  - traefik.enable=true
+  - traefik.docker.network=admin-starter-public
+  - traefik.http.routers.api-dotnet.rule=Host(`api-dotnet.localhost`)
+  - traefik.http.routers.api-dotnet.entrypoints=web
+  - traefik.http.services.api-dotnet.loadbalancer.server.port=8002
+```
+
+## Related Knowledge
+
+- [Gateway routing](../wiki/architecture/gateway-routing.md)
+- [Gateway network model](../wiki/architecture/gateway-network-model.md)
+- [Traefik static configuration](../wiki/integrations/traefik-static-config.md)
+- [Gateway troubleshooting](../wiki/operations/troubleshoot-gateway.md)
+- [Express API placeholder](../api-express/README.md)
