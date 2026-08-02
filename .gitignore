@@ -10,6 +10,9 @@
 .tmp/
 /backups/
 
+# Repository-native AI SDLC ephemeral state
+/.agent-work/
+
 # React Router
 /.react-router/
 /build/

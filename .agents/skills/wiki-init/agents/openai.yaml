@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Init"
+  short_description: "Bootstrap an evidence-backed OKF wiki"
+  default_prompt: "Use $wiki-init to initialize the repository wiki from verified repository evidence."

@@ -1,238 +1,95 @@
 # Admin Starter Keycloak
 
-A pnpm monorepo admin starter. The current implemented app is a React Router 7
-framework-mode web app that uses Keycloak for identity and a BFF-style server
-layer for web authentication.
+A pnpm workspace with an implemented React Router 7 server-rendered web/BFF, local Keycloak identity, shared Postgres state, Mailpit email capture, and an optional local Traefik gateway.
 
-## Repository Layout
+## What exists
 
-```text
-postgres/      Shared Postgres Compose files
-auth-server/   Keycloak Compose files
-api-gateway/   Traefik Compose file
-local-mail-server/  Mailpit local SMTP inbox Compose file
-api-python/    FastAPI placeholder
-api-express/   Express API placeholder
-api-dotnet/    .NET API placeholder
-web/           React Router web app
-mobile/        Expo placeholder
-docs/          setup guides and runbooks
-specs/plans/   implementation plans
-scripts/       shared automation
-```
+| Area                   | State                      | Evidence and limits                                                                                                                                                     |
+| ---------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| React Router web/BFF   | Implemented                | Authorization code + PKCE, server-side token validation/refresh, opaque HttpOnly cookie, encrypted Postgres session records, and loader-based role guards under `web/`. |
+| Keycloak               | Implemented local service  | Direct and gateway Compose files build a Keycloak 26.0 image with the registration-approval SPI. The realm and client are configured manually; no realm import exists.  |
+| Postgres               | Implemented local service  | One instance per mode stores both Keycloak and `web_bff_sessions`. Init SQL runs only for an empty volume; no migration framework exists.                               |
+| Mailpit                | Implemented local service  | SMTP capture on port 1025 with the inbox at `http://localhost:8025`.                                                                                                    |
+| Traefik                | Implemented for local HTTP | Routes `app.localhost` and `auth.localhost`; the dashboard is intentionally insecure at `http://localhost:8081`. No production TLS edge exists.                         |
+| Express resource API   | Placeholder                | `api-express/` contains a README only: no manifest, source, runtime, Compose service, or tests.                                                                         |
+| Automated tests and CI | Gap                        | No test runner, test files, or CI workflow is configured. The current gate is static only.                                                                              |
+| Production deployment  | Gap                        | TLS, secret management, migrations, observability, health checks, scheduled/offsite backups, and a provider design are not implemented.                                 |
 
 ## Architecture
 
-This app is currently shaped as a browser app plus a small Backend For Frontend
-(BFF) inside the React Router server:
-
 ```text
 Browser
-  -> React Router BFF
-    -> Keycloak
-    -> future resource server
+  -> React Router BFF (web/)
+       -> Keycloak (identity and OIDC)
+       -> Postgres (opaque BFF sessions)
+
+Keycloak
+  -> Postgres (realm, clients, roles, and users)
 ```
 
-The BFF is the trusted server-side layer for the web app. It handles the
-browser-unfriendly auth work:
+The browser never receives Keycloak access or refresh tokens. The BFF performs the OIDC exchange, verifies tokens with the realm JWKS, stores encrypted token state in Postgres, refreshes server-side, and applies exact-case `Users`/`Admins` role guards. The future Express seam is not part of the running architecture.
 
-- redirects users to Keycloak for login and registration
-- receives the OIDC callback
-- exchanges the authorization code for tokens
-- validates tokens with Keycloak JWKS
-- stores an opaque session id in an HttpOnly cookie
-- stores encrypted Keycloak tokens in the server-side Postgres session table
-- refreshes access tokens server-side before resource server calls
-- protects routes with server loaders
-
-The browser does not read or store Keycloak tokens in `localStorage`, loader
-JSON, or non-HttpOnly cookies. Logout is a POST action that clears the local BFF
-session and redirects through Keycloak's end-session endpoint when an ID token
-hint is available. That `id_token_hint` is an intentional OIDC logout exception:
-it is sent only to Keycloak over the logout redirect and should be protected in
-production with HTTPS, no-store auth responses, a strict referrer policy, and
-proxy logging that avoids full query strings.
-
-## Auth Flow
+## Repository map
 
 ```text
-1. Browser visits /auth/login
-2. React Router loader redirects to Keycloak
-3. User signs in with Keycloak
-4. Keycloak redirects to /auth/callback
-5. React Router server exchanges the code for tokens
-6. React Router server stores tokens in Postgres and sets an HttpOnly session cookie
-7. User lands on /users/dashboard
+.agents/            canonical shared skills and scoped rule cards
+.claude/            thin Claude discovery adapters
+api-express/        documentation-only resource API placeholder
+api-gateway/        local Traefik Compose configuration
+auth-server/        Keycloak image, Compose files, and custom provider
+local-mail-server/  Mailpit Compose configuration
+postgres/           direct/gateway Postgres and first-boot SQL
+scripts/            backup, restore, and repository automation
+specs/plans/        dated implementation records
+web/                React Router application and BFF
+wiki/               draft, evidence-backed durable repository knowledge
 ```
 
-Protected routes:
+## Quick start
 
-- `/users/dashboard`, `/profile`, `/settings`, `/apps/dashboard`, and
-  `/apps/todos` require the `Users` or `Admins` role. Being signed in is not
-  enough on any page of the app shell.
-- `/admins/dashboard` requires the `Admins` role.
-- `/users`, `/admins`, and `/apps` redirect to their `/dashboard` pages.
-- `/forbidden` displays when a signed-in user lacks the required role.
-- Roles are the union of realm roles and client roles under the web client id,
-  compared case-sensitively — a realm role named `Admins` works exactly like the
-  client role of the same name.
-
-Route modules are kept intentionally slim. They define `meta`, `loader`, and
-redirect behavior, then render page components from `web/app/pages`.
-Shared page wrappers live in `web/app/layouts`. Protected loaders call
-centralized guards from `web/app/lib/server/route-guards.server.ts`.
-
-Routes and access settings are centralized for reuse:
-
-- `web/app/lib/app-settings.shared.ts` owns app name/title, route paths, route patterns,
-  route module paths, role names, and route access groups.
-- `web/app/lib/server/auth-config.server.ts` owns server-only Keycloak/OIDC
-  environment config and issuer URL helpers.
-- `web/app/lib/auth-policy.shared.ts` owns reusable role and access checks.
-- `web/app/routes.ts` wires React Router from `appRoutePatterns` and
-  `appRouteModules` instead of hardcoded route strings.
-
-Auth routes:
-
-- `/auth/login`
-- `/auth/register`
-- `/auth/callback`
-- `/auth/logout`
-
-## Future FastAPI Resource Server
-
-If this proof of concept grows into a web + Expo mobile architecture, FastAPI
-should own business APIs and authorization enforcement:
-
-```text
-React web
-  -> React Router BFF
-    -> FastAPI resource server
-
-Expo mobile
-  -> FastAPI resource server
-```
-
-React Router should stay focused on the web shell, secure-cookie session, and
-web-specific auth bridge. FastAPI should validate Keycloak access tokens,
-enforce roles and ownership, and read/write application data.
-
-## Local Development
-
-Copy the local environment template if needed:
-
-```bash
-cp .env.example .env.development
-```
-
-Important local values:
-
-```env
-KEYCLOAK_ISSUER=http://localhost:8080/realms/admin-starter
-WEB_KEYCLOAK_CLIENT_ID=admin-starter-web
-WEB_AUTH_REDIRECT_URI=http://localhost:5173/auth/callback
-WEB_AUTH_POST_LOGIN_REDIRECT_URI=http://localhost:5173/users/dashboard
-WEB_AUTH_POST_LOGOUT_REDIRECT_URI=http://localhost:5173
-WEB_SESSION_SECRET=dev-admin-starter-keycloak-session-secret-change-me
-WEB_DATABASE_URL=postgresql://app:app@localhost:5434/admin_starter
-WEB_TOKEN_ENCRYPTION_KEY=dev-admin-starter-token-encryption-secret-change-me
-WEB_RESOURCE_SERVER_BASE_URL=http://localhost:8000
-WEB_KEYCLOAK_API_AUDIENCE=
-WEB_TOKEN_REFRESH_LEEWAY_SECONDS=60
-WEB_SESSION_LAST_SEEN_UPDATE_SECONDS=300
-```
-
-Env names are intentionally scoped for multiple clients:
-
-- `WEB_*` values belong to the React Router web/BFF client.
-- `EXPO_PUBLIC_*` values belong to the future Expo mobile public client.
-- `API_*_KEYCLOAK_AUDIENCE` values belong to future API resource server
-  examples.
-- `KEYCLOAK_*` values without a web/mobile/API prefix are shared Keycloak realm
-  or server settings.
-
-Install dependencies:
+Install from the repository root:
 
 ```bash
 corepack pnpm install
 ```
 
-Start the containers, then the dev server. `corepack pnpm dev` runs
-`react-router dev` only — it does not start Docker, and the web app needs
-Postgres and Keycloak reachable before it will work:
+For direct mode, copy `.env.example` to `.env.development`, replace the placeholder secrets, then run the package scripts in dependency order:
 
 ```bash
-corepack pnpm mail:up   # Mailpit  — http://localhost:8025
-corepack pnpm db:up     # Postgres — localhost:5434
-corepack pnpm auth:up   # Keycloak — http://localhost:8080
-corepack pnpm dev       # Web app  — http://localhost:5173
+corepack pnpm mail:up
+corepack pnpm db:up
+corepack pnpm auth:up
+corepack pnpm dev
 ```
 
-`auth:up` builds the custom Keycloak SPI image, so the first run takes several
-minutes. `/start-project` runs this whole sequence for you.
+Open the app at `http://localhost:5173` and Keycloak at `http://localhost:8080`. `dev` starts only the web development server. Stop Keycloak and Postgres with `corepack pnpm stop-app`; stop Mailpit separately with `corepack pnpm mail:down`.
 
-## Keycloak Setup
-
-See [docs/keycloak-setup.md](docs/keycloak-setup.md).
-
-For local SMTP, email verification, and forgot-password testing, see
-[docs/keycloak-email-verification.md](docs/keycloak-email-verification.md).
-
-For production planning, deployment steps, and hardening checklist, see
-[docs/production-deployment.md](docs/production-deployment.md).
-
-For dependency install hardening and pnpm supply-chain settings, see
-[docs/supply-chain-security.md](docs/supply-chain-security.md).
-
-API-specific Keycloak and Traefik setup instructions live in each API folder:
-
-- [api-python/README.md](api-python/README.md)
-- [api-express/README.md](api-express/README.md)
-- [api-dotnet/README.md](api-dotnet/README.md)
-- [api-gateway/README.md](api-gateway/README.md)
-
-Minimum local client requirements:
-
-- Realm: `admin-starter`
-- Client: `admin-starter-web`
-- Valid redirect URI: `http://localhost:5173/auth/callback`
-- Valid post logout redirect URI: `http://localhost:5173/*`
-- Client roles:
-  - `Admins`
-  - `Users`
-
-## Plans
-
-Implementation plans are stored in `specs/plans/` before feature work starts.
-
-Create a new plan:
+For gateway mode, copy `.env.traefik.example` to `.env.traefik`, replace placeholders, then run:
 
 ```bash
-corepack pnpm plan:new -- "keycloak auth splash users dashboard"
+corepack pnpm dev:gateway
+corepack pnpm dev:gateway:down
 ```
 
-## Scripts
+Open `http://app.localhost`, `http://auth.localhost`, and the local Traefik dashboard at `http://localhost:8081`.
+
+## Verification
 
 ```bash
-corepack pnpm dev               # web dev server only (containers must already be up)
-corepack pnpm check             # format:check + lint + typecheck — the verification gate
-corepack pnpm format            # prettier --write
-corepack pnpm dev:gateway       # start Mailpit, Traefik, gateway Postgres, auth, and web
-corepack pnpm stop-gateway      # tear the gateway stack down
-corepack pnpm web:typecheck     # generate route types and run TypeScript
-corepack pnpm web:build         # production web build
-corepack pnpm web:start         # serve the production web build
-corepack pnpm mail:up           # start local Mailpit SMTP inbox
-corepack pnpm mail:down         # stop local Mailpit SMTP inbox
-corepack pnpm mail:logs         # follow local Mailpit logs
-corepack pnpm db:up             # start local shared Postgres
-corepack pnpm db:down           # stop local shared Postgres
-corepack pnpm db:logs           # follow local Postgres logs
-corepack pnpm auth:up           # start local Keycloak
-corepack pnpm auth:down         # stop local Keycloak
-corepack pnpm auth:logs         # follow local auth service logs
-corepack pnpm gateway:up        # start Traefik only
-corepack pnpm stop-app          # stop auth, Postgres, and Mailpit
-corepack pnpm plan:new -- "name" # scaffold a plan in specs/plans/
-./backup-all                    # run local backup scripts
+corepack pnpm check
 ```
+
+The gate runs repository-wide Prettier checking, web ESLint, React Router type generation, and TypeScript. It does not run unit, integration, browser, identity-flow, Compose, or CI checks because none are configured. Use `corepack pnpm web:build` when changing a build or server/client boundary, then exercise relevant runtime flows manually.
+
+## Project knowledge and agent workflow
+
+- [Wiki index](wiki/index.md) — retrieve only concepts relevant to the current task.
+- [Canonical skills](.agents/skills/) — procedural capabilities such as repository inventory, wiki/rules audits, and handoff.
+- [Scoped rule catalog](.agents/rules/index.md) — imperative rules selected by changed paths.
+- [Local stack runbook](wiki/operations/local-stack.md) and [environment variables](wiki/operations/environment-variables.md).
+- [Keycloak realm/client facts](wiki/integrations/keycloak/realm-and-client-facts.md), [email verification](wiki/operations/verify-email-flows.md), and [admin-user workflow](wiki/operations/create-admin-user.md).
+- [Local backup](wiki/operations/local-backup.md), [restore drill](wiki/operations/backup-restore-drill.md), and [known production gaps](wiki/architecture/known-production-gaps.md).
+
+All newly migrated wiki knowledge is draft and unverified until a human checks it against the running realm and intended operating model.
+
+Agent-framework automation under skill-local `scripts/` is portable Python invoked through `uv`. Existing operational backup/restore runbooks remain POSIX shell scripts; JavaScript `.mjs` files are tool configuration only.

@@ -96,9 +96,10 @@ labels:
   - traefik.http.services.api-dotnet.loadbalancer.server.port=8002
 ```
 
-## Related Docs
+## Related Knowledge
 
-- [Traefik guide](../docs/traefik-guide.md)
-- [Python API setup](../api-python/README.md)
-- [Express API setup](../api-express/README.md)
-- [.NET API setup](../api-dotnet/README.md)
+- [Gateway routing](../wiki/architecture/gateway-routing.md)
+- [Gateway network model](../wiki/architecture/gateway-network-model.md)
+- [Traefik static configuration](../wiki/integrations/traefik-static-config.md)
+- [Gateway troubleshooting](../wiki/operations/troubleshoot-gateway.md)
+- [Express API placeholder](../api-express/README.md)

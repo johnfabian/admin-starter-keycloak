@@ -1,0 +1,23 @@
+---
+paths:
+  [
+    "web/app/lib/server/**/*",
+    "web/app/lib/auth-policy.shared.ts",
+    "web/app/lib/security-headers.shared.ts",
+    "web/app/routes/auth-*.tsx",
+    "auth-server/**/*",
+    "api-gateway/**/*",
+    "postgres/**/*",
+    "**/Dockerfile",
+    "**/docker-compose*.yml",
+    ".env*.example",
+    "pnpm-workspace.yaml",
+    "pnpm-lock.yaml",
+    "**/package.json",
+    "backup-all",
+    "scripts/backup*.sh",
+    "scripts/restore*.sh",
+  ]
+---
+
+@../../.agents/rules/security.md

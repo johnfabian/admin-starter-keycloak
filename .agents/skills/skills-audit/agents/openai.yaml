@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skills Audit"
+  short_description: "Audit and repair Claude skill adapters"
+  default_prompt: "Use $skills-audit to create missing Claude skill symlinks and audit package parity."
