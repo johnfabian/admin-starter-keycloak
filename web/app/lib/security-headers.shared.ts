@@ -16,7 +16,14 @@ const SECURITY_HEADER_VALUES = {
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    `script-src 'self'${import.meta.env.DEV ? " 'unsafe-eval'" : ""}`,
+    // The app authors no inline scripts (theme FOUC is prevented by server-rendered
+    // <html> attributes, not a script). React Router does: <Scripts> emits the client
+    // entry import and window.__reactRouterContext inline, and React's streaming
+    // runtime emits its own. Without 'unsafe-inline' the browser blocks all of them,
+    // hydration never runs, and every interactive control is dead.
+    // Dev additionally needs 'unsafe-eval' for the Vite HMR client.
+    // Production still needs a per-request nonce here; see entry.server.tsx.
+    `script-src 'self'${import.meta.env.DEV ? " 'unsafe-inline' 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob:",
