@@ -16,11 +16,21 @@ import sys
 from pathlib import Path
 from typing import Any
 
-CANONICAL_RULES = Path(".agents.config/rules")
+CANONICAL_RULES = Path(".agents-config/rules")
 PROVIDER_RULE_LINKS = (Path(".agents/rules"), Path(".claude/rules"))
-LOCKED_SKILL_TYPES = {"meta", "ops"}
 SKILL_TYPES = ("meta", "ops", "dev")
-REQUIRED_EXPLICIT_DEV_SKILLS = {"feature-plan", "implement-story", "publish-issues"}
+REQUIRED_EXPLICIT_SKILLS = {
+    "feature-plan",
+    "implement-story",
+    "prune-deleted-branches",
+    "publish-issues",
+    "rules-audit",
+    "skills-audit",
+    "start-project",
+    "start-server",
+    "stop-project",
+    "stop-server",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -172,6 +182,16 @@ def main() -> int:
         print(f"Expected repository root {git_root}, received {root}.", file=sys.stderr)
         return 2
 
+    for legacy_name in (".agents.config", ".agent-config", ".agent.config"):
+        legacy_root = root / legacy_name
+        if os.path.lexists(legacy_root):
+            issue(
+                errors,
+                "legacy-canonical-root",
+                legacy_root,
+                "Canonical shared configuration must use .agents-config/.",
+            )
+
     if canonical_root.is_symlink() or not canonical_root.is_dir():
         print(
             f"Canonical rules directory is missing or not a real directory: {canonical_root}",
@@ -188,7 +208,7 @@ def main() -> int:
                 errors,
                 "invalid-provider-rule-link",
                 provider_link,
-                "Provider rules path must be a directory symlink to .agents.config/rules.",
+                "Provider rules path must be a directory symlink to .agents-config/rules.",
             )
             continue
         target = os.readlink(provider_link)
@@ -215,7 +235,7 @@ def main() -> int:
                 errors,
                 "provider-rule-link-drift",
                 provider_link,
-                "Provider rules symlink resolves outside .agents.config/rules.",
+                "Provider rules symlink resolves outside .agents-config/rules.",
             )
             continue
         mode = tracked_mode(relative(provider_link))
@@ -239,7 +259,7 @@ def main() -> int:
 
     for path in card_paths:
         content = path.read_text(encoding="utf-8")
-        for stale in (".agent-config/", ".agents-config/"):
+        for stale in (".agents.config/", ".agent-config/", ".agent.config/"):
             if stale in content:
                 issue(
                     errors,
@@ -392,13 +412,12 @@ def main() -> int:
     )
     required_workflow_markers = (
         "## AI Workflow & Invocation Decision Framework",
-        "### Slash command workflows",
-        "`.agents.config/skills/meta/`",
-        "`.agents.config/skills/ops/`",
+        "### Invocation metadata",
         "`disable-model-invocation: true`",
         "`allow_implicit_invocation: false`",
-        "### Progressive disclosure skills",
-        "`.agents.config/skills/dev/`",
+        "All skills remain user-invokable",
+        "### Explicit-only workflows",
+        "### Contextual skills",
     )
     for marker in required_workflow_markers:
         if marker not in global_content:
@@ -411,7 +430,7 @@ def main() -> int:
 
     skills_card = next((card for card in cards if card["id"] == "skills"), None)
     required_skill_scopes = {
-        ".agents.config/skills/**/*",
+        ".agents-config/skills/**/*",
         ".agents/skills/*",
         ".claude/skills/*",
     }
@@ -430,7 +449,7 @@ def main() -> int:
             "Skills rule must cover canonical packages and both provider adapter roots.",
         )
 
-    skills_root = root / ".agents.config" / "skills"
+    skills_root = root / ".agents-config" / "skills"
     seen_skill_names: dict[str, Path] = {}
     for skill_type in SKILL_TYPES:
         type_root = skills_root / skill_type
@@ -466,10 +485,7 @@ def main() -> int:
                 if sidecar.is_file()
                 else None
             )
-            requires_explicit = (
-                skill_type in LOCKED_SKILL_TYPES
-                or skill_path.name in REQUIRED_EXPLICIT_DEV_SKILLS
-            )
+            requires_explicit = skill_path.name in REQUIRED_EXPLICIT_SKILLS
             if disable_model not in (None, "true"):
                 issue(
                     errors,
@@ -492,14 +508,12 @@ def main() -> int:
                         sidecar,
                         "Explicit-only skills require policy.allow_implicit_invocation: false.",
                     )
-            if skill_type == "dev" and (disable_model == "true") != (
-                implicit_policy == "false"
-            ):
+            if (disable_model == "true") != (implicit_policy == "false"):
                 issue(
                     errors,
                     "provider-invocation-lock-mismatch",
                     skill_path,
-                    "Dev skills must use both provider invocation locks or neither lock.",
+                    "Every skill must use both provider invocation locks or neither lock.",
                 )
 
     result = {

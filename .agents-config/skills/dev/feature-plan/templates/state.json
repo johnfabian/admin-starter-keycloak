@@ -1,6 +1,6 @@
 {
   "workflowVersion": "1.0.0",
-  "skillVersion": "FULL_COMMIT_SHA:.agents.config/skills/dev/feature-plan",
+  "skillVersion": "FULL_COMMIT_SHA:.agents-config/skills/dev/feature-plan",
   "featureKey": "FEATURE-KEY",
   "sourceRevision": "FULL_COMMIT_SHA",
   "github": { "parentIssue": null },

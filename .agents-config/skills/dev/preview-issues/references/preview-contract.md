@@ -6,7 +6,7 @@ Provide UTF-8 JSON with this shape:
 {
   "repository": "owner/name",
   "sourceRevision": "full commit SHA",
-  "skillVersion": "full commit SHA:.agents.config/skills/dev/preview-issues",
+  "skillVersion": "full commit SHA:.agents-config/skills/dev/preview-issues",
   "parent": {
     "key": "STABILITY",
     "title": "Establish the existing-application stability baseline",

@@ -32,11 +32,11 @@ sources:
     title: pnpm workspace and dependency policy
     last_modified: 2026-07-28
   - id: skills-audit-script
-    resource: /.agents.config/skills/meta/skills-audit/scripts/audit_skills.py
+    resource: /.agents-config/skills/meta/skills-audit/scripts/audit_skills.py
     title: Skills audit Python automation
     last_modified: 2026-08-02
   - id: skills-rule
-    resource: /.agents.config/rules/skills.md
+    resource: /.agents-config/rules/skills.md
     title: Shared skill package rule
     last_modified: 2026-08-02
 ---
@@ -47,7 +47,7 @@ The root declares `pnpm@11.1.2` and wraps web commands with `corepack pnpm`.[^ro
 
 Use the root wrappers for environment-dependent web commands: the root build/dev/typecheck scripts inject `.env.development` through `dotenv-cli` without requiring agents to read the file.[^root-package]
 
-Agent-framework skill automation is implemented in Python and launched through `uv run`. Canonical packages are typed under `.agents.config/skills/`; flat `.agents/skills/` and `.claude/skills/` symlinks expose the same packages to Codex and Claude.[^skills-audit-script][^skills-rule] Skill scripts are self-contained and currently require only the Python standard library. Existing operational backup/restore runbooks remain POSIX shell scripts; JavaScript `.mjs` files remain only where the JavaScript formatter or linter requires a configuration module.[^skills-audit-script][^prettier-config][^eslint-config]
+Agent-framework skill automation is implemented in Python and launched through `uv run`. Canonical packages are typed under `.agents-config/skills/`; flat `.agents/skills/` and `.claude/skills/` symlinks expose the same packages to Codex and Claude.[^skills-audit-script][^skills-rule] Skill scripts are self-contained and currently require only the Python standard library. Existing operational backup/restore runbooks remain POSIX shell scripts; JavaScript `.mjs` files remain only where the JavaScript formatter or linter requires a configuration module.[^skills-audit-script][^prettier-config][^eslint-config]
 
 # Configuration ownership
 

@@ -90,8 +90,8 @@ GitHub Issues / Projects
         v
 Repository-native control plane
   AGENTS.md + CLAUDE.md: concise wiki/rule/skill routers
-  .agents.config/skills: canonical, typed, self-contained shared capabilities
-  .agents.config/rules: canonical, scoped implementation guidance
+  .agents-config/skills: canonical, typed, self-contained shared capabilities
+  .agents-config/rules: canonical, scoped implementation guidance
   .agents + .claude: flat provider discovery symlinks to the shared configuration
   wiki/: OKF-compatible progressive-disclosure layer
   CI + branch protection: deterministic gates
@@ -112,11 +112,11 @@ OpenTelemetry collector -> approved telemetry backends
 /
 ├── AGENTS.md                          # concise router: wiki retrieval, skills, evidence
 ├── CLAUDE.md                          # concise Claude peer of AGENTS.md
-├── .agents.config/                    # canonical shared configuration
+├── .agents-config/                    # canonical shared configuration
 │   ├── skills/
-│   │   ├── meta/                      # explicit configuration/audit workflows
-│   │   ├── ops/                       # explicit environment workflows
-│   │   └── dev/                       # contextual development helpers
+│   │   ├── meta/                      # configuration and audit workflows
+│   │   ├── ops/                       # environment and operational workflows
+│   │   └── dev/                       # development workflows and helpers
 │   │       └── feature-research/
 │   │           ├── SKILL.md
 │   │           ├── templates/
@@ -131,10 +131,10 @@ OpenTelemetry collector -> approved telemetry backends
 │       └── security.md
 ├── .agents/
 │   ├── skills/                        # flat Codex symlinks to typed shared packages
-│   └── rules -> ../.agents.config/rules
+│   └── rules -> ../.agents-config/rules
 ├── .claude/
 │   ├── skills/                        # flat Claude symlinks to typed shared packages
-│   └── rules -> ../.agents.config/rules
+│   └── rules -> ../.agents-config/rules
 ├── wiki/                              # OKF-compatible progressive-disclosure wiki
 │   ├── index.md
 │   ├── architecture/
@@ -150,9 +150,9 @@ OpenTelemetry collector -> approved telemetry backends
 
 `AGENTS.md` and `CLAUDE.md` must remain short bootstrap documents. Each shall include a **Using the wiki** section that directs the agent to start at `wiki/index.md`, search/retrieve only concepts relevant to the task, prefer current/high-trust concepts, verify claims against code or configuration, and record retrieved knowledge in the GitHub issue or PR when material. They shall also include an **Applying scoped rules** section that requires the agent to identify the changed-file paths, retrieve only matching rule cards before planning, editing, or reviewing, and run their mapped automated checks. They shall direct the agent to use a named skill for procedural work, not load all wiki concepts, rules, or skill instructions at session start. They must not become a second, ever-growing wiki.
 
-The canonical package lives in `.agents.config/skills/<type>/<skill-name>/`, where `<type>` is `meta`, `ops`, or `dev`. Each entry in `.agents/skills/` and `.claude/skills/` is a flat directory symlink to the same typed canonical package so both providers discover one source without copying it. These are discovery adapters only; they contain no instructions, scripts, or templates of their own. Global flat adapters may be deployed to the provider application roots by the explicit `skills-audit` workflow. All `meta/` and `ops/` skills are explicit-only. `dev/` skills use contextual discovery by default, but workflow anchors that begin implementation, cross a human gate, or mutate external state use paired Claude and Codex invocation locks. The shared package uses the portable Agent Skills subset (`name`, `description`, Markdown instructions, templates, references, and scripts). Provider-specific enhancements are optional and must be isolated within that package; the core workflow cannot depend on them.
+The canonical package lives in `.agents-config/skills/<type>/<skill-name>/`, where `<type>` is `meta`, `ops`, or `dev`. The type classifies purpose only and does not determine invocation behavior. Each entry in `.agents/skills/` and `.claude/skills/` is a flat directory symlink to the same typed canonical package so both providers discover one source without copying it. These are discovery adapters only; they contain no instructions, scripts, or templates of their own. Global flat adapters may be deployed to the provider application roots by the explicit `skills-audit` workflow. Invocation behavior is package metadata: Claude reads `disable-model-invocation` from `SKILL.md`, and Codex reads `policy.allow_implicit_invocation` from `agents/openai.yaml`. Paired locks make a skill explicit-only; absent locks leave it eligible for contextual discovery. A mismatch is invalid, and every skill remains directly user-invokable. The shared package uses the portable Agent Skills subset (`name`, `description`, Markdown instructions, templates, references, and scripts). Provider-specific enhancements are optional and must be isolated within that package; the core workflow cannot depend on them.
 
-`.agents.config/rules/` is distinct from the wiki and from skills: it is the canonical source for short, normative, implementation-time rule cards. A card declares applicable repository globs, concise required/prohibited practices, required checks, and authoritative style/lint configuration; explanation, tradeoffs, and architecture rationale link to the wiki instead of being copied into a rule. The `.agents/rules` and `.claude/rules` directory symlinks expose the same cards to both providers without duplicate bodies. Codex uses `AGENTS.md` to route to the matching canonical card before it changes or reviews a file. Codex’s experimental `.codex/rules/*.rules` mechanism is a separate command-approval control and must not be used as the source-style/routing layer.
+`.agents-config/rules/` is distinct from the wiki and from skills: it is the canonical source for short, normative, implementation-time rule cards. A card declares applicable repository globs, concise required/prohibited practices, required checks, and authoritative style/lint configuration; explanation, tradeoffs, and architecture rationale link to the wiki instead of being copied into a rule. The `.agents/rules` and `.claude/rules` directory symlinks expose the same cards to both providers without duplicate bodies. Codex uses `AGENTS.md` to route to the matching canonical card before it changes or reviews a file. Codex’s experimental `.codex/rules/*.rules` mechanism is a separate command-approval control and must not be used as the source-style/routing layer.
 
 ### 5.2 Execution adapters
 
@@ -161,7 +161,7 @@ The framework defines provider-neutral contracts; thin adapters map them to nati
 | Concern                     | Claude Code adapter                                                       | Codex adapter                                                                                                       |
 | --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Durable repo guidance       | `CLAUDE.md` plus project configuration                                    | Layered `AGENTS.md` guidance                                                                                        |
-| Scoped implementation rules | `.claude/rules` symlink exposes matching shared cards                     | `AGENTS.md` routes to matching `.agents.config/rules/` card through `.agents/rules`                                 |
+| Scoped implementation rules | `.claude/rules` symlink exposes matching shared cards                     | `AGENTS.md` routes to matching `.agents-config/rules/` card through `.agents/rules`                                 |
 | User entry point            | Flat project symlink under `.claude/skills/`, invoked as `/skill-name`    | Flat project symlink under `.agents/skills/`; portable explicit invocation is `$skill-name` or `/skills` in CLI/IDE |
 | Bounded parallel work       | Named subagent with constrained tools and worktree isolation when writing | Scoped subagent or separate review task; separate implementation chats run in Git worktrees                         |
 | Mechanical enforcement      | Lifecycle hook, reviewed and allowlisted                                  | CI/policy checks; hooks only when appropriate to the active Codex surface                                           |
@@ -177,7 +177,7 @@ GitHub Issues and Projects shall be the durable record for feature intent, requi
 
 ### FR-2: Self-contained skills and commands
 
-Each canonical package shall live under `.agents.config/skills/<type>/` and include everything it needs inside its own folder: `SKILL.md`, templates, examples, scripts, and skill-local references. It shall not depend on external instruction files. Stage sequencing belongs in the orchestration skill; specialist workflow material and deterministic helper scripts belong in the relevant specialist skill, not a standalone workflows/scripts tree. A package may receive repository evidence, GitHub issue content, and retrieved wiki concepts as declared inputs, but its instructions must be portable and self-contained.
+Each canonical package shall live under `.agents-config/skills/<type>/` and include everything it needs inside its own folder: `SKILL.md`, templates, examples, scripts, and skill-local references. It shall not depend on external instruction files. Stage sequencing belongs in the orchestration skill; specialist workflow material and deterministic helper scripts belong in the relevant specialist skill, not a standalone workflows/scripts tree. A package may receive repository evidence, GitHub issue content, and retrieved wiki concepts as declared inputs, but its instructions must be portable and self-contained.
 
 Each capability shall be independently invokable. Required initial catalog:
 
@@ -260,7 +260,7 @@ The framework shall provide `record-adr` to create or update a durable ADR only 
 
 ### FR-17: Scoped implementation rules
 
-The framework shall maintain a separate `.agents.config/rules/` catalog of concise, versioned rule cards. Each card shall declare repository path globs, intent, required and prohibited practices, mandatory checks, and links to the authoritative formatter, linter, test configuration, or wiki rationale. Initial cards shall cover global engineering conventions, React Router/UI, Express/API, tests, security, and infrastructure as applicable. Before modifying or reviewing scoped files, an agent shall load only the matching cards and record material rule use in the pull request or GitHub handoff. `rules-audit` shall detect unmatched protected paths, overlapping/conflicting rules, provider symlink drift, stale wiki links, and rule claims that lack an automated enforcement mapping where one is feasible.
+The framework shall maintain a separate `.agents-config/rules/` catalog of concise, versioned rule cards. Each card shall declare repository path globs, intent, required and prohibited practices, mandatory checks, and links to the authoritative formatter, linter, test configuration, or wiki rationale. Initial cards shall cover global engineering conventions, React Router/UI, Express/API, tests, security, and infrastructure as applicable. Before modifying or reviewing scoped files, an agent shall load only the matching cards and record material rule use in the pull request or GitHub handoff. `rules-audit` shall detect unmatched protected paths, overlapping/conflicting rules, provider symlink drift, stale wiki links, and rule claims that lack an automated enforcement mapping where one is feasible.
 
 ### FR-18: Human-in-the-loop decision gates
 
@@ -577,7 +577,7 @@ wiki: [/architecture/bff-boundary.md, /conventions/frontend.md]
 ---
 ```
 
-`AGENTS.md` routes Codex to `.agents.config/rules/index.md` and the matching card(s); it must instruct the agent to apply them before it reads or changes scoped implementation files. `CLAUDE.md` remains a short common router. The `.agents/rules` and `.claude/rules` directory symlinks expose the same path-scoped cards without imports or copied bodies. The audit verifies that both links resolve to the canonical catalog and are tracked as symlinks.
+`AGENTS.md` routes Codex to `.agents-config/rules/index.md` and the matching card(s); it must instruct the agent to apply them before it reads or changes scoped implementation files. `CLAUDE.md` remains a short common router. The `.agents/rules` and `.claude/rules` directory symlinks expose the same path-scoped cards without imports or copied bodies. The audit verifies that both links resolve to the canonical catalog and are tracked as symlinks.
 
 Rules govern agent behavior but do not guarantee correctness. Formatters, linters, type checks, tests, architecture tests, policy-as-code, branch protection, and human review remain the enforcement layers. Codex’s `.codex/rules/*.rules` is retained only if needed to govern out-of-sandbox command approval; it is not a replacement for this path-scoped engineering rules layer.
 
@@ -756,7 +756,7 @@ The following are verified external-platform facts used by this PRD as of 2026-0
 | Skill invocation semantics        | Claude Code invokes project skills as `/skill-name`. In Codex CLI/IDE, direct skill invocation uses `$skill-name` or `/skills`; in the desktop app enabled skills also appear in the slash menu. Treat the shared capability as a skill, not as a portable literal slash command.                                   | [S2], [S20], [S25]              |
 | Sessions, compaction, and handoff | Claude Code can resume/compact local sessions; Codex offers long-running goals, context compaction, and desktop handoff between Local and Worktree. These are useful ergonomics, but the durable GitHub checkpoint remains the cross-provider recovery record.                                                      | [S26]-[S28]                     |
 | Parallel subagents and worktrees  | Both providers support bounded parallel work and Git worktrees. Codex explicitly advises against two concurrent chats writing the same files; Claude documents worktree isolation for parallel sessions/subagents. Use the framework’s worktree and path-ownership policy for all parallel writes.                  | [S1], [S21], [S27], [S29]-[S30] |
-| Shared skills                     | Codex discovers repository skills from `.agents/skills`; Claude Code discovers project skills from `.claude/skills`, and both support symlinked packages. The PRD therefore keeps typed canonical packages in `.agents.config/skills` and exposes flat provider-specific discovery symlinks.                        | [S2], [S20]                     |
+| Shared skills                     | Codex discovers repository skills from `.agents/skills`; Claude Code discovers project skills from `.claude/skills`, and both support symlinked packages. The PRD therefore keeps typed canonical packages in `.agents-config/skills` and exposes flat provider-specific discovery symlinks.                        | [S2], [S20]                     |
 | GitHub Issues/Projects            | GitHub supports sub-issues, issue types, dependencies, Projects fields/views, and constrained project auto-add workflows. Use a shallow hierarchy and preview-first publication.                                                                                                                                    | [S5]-[S8]                       |
 | OKF                               | Google’s OKF v0.2 specification defines a directory of Markdown concepts with YAML frontmatter, progressive-disclosure indexes, logs, cross-links, provenance, trust, freshness, and lifecycle signals. Google’s reference repository also includes a static interactive graph viewer generated from an OKF bundle. | [S9]-[S10], [S22]               |
 | React Router 7                    | Framework Mode adds framework capabilities around React Router’s data features, and React Router documents the BFF pattern where loaders/actions call an existing backend API. Preserve the Express domain API and keep BFF logic browser-specific.                                                                 | [S11]-[S12]                     |

@@ -1,6 +1,6 @@
 ---
 name: skills-audit
-description: Audit and repair the typed shared skill catalog, portable Python/uv automation, project discovery adapters, and flat Claude/Codex global symlinks. Use explicitly after adding, renaming, moving, or reviewing a skill under .agents.config/skills.
+description: Audit and repair the typed shared skill catalog, portable Python/uv automation, project discovery adapters, and flat Claude/Codex global symlinks. Use explicitly after adding, renaming, moving, or reviewing a skill under .agents-config/skills.
 disable-model-invocation: true
 ---
 
@@ -18,7 +18,7 @@ Use `--home <temporary-directory>` to validate global-link behavior without chan
 
 ## Step 1: Categorize packages
 
-1. Ensure `.agents.config/skills/meta/`, `.agents.config/skills/ops/`, and `.agents.config/skills/dev/` exist.
+1. Ensure `.agents-config/skills/meta/`, `.agents-config/skills/ops/`, and `.agents-config/skills/dev/` exist.
 2. Move flat `skills-audit` and `rules-audit` packages to `meta/`.
 3. Move flat `start-project`, `stop-project`, `start-server`, `stop-server`, and `prune-deleted-branches` packages to `ops/` when present.
 4. Move other flat developer utility packages to `dev/`.
@@ -31,7 +31,7 @@ Inspect every entry in both `~/.claude/skills/` and `~/.codex/skills/`. The Pyth
 
 ## Step 3: Deep-flatten symlinks
 
-1. Recursively discover `.agents.config/skills/*/*/SKILL.md` and require every skill base name to be unique.
+1. Recursively discover `.agents-config/skills/*/*/SKILL.md` and require every skill base name to be unique.
 2. Resolve each canonical package with `realpath` semantics.
 3. Maintain flat, relative project adapters at `.agents/skills/<skill-name>` and `.claude/skills/<skill-name>`.
 4. Maintain flat, absolute global adapters at `~/.claude/skills/<skill-name>` and `~/.codex/skills/<skill-name>` using safe Python symlink replacement equivalent to `ln -sfn` for symlinks only.
@@ -39,9 +39,10 @@ Inspect every entry in both `~/.claude/skills/` and `~/.codex/skills/`. The Pyth
 
 ## Package checks
 
-- Require `meta/` and `ops/` skills to declare `disable-model-invocation: true` and `policy.allow_implicit_invocation: false`.
-- Let `dev/` skills use progressive disclosure by default, but permit explicit-only workflow anchors when both provider locks are present.
-- Require `feature-plan`, `implement-story`, and `publish-issues` to remain explicit-only and reject any one-provider lock mismatch.
+- Treat `meta/`, `ops/`, and `dev/` as purpose categories only; never infer invocation mode from a package path.
+- Read invocation mode from `SKILL.md` and `agents/openai.yaml`: paired `disable-model-invocation: true` and `policy.allow_implicit_invocation: false` mean explicit-only; absent locks mean contextual/model-eligible.
+- Require the current configuration, environment, destructive-Git, planning-anchor, implementation, and publication workflows to remain explicit-only.
+- Reject any one-provider lock mismatch for every skill. All skills remain directly user-invokable regardless of implicit-invocation policy.
 - Require every package to be self-contained and every skill script to be portable Python with uv script metadata.
 - Reject PowerShell-dependent instructions and non-Python files under skill-local `scripts/` directories.
 - Verify project adapters are relative directory symlinks and tracked adapters use Git mode `120000`.
