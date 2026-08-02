@@ -3,8 +3,8 @@
 Shared local Postgres infrastructure for Keycloak and application services.
 
 The Postgres boundary is separate from `auth-server/` so future services such
-as `api-python/`, `api-express/`, and `api-dotnet/` can reuse the same local
-Postgres instance without making Keycloak own application data.
+as `api-express/` can reuse the same local Postgres instance without making
+Keycloak own application data.
 
 ## Direct Local Stack
 

@@ -35,9 +35,19 @@ minimumReleaseAgeIgnoreMissingTime: false
 blockExoticSubdeps: true
 strictDepBuilds: true
 trustPolicy: no-downgrade
+overrides:
+  qs: 6.15.2
 allowBuilds:
   esbuild: false
 ```
+
+### `overrides`
+
+Forces a single resolved version of a transitive dependency across the whole
+workspace, regardless of what any package requests. `qs` is pinned here to
+`6.15.2`. Removing or loosening a pin means re-checking why it was added — an
+override is usually the response to a specific advisory, and dropping it
+silently reintroduces whatever it was pinned to avoid.
 
 ### `minimumReleaseAge: 10080`
 
@@ -100,11 +110,12 @@ pnpm approve-builds
 
 ## Daily Workflow
 
-Use the pinned pnpm version:
+Use the pinned pnpm version. Always go through `corepack` so the version in
+`packageManager` is the one that runs:
 
 ```bash
-pnpm install
-pnpm check
+corepack pnpm install
+corepack pnpm check
 ```
 
 Review every `pnpm-lock.yaml` change in pull requests. A lockfile change is a
@@ -113,14 +124,14 @@ supply-chain change, even if no direct dependency was edited.
 Prefer adding dependencies intentionally:
 
 ```bash
-pnpm --dir web add package-name
-pnpm --dir web add -D package-name
+corepack pnpm --dir web add package-name
+corepack pnpm --dir web add -D package-name
 ```
 
 Avoid:
 
 ```bash
-pnpm update --latest
+corepack pnpm update --latest
 ```
 
 unless the update is intentional and the lockfile diff is reviewed.

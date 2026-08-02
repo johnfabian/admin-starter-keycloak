@@ -388,7 +388,6 @@ After restore:
 - Log in as an admin.
 - Confirm admin routes load.
 - If API exists, call an authenticated API endpoint.
-- If mobile exists, run an Expo/mobile login flow against the restored auth URL.
 - Confirm logout clears the app session.
 
 ## Terraform And Backups

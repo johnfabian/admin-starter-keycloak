@@ -12,7 +12,7 @@ Recommended production shape:
 Internet
   -> Traefik TLS reverse proxy / load balancer
     -> React Router app container
-    -> FastAPI resource server container
+    -> Express resource server container
     -> Keycloak
       -> Postgres
 ```
@@ -33,7 +33,7 @@ Decide these before building the production environment:
 
 - Public app URL, for example `https://app.example.com`.
 - Public Keycloak URL, for example `https://auth.example.com`.
-- Public API URL for the future FastAPI resource server, for example
+- Public API URL for the future Express resource server, for example
   `https://api.example.com`.
 - Whether Postgres is self-hosted in Docker or managed by a cloud provider.
 - Where Docker images will be built and stored.
@@ -287,7 +287,7 @@ For self-hosted Docker Postgres:
 
 ## Reverse Proxy And TLS
 
-Put the app, Keycloak, and the future FastAPI resource server behind Traefik:
+Put the app, Keycloak, and the future Express resource server behind Traefik:
 
 - Terminate TLS with valid certificates.
 - Redirect HTTP to HTTPS.
@@ -297,7 +297,7 @@ Put the app, Keycloak, and the future FastAPI resource server behind Traefik:
 - Set reasonable request body and timeout limits.
 - Route `app.example.com` to the React Router container.
 - Route `auth.example.com` to Keycloak.
-- Route `api.example.com` to the FastAPI container after it exists.
+- Route `api.example.com` to the Express container after it exists.
 
 Confirm cookies are secure in production. The app session cookie is configured
 with `secure: process.env.NODE_ENV === "production"`, so `NODE_ENV=production`
@@ -353,18 +353,18 @@ labels:
   - traefik.http.services.app.loadbalancer.server.port=3000
 ```
 
-Use the same pattern for Keycloak and the future FastAPI service, changing the
+Use the same pattern for Keycloak and the future Express service, changing the
 host rule and internal service port.
 
-## Future FastAPI Resource Server
+## Future Express Resource Server
 
-When FastAPI is added, keep it private behind Traefik and validate Keycloak
+When Express is added, keep it private behind Traefik and validate Keycloak
 access tokens on every protected request.
 
 Suggested route shape:
 
 ```text
-https://api.example.com -> FastAPI container
+https://api.example.com -> Express container
 ```
 
 Suggested Compose labels:
@@ -378,11 +378,11 @@ labels:
   - traefik.http.services.api.loadbalancer.server.port=8000
 ```
 
-Suggested FastAPI auth settings:
+Suggested Express auth settings:
 
 ```env
 KEYCLOAK_ISSUER=https://auth.example.com/realms/admin-starter
-API_PYTHON_KEYCLOAK_AUDIENCE=admin-starter-api-python
+API_EXPRESS_KEYCLOAK_AUDIENCE=admin-starter-api-express
 ```
 
 Create a separate Keycloak client for the API if the API needs its own audience,
