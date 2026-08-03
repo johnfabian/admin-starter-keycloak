@@ -44,7 +44,7 @@ def validate(path: Path) -> dict[str, object]:
     if data.get("workflowVersion") != "1.0.0":
         errors.append("workflowVersion must be 1.0.0")
     if not isinstance(data.get("skillVersion"), str) or not re.fullmatch(
-        r"[0-9a-fA-F]{40}:\.agents\.config/skills/dev/feature-plan",
+        r"[0-9a-fA-F]{40}:\.agents-config/skills/dev/feature-plan",
         data["skillVersion"],
     ):
         errors.append("skillVersion must identify the committed feature-plan package")
