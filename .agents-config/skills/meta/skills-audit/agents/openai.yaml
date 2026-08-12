@@ -1,6 +1,6 @@
 interface:
   display_name: "Skills Audit"
-  short_description: "Audit typed skills and provider links"
-  default_prompt: "Use $skills-audit to categorize shared skills and repair their explicit provider symlinks."
+  short_description: "Audit skills, README catalog, and links"
+  default_prompt: "Use $skills-audit to validate the shared skill and README catalogs and repair their provider symlinks."
 policy:
   allow_implicit_invocation: false

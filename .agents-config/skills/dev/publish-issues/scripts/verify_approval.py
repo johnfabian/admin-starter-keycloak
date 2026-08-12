@@ -48,7 +48,33 @@ def require_issue(value: Any, location: str) -> dict[str, Any]:
     return value
 
 
-def validate_source(data: Any) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def require_comment(value: Any, location: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise TypeError(f"{location} must be an object")
+    unknown = set(value) - {"key", "target", "stage", "artifactDigest", "body"}
+    if unknown:
+        raise ValueError(f"{location} has unsupported fields: {sorted(unknown)}")
+    for field in ("key", "target", "stage", "artifactDigest", "body"):
+        if not isinstance(value.get(field), str) or not value[field].strip():
+            raise ValueError(f"{location}.{field} must be a non-empty string")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", value["key"]):
+        raise ValueError(f"{location}.key contains unsupported characters")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", value["target"]):
+        raise ValueError(f"{location}.target contains unsupported characters")
+    if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", value["stage"]):
+        raise ValueError(f"{location}.stage must be lowercase hyphen-case")
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", value["artifactDigest"]):
+        raise ValueError(f"{location}.artifactDigest must be a sha256 digest")
+    if "<!-- sdlc-comment-key:" in value["body"].lower():
+        raise ValueError(
+            f"{location}.body must not contain an SDLC comment idempotency marker"
+        )
+    return value
+
+
+def validate_source(
+    data: Any,
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
     if not isinstance(data, dict):
         raise TypeError("input must be a JSON object")
     unknown = set(data) - {
@@ -57,6 +83,7 @@ def validate_source(data: Any) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         "skillVersion",
         "parent",
         "children",
+        "comments",
     }
     if unknown:
         raise ValueError(f"input has unsupported fields: {sorted(unknown)}")
@@ -69,7 +96,7 @@ def validate_source(data: Any) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     ):
         raise ValueError("sourceRevision must be a full 40-character commit SHA")
     if not isinstance(data.get("skillVersion"), str) or not re.fullmatch(
-        r"[0-9a-fA-F]{40}:\.agents\.config/skills/dev/preview-issues",
+        r"[0-9a-fA-F]{40}:\.agents-config/skills/dev/preview-issues",
         data["skillVersion"],
     ):
         raise ValueError(
@@ -115,7 +142,24 @@ def validate_source(data: Any) -> tuple[dict[str, Any], list[dict[str, Any]]]:
 
     for key in sorted(dependencies_by_key):
         visit(key)
-    return parent, children
+
+    comments_value = data.get("comments", [])
+    if not isinstance(comments_value, list):
+        raise TypeError("comments must be an array")
+    comments = [
+        require_comment(value, f"comments[{index}]")
+        for index, value in enumerate(comments_value)
+    ]
+    comment_keys = [comment["key"] for comment in comments]
+    if len(comment_keys) != len(set(comment_keys)):
+        raise ValueError("comment keys must be unique")
+    issue_keys = set(keys)
+    for comment in comments:
+        if comment["target"] not in issue_keys:
+            raise ValueError(
+                f"{comment['key']} targets unknown issue key: {comment['target']}"
+            )
+    return parent, children, comments
 
 
 def issue_section(issue: dict[str, Any], parent_key: str | None = None) -> list[str]:
@@ -137,8 +181,28 @@ def issue_section(issue: dict[str, Any], parent_key: str | None = None) -> list[
     ]
 
 
+def comment_section(comment: dict[str, Any]) -> list[str]:
+    body = comment["body"].rstrip()
+    marker = f"<!-- sdlc-comment-key: {comment['key']} -->"
+    published_body = f"{marker}\n{body}"
+    body_digest = hashlib.sha256(published_body.encode("utf-8")).hexdigest()
+    return [
+        f"## Comment {comment['key']}",
+        "",
+        f"- Target issue key: `{comment['target']}`",
+        f"- Stage: `{comment['stage']}`",
+        f"- Source artifact SHA-256: `{comment['artifactDigest']}`",
+        f"- Published body SHA-256: `sha256:{body_digest}`",
+        "",
+        "### Exact comment body",
+        "",
+        published_body,
+        "",
+    ]
+
+
 def render_expected(data: dict[str, Any]) -> bytes:
-    parent, children = validate_source(data)
+    parent, children, comments = validate_source(data)
     input_digest = hashlib.sha256(canonical_bytes(data)).hexdigest()
     lines = [
         "# GitHub mutation preview",
@@ -153,6 +217,10 @@ def render_expected(data: dict[str, Any]) -> bytes:
     ]
     for child in children:
         lines.extend(issue_section(child, parent["key"]))
+    if comments:
+        lines.extend(["# Ordered issue comments", ""])
+    for comment in comments:
+        lines.extend(comment_section(comment))
     lines.extend(
         [
             "## Approval boundary",

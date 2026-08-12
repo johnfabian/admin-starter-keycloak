@@ -10,7 +10,7 @@ Identify files that may change, open `.agents-config/rules/index.md`, and load o
 
 ## Using skills
 
-Use one relevant package from `.agents-config/skills/` for procedural work; `.agents/skills` contains flat Codex discovery symlinks. Determine invocation mode from the package metadata, not its type directory: `policy.allow_implicit_invocation: false` in `agents/openai.yaml`, paired with Claude's frontmatter lock, requires explicit `$skill-name` invocation. Other skills may load on demand from their descriptions, and every skill remains directly user-invokable. Use `$feature-plan` as the primary SDLC entry. After creating or moving a skill, explicitly run `$skills-audit`. Do not preload all skills.
+Use one relevant package from `.agents-config/skills/` for procedural work; `.agents/skills` contains flat Codex discovery symlinks. Determine invocation mode from the package metadata, not its type directory: `policy.allow_implicit_invocation: false` in `agents/openai.yaml`, paired with Claude's frontmatter lock, requires explicit `$skill-name` invocation. Other skills may load on demand from their descriptions, and every skill remains directly user-invokable. Use `$plan-feature` as the primary SDLC entry. After creating or moving a skill, explicitly run `$skills-audit`. Do not preload all skills.
 
 ## Durable checkpoints
 

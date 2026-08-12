@@ -20,7 +20,7 @@ CANONICAL_RULES = Path(".agents-config/rules")
 PROVIDER_RULE_LINKS = (Path(".agents/rules"), Path(".claude/rules"))
 SKILL_TYPES = ("meta", "ops", "dev")
 REQUIRED_EXPLICIT_SKILLS = {
-    "feature-plan",
+    "plan-feature",
     "implement-story",
     "prune-deleted-branches",
     "publish-issues",

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Feature Plan"
-  short_description: "Orchestrate approved planning stages"
-  default_prompt: "Use $feature-plan to advance a feature through the repository planning gates."
-policy:
-  allow_implicit_invocation: false

@@ -2,6 +2,16 @@
 
 - Handoff skill version: `<full Git commit containing this package>`
 
+### Persistence
+
+- Checkpoint status: `<provisional/durable>`
+- Stable comment key: `<feature-or-story-key:handoff-stage>`
+- Source-artifact digest: `sha256:<digest>`
+- Published-body digest: `<sha256:digest or pending>`
+- GitHub comment: `<immutable URL or pending>`
+- Read-back verified at: `<ISO 8601 UTC timestamp or pending>`
+- Local retention: `never delete automatically; cleanup requires explicit human direction`
+
 ### Objective and scope
 
 - Objective: `<observable outcome>`

@@ -23,8 +23,19 @@ Provide UTF-8 JSON with this shape:
       "labels": ["testing"],
       "dependsOn": []
     }
+  ],
+  "comments": [
+    {
+      "key": "STABILITY:research",
+      "target": "STABILITY",
+      "stage": "research",
+      "artifactDigest": "sha256:<digest of the approved source artifact>",
+      "body": "Exact approved Markdown comment body"
+    }
   ]
 }
 ```
 
-Keys are stable idempotency identifiers. Bodies must already contain approved scope, criteria, evidence, and gates; the renderer does not reinterpret them.
+Issue keys and comment keys are stable idempotency identifiers. A comment target must name the parent or one child issue key. `artifactDigest` binds the comment to the approved source artifact. Keep comments in the publication order required by the workflow; the renderer preserves that order and includes both the source-artifact digest and the SHA-256 digest of each complete marker-plus-body value that GitHub will store.
+
+Bodies must already contain approved scope, criteria, evidence, and gates. Do not include `sdlc-key` or `sdlc-comment-key` markers in input bodies; the renderer adds them. The renderer validates and displays content but never reinterprets it.

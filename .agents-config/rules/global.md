@@ -34,7 +34,7 @@ config: ["/package.json", "/prettier.config.mjs", "/.prettierignore", "/.gitigno
 
 - Map the workflow and its side effects in the task plan before an authorized human manually invokes it as `/skill-name` in Claude or `$skill-name` in Codex.
 - Run these workflows sequentially and never infer authorization from task context alone.
-- Use `feature-plan` as the primary explicit SDLC entry point. It may identify one next specialist skill but must not bypass a specialist workflow or human gate.
+- Use `plan-feature` as the primary explicit SDLC entry point. It may identify one next specialist skill but must not bypass a specialist workflow or human gate.
 
 ### Contextual skills
 

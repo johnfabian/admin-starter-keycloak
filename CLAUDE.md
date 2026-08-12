@@ -10,7 +10,7 @@ Identify files that may change and load only matching `.agents-config/rules/` ca
 
 ## Using skills
 
-Use a relevant canonical package from `.agents-config/skills/`; `.claude/skills` contains flat discovery symlinks. Determine invocation mode from the package metadata, not its type directory: `disable-model-invocation: true` in `SKILL.md`, paired with Codex's sidecar lock, requires explicit `/skill-name` invocation. Other skills may load on demand from their descriptions, and every skill remains directly user-invokable. Use `/feature-plan` as the primary SDLC entry. After creating or moving a skill, manually run `/skills-audit`. Do not preload all skills.
+Use a relevant canonical package from `.agents-config/skills/`; `.claude/skills` contains flat discovery symlinks. Determine invocation mode from the package metadata, not its type directory: `disable-model-invocation: true` in `SKILL.md`, paired with Codex's sidecar lock, requires explicit `/skill-name` invocation. Other skills may load on demand from their descriptions, and every skill remains directly user-invokable. Use `/plan-feature` as the primary SDLC entry. After creating or moving a skill, manually run `/skills-audit`. Do not preload all skills.
 
 ## Durable checkpoints
 
