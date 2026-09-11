@@ -25,7 +25,7 @@
 - Current revision: `<full commit SHA>`
 - Branch: `<branch>`
 - Worktree: `<absolute path or stable worktree identifier>`
-- Isolation policy: `<topic branch/no-worktree or approved exception>`
+- Isolation policy: `<linked worktree and feature branch>`
 - Owned paths: `<paths>`
 - Excluded/shared paths: `<paths>`
 

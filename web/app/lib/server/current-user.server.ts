@@ -41,7 +41,9 @@ export function getRolesFromTokenPayload(payload: JWTPayload) {
 
 function getStringArrayClaim(payload: Record<string, unknown>, claim: string) {
   const value = payload[claim];
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function uniqueValues(values: string[]) {

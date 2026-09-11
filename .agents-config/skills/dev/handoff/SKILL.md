@@ -12,7 +12,7 @@ Use [templates/checkpoint.md](templates/checkpoint.md) as the exact record shape
 ## Workflow
 
 1. Identify the target GitHub issue or pull request. If it is unknown, render a copy/paste checkpoint, mark it `provisional`, and do not post.
-2. Capture the objective, bounded scope, feature/story links, base and current revisions, branch, checkout identity, and owned/excluded paths. Record whether repository policy prohibits worktrees.
+2. Capture the objective, bounded scope, feature/story links, base and current revisions, branch, checkout identity, and owned/excluded paths. Record each writer's linked worktree, branch and ownership.
 3. List completed work as observable artifacts, not a transcript or private reasoning.
 4. Record the IDs of applied rules and retrieved wiki concepts. Use `none` or `unknown` explicitly; never omit the field.
 5. Record each check with exact command/category, result, timestamp, revision, and evidence/report path or URL. Do not turn an agent claim into gate evidence.

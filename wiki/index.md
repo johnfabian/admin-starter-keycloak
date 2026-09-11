@@ -11,7 +11,7 @@ All baseline concepts created on 2026-08-02 are `draft` and unverified until rev
 ## Sections
 
 - [Architecture](architecture/) - Implemented system boundaries and structural relationships.
-- [Decisions](decisions/) - Durable ADR register for approved, reusable architectural decisions.
+- [ADRs](adr/) - Durable ADR register for approved, reusable architectural decisions.
 - [Constitution](constitution/) - Enduring engineering tenets and decision rights.
 - [Policy](policy/) - Durable engineering and governance policies.
 - [Schemas](schemas/) - Implemented data and contract schemas.

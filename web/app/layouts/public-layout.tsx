@@ -17,9 +17,7 @@ export function PublicLayout({
   user,
 }: PublicLayoutProps) {
   const backgroundClass =
-    background === "white"
-      ? "bg-background text-foreground"
-      : "bg-muted/30 text-foreground";
+    background === "white" ? "bg-background text-foreground" : "bg-muted/30 text-foreground";
 
   return (
     <div className={`min-h-screen ${backgroundClass}`}>

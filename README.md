@@ -12,7 +12,7 @@ A pnpm workspace with an implemented React Router 7 server-rendered web/BFF, loc
 | Mailpit                | Implemented local service  | SMTP capture on port 1025 with the inbox at `http://localhost:8025`.                                                                                                    |
 | Traefik                | Implemented for local HTTP | Routes `app.localhost` and `auth.localhost`; the dashboard is intentionally insecure at `http://localhost:8081`. No production TLS edge exists.                         |
 | Express resource API   | Placeholder                | `api-express/` contains a README only: no manifest, source, runtime, Compose service, or tests.                                                                         |
-| Automated tests and CI | Gap                        | No test runner, test files, or CI workflow is configured. The current gate is static only.                                                                              |
+| Automated tests and CI | Local automation           | Local Chromium and Python tooling tests are configured. Hosted CI is deferred.                                                                                          |
 | Production deployment  | Gap                        | TLS, secret management, migrations, observability, health checks, scheduled/offsite backups, and a provider design are not implemented.                                 |
 
 ## Architecture
@@ -81,7 +81,7 @@ Open `http://app.localhost`, `http://auth.localhost`, and the local Traefik dash
 corepack pnpm check
 ```
 
-The gate runs repository-wide Prettier checking, web ESLint, React Router type generation, and TypeScript. It does not run unit, integration, browser, identity-flow, Compose, or CI checks because none are configured. Use `corepack pnpm web:build` when changing a build or server/client boundary, then exercise relevant runtime flows manually.
+The gate runs repository-wide Prettier checking, web ESLint, React Router type generation, and TypeScript. This command remains a static gate. Run test:fast for tooling tests and test:e2e for browser/identity characterization; hosted CI is deferred. Use `corepack pnpm web:build` when changing a build or server/client boundary, then exercise relevant runtime flows manually.
 
 ## Repository-native AI SDLC
 
@@ -102,7 +102,7 @@ Start or resume feature planning explicitly with `$plan-feature` or `/plan-featu
 
 ### Planning a new feature
 
-1. Create a topic branch from the default branch. Do not plan or implement directly on `master`, and do not create a worktree under the current repository policy.
+1. Create a topic branch from the default branch. Do not plan or implement directly on `master`, and use a dedicated linked worktree for each writing agent.
 2. Invoke `$plan-feature`. It validates the feature record and optional `.agent-work` state, then identifies exactly one next stage; it does not perform specialist analysis itself.
 3. Complete the planning stages in order:
 
@@ -138,25 +138,25 @@ Use `handoff` after each completed stage, before a human gate, provider/session 
 | [start-project](.agents-config/skills/ops/start-project/SKILL.md)                   | Explicit   | Start and verify the repository's local development stack.                                   |
 | [stop-project](.agents-config/skills/ops/stop-project/SKILL.md)                     | Explicit   | Stop local services while preserving database volumes.                                       |
 
-| Planning and delivery skill                                                           | Invocation | Purpose                                                                                                |
-| ------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
-| [plan-feature](.agents-config/skills/dev/plan-feature/SKILL.md)                       | Explicit   | Validate planning gates and direct the next specialist without duplicating its work.                   |
-| [feature-research](.agents-config/skills/dev/feature-research/SKILL.md)               | On demand  | Gather read-only repository, history, GitHub, rule, and wiki evidence.                                 |
-| [requirements-interview](.agents-config/skills/dev/requirements-interview/SKILL.md)   | On demand  | Convert approved intent and research into stable, testable requirements and decisions.                 |
-| [architecture-impact](.agents-config/skills/dev/architecture-impact/SKILL.md)         | On demand  | Assess affected application, identity, data, proxy, security, testing, and operational boundaries.     |
-| [find-edge-cases](.agents-config/skills/dev/find-edge-cases/SKILL.md)                 | On demand  | Identify edge and abuse cases and assign each a concrete disposition.                                  |
-| [test-strategy](.agents-config/skills/dev/test-strategy/SKILL.md)                     | On demand  | Map risks and requirements to deterministic test and verification layers.                              |
-| [decompose-stories](.agents-config/skills/dev/decompose-stories/SKILL.md)             | On demand  | Produce small, vertical, independently valuable story previews.                                        |
-| [critique-plan](.agents-config/skills/dev/critique-plan/SKILL.md)                     | On demand  | Independently challenge scope, evidence, dependencies, tests, and approval readiness.                  |
-| [preview-issues](.agents-config/skills/dev/preview-issues/SKILL.md)                   | On demand  | Render exact, non-mutating issue and comment Markdown with an approval digest.                         |
-| [publish-issues](.agents-config/skills/dev/publish-issues/SKILL.md)                   | Explicit   | Publish only an exactly approved preview and verify idempotent GitHub persistence.                     |
-| [implement-story](.agents-config/skills/dev/implement-story/SKILL.md)                 | Explicit   | Execute one approved story with bounded ownership, test-first evidence, and independent review.        |
-| [parallel-implementation](.agents-config/skills/dev/parallel-implementation/SKILL.md) | On demand  | Plan disjoint ownership and integration; current policy keeps implementation serial without worktrees. |
-| [handoff](.agents-config/skills/dev/handoff/SKILL.md)                                 | On demand  | Produce a provider-neutral checkpoint that becomes durable after GitHub publication and read-back.     |
-| [adversarial-review](.agents-config/skills/dev/adversarial-review/SKILL.md)           | On demand  | Challenge high-risk plans or changes from clean, read-only context.                                    |
-| [react-pattern-review](.agents-config/skills/dev/react-pattern-review/SKILL.md)       | On demand  | Review React/React Router patterns and require characterization before refactoring.                    |
-| [evaluate-sdlc-pilot](.agents-config/skills/dev/evaluate-sdlc-pilot/SKILL.md)         | On demand  | Evaluate pilot evidence and recommend whether a formal evaluation framework is warranted.              |
-| [repo-inventory](.agents-config/skills/dev/repo-inventory/SKILL.md)                   | On demand  | Inventory repository structure, boundaries, tooling, tests, CI, rules, and uncertainty.                |
+| Planning and delivery skill                                                           | Invocation | Purpose                                                                                            |
+| ------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| [plan-feature](.agents-config/skills/dev/plan-feature/SKILL.md)                       | Explicit   | Validate planning gates and direct the next specialist without duplicating its work.               |
+| [feature-research](.agents-config/skills/dev/feature-research/SKILL.md)               | On demand  | Gather read-only repository, history, GitHub, rule, and wiki evidence.                             |
+| [requirements-interview](.agents-config/skills/dev/requirements-interview/SKILL.md)   | On demand  | Convert approved intent and research into stable, testable requirements and decisions.             |
+| [architecture-impact](.agents-config/skills/dev/architecture-impact/SKILL.md)         | On demand  | Assess affected application, identity, data, proxy, security, testing, and operational boundaries. |
+| [find-edge-cases](.agents-config/skills/dev/find-edge-cases/SKILL.md)                 | On demand  | Identify edge and abuse cases and assign each a concrete disposition.                              |
+| [test-strategy](.agents-config/skills/dev/test-strategy/SKILL.md)                     | On demand  | Map risks and requirements to deterministic test and verification layers.                          |
+| [decompose-stories](.agents-config/skills/dev/decompose-stories/SKILL.md)             | On demand  | Produce small, vertical, independently valuable story previews.                                    |
+| [critique-plan](.agents-config/skills/dev/critique-plan/SKILL.md)                     | On demand  | Independently challenge scope, evidence, dependencies, tests, and approval readiness.              |
+| [preview-issues](.agents-config/skills/dev/preview-issues/SKILL.md)                   | On demand  | Render exact, non-mutating issue and comment Markdown with an approval digest.                     |
+| [publish-issues](.agents-config/skills/dev/publish-issues/SKILL.md)                   | Explicit   | Publish only an exactly approved preview and verify idempotent GitHub persistence.                 |
+| [implement-story](.agents-config/skills/dev/implement-story/SKILL.md)                 | Explicit   | Execute one approved story with bounded ownership, test-first evidence, and independent review.    |
+| [parallel-implementation](.agents-config/skills/dev/parallel-implementation/SKILL.md) | On demand  | Plan disjoint ownership and integration; isolated worktrees for at most two disjoint writers.      |
+| [handoff](.agents-config/skills/dev/handoff/SKILL.md)                                 | On demand  | Produce a provider-neutral checkpoint that becomes durable after GitHub publication and read-back. |
+| [adversarial-review](.agents-config/skills/dev/adversarial-review/SKILL.md)           | On demand  | Challenge high-risk plans or changes from clean, read-only context.                                |
+| [react-pattern-review](.agents-config/skills/dev/react-pattern-review/SKILL.md)       | On demand  | Review React/React Router patterns and require characterization before refactoring.                |
+| [evaluate-sdlc-pilot](.agents-config/skills/dev/evaluate-sdlc-pilot/SKILL.md)         | On demand  | Evaluate pilot evidence and recommend whether a formal evaluation framework is warranted.          |
+| [repo-inventory](.agents-config/skills/dev/repo-inventory/SKILL.md)                   | On demand  | Inventory repository structure, boundaries, tooling, tests, CI, rules, and uncertainty.            |
 
 | Knowledge skill                                                     | Invocation | Purpose                                                                          |
 | ------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------- |
@@ -165,6 +165,11 @@ Use `handoff` after each completed stage, before a human gate, provider/session 
 | [wiki-audit](.agents-config/skills/dev/wiki-audit/SKILL.md)         | On demand  | Audit OKF structure, metadata, indexes, links, provenance, and planning leakage. |
 | [wiki-visualize](.agents-config/skills/dev/wiki-visualize/SKILL.md) | On demand  | Generate and validate the offline wiki relationship viewer.                      |
 | [record-adr](.agents-config/skills/dev/record-adr/SKILL.md)         | On demand  | Record an attributable, human-approved reusable architecture decision.           |
+
+| Automation skill                                                    | Invocation | Purpose                                                     |
+| ------------------------------------------------------------------- | ---------- | ----------------------------------------------------------- |
+| [keycloak-admin](.agents-config/skills/ops/keycloak-admin/SKILL.md) | On demand  | Realm-scoped CLI administration and owned browser fixtures. |
+| [graphify](.agents-config/skills/dev/graphify/SKILL.md)             | On demand  | Query and refresh local source graphs.                      |
 
 <!-- skills-catalog:end -->
 
@@ -177,3 +182,17 @@ After adding, moving, renaming, or reviewing a skill, explicitly run `$skills-au
 - [Local backup](wiki/operations/local-backup.md), [restore drill](wiki/operations/backup-restore-drill.md), and [known production gaps](wiki/architecture/known-production-gaps.md).
 
 Newly migrated wiki knowledge remains draft and unverified until a human checks it against the running realm and intended operating model. Agent-framework automation under skill-local `scripts/` is portable Python invoked through `uv`. Existing operational backup/restore runbooks remain POSIX shell scripts; JavaScript `.mjs` files are tool configuration only.
+
+## Automated agent setup
+
+Use a linked worktree on a feature branch. Run corepack pnpm agent:setup -- --env-file <absolute-path>
+to prepare locked dependencies, Chromium, hooks, and a local source graph without copying secrets.
+Use test:fast before commits, test:e2e for real local Keycloak journeys, and verify:story for the full
+build/graph/two-run verification. verify:commit checks staged graph input without changing the index.
+
+The standalone tests/browser package has its own locked dependency policy. This avoids re-resolving
+the existing application lockfile when installing browser tooling. No provenance/age controls are disabled.
+
+See [worktree setup](wiki/operations/agent-worktrees.md), [Keycloak CLI](wiki/operations/keycloak-cli.md),
+[local tests](wiki/testing/automated-local-verification.md), [graph ownership](wiki/conventions/code-graph.md),
+and [ADRs](wiki/adr/index.md). Existing realm/client configuration repairs are proposed before applying them.

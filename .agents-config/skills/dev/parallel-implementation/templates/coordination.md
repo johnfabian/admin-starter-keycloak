@@ -3,7 +3,7 @@
 - Skill version: `<full Git commit containing this package>`
 - Parent/story links: `<links>`
 - Base revision: `<full SHA>`
-- Repository isolation policy: `<serial/no-worktree or approved exception link>`
+- Repository isolation policy: `<linked worktrees; at most two disjoint writers>`
 - Integration owner: `<human/agent role>`
 - Mode/gate: `<serial/parallel/blocked>`
 

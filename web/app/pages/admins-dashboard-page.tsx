@@ -11,9 +11,7 @@ export function AdminsDashboardPage({ user }: { user: CurrentUser }) {
         <div className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <ShieldCheck className="h-6 w-6" aria-hidden="true" />
         </div>
-        <p className="mt-6 text-sm font-medium uppercase text-muted-foreground">
-          Admin dashboard
-        </p>
+        <p className="mt-6 text-sm font-medium uppercase text-muted-foreground">Admin dashboard</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight">Admin access verified</h1>
         <p className="mt-4 max-w-2xl text-muted-foreground">
           You are signed in as {user.name} with the `{appRoles.admins}` role. User management will

@@ -1,0 +1,8 @@
+packages: []
+minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+blockExoticSubdeps: true
+strictDepBuilds: true
+trustPolicy: no-downgrade
+allowBuilds: {}

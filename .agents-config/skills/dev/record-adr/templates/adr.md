@@ -19,7 +19,7 @@ sources:
     last_modified: YYYY-MM-DD
 ---
 
-<!-- Target path: wiki/decisions/ADR-####-<kebab-case-slug>.md -->
+<!-- Target path: wiki/adr/ADR-####-<kebab-case-slug>.md -->
 
 # Context
 
