@@ -1,11 +1,11 @@
 # Implementation plan: Agent development workflow
 
 Date: 2026-09-11
-Status: Draft - user-selected three flows; critique and implementation approval pending
+Status: Implementation authorized in conversation; final evidence belongs to PR #20
 Feature: [FEAT-AGENT-WORKFLOW](../features/2026-09-11-agent-development-workflow.md)
 Source and existing skill version: 342ec668b7848fe0200a9c317812831ca546b885
 Integration owner: primary agent, within user-approved scope
-Execution status: planning documents and wiki/ADR proposals prepared; skill/rule/application automation is not implemented, and legacy plans are retained
+Execution status: three-flow skills, portable validation/coordination, audit changes and legacy migration implemented on this branch; verification and independent review results are recorded in PR #20.
 
 ## Three developer flows
 
@@ -142,6 +142,244 @@ Do not create an ADR for every setting or treat the proposed Express/Drizzle ser
 
 ## Decisions and remaining scope
 
-DEC-001 is selected by the user: three combined flows, with one routine approval after implementation planning. DEC-002 through DEC-004 are documented working defaults; DEC-005 limits ORCA-specific claims. The plan still needs independent critique and implementation approval. Choosing its workflow shape does not approve the whole change. No application or workflow behavior has been changed.
+DEC-001 is selected by the user: three combined flows, with one routine approval after implementation planning. DEC-002 through DEC-004 are documented working defaults; DEC-005 limits ORCA-specific claims. Independent plan critique completed before implementation. The user subsequently instructed "yes implement it then redo the PR", authorizing this scope through updating PR #20 on sdlc/feature-workflow-design, targeting master. No application or identity behavior changes are included.
 
-The current skill audit has four missing global adapters, which this work will resolve under the chosen project/global policy. Rules and wiki structure pass. This documentation change corrects four stale test-absence claims; broader workflow/rule alignment remains implementation work.
+Global adapter inspection is now opt-in; project-local validation avoids cross-worktree global rewrites. The implementation evidence distinguishes real agent delegation and browser runs from disposable scheduler tests and mocked GitHub publication.
+
+## Legacy plan disposition
+
+The 15 tracked legacy files were removed as requested. Their exact content remains at commit 71aa47010b18b3daaba0719ce6685cc3a35038d0; the implementation handoff includes their SHA-256 manifest. Current auth/session/role, provider, gateway and recovery choices are captured in the wiki and proposed ADR-0001 through ADR-0012. The old Express/data-mode ideas remain unimplemented; production gaps stay in wiki/architecture/known-production-gaps.md. No ignored stability-pilot draft was removed.
+
+## Validated delivery contract
+
+This contract is a checked planning artifact for this migration, not a fabricated execution history. Real delivery evidence is recorded separately.
+
+```implementation-plan
+{
+  "version": 2,
+  "id": "FEAT-AGENT-WORKFLOW",
+  "title": "Three-flow implementation",
+  "specification": "specs/features/2026-09-11-agent-development-workflow.md",
+  "specificationDigest": "sha256:ea86bb7bac7bc52cf8cdcc5035994d1d0a52c55c8be9830be668fb3851e53fa9",
+  "integrationPaths": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".agents-config/rules",
+    "specs/features",
+    "specs/implementation-plans"
+  ],
+  "stories": [
+    {
+      "id": "STORY-001",
+      "title": "Create and critique a reusable feature specification",
+      "outcome": "a developer request produces a dated specification, material interview questions, and a revision-bound independent critique.",
+      "kind": "vertical",
+      "requirements": [
+        "REQ-001",
+        "REQ-002",
+        "REQ-008"
+      ],
+      "dependsOn": [],
+      "ownedPaths": [
+        ".agents-config/skills/dev/plan-feature",
+        ".agents-config/skills/dev/critique-feature-spec"
+      ],
+      "layers": {
+        "data": "Not applicable: tooling change does not alter application persistence",
+        "service": "Portable workflow and evidence checks where this story requires them",
+        "ui": "Developer-facing skills, artifacts or verification output; no application UI change"
+      },
+      "acceptance": [
+        "no mandatory per-specialist invocation; spec and critique survive a clean-session resume. Existing 1.x state is explicitly legacy and never silently promoted to approved new state."
+      ],
+      "tests": [
+        "naming/slug validation, missing criteria, pending decision, stale digest, approval invalidation, natural-language routing, injected repository instructions, and legacy state compatibility."
+      ],
+      "verification": [
+        "test:fast"
+      ],
+      "rollback": "restore prior workflow version and retain the draft spec; never rewrite historical records."
+    },
+    {
+      "id": "STORY-002",
+      "title": "Turn a specification into a validated delivery plan",
+      "outcome": "a complete implementation plan covers each requirement with vertical stories and a valid dependency graph.",
+      "kind": "vertical",
+      "requirements": [
+        "REQ-003",
+        "REQ-005"
+      ],
+      "dependsOn": [
+        "STORY-001"
+      ],
+      "ownedPaths": [
+        ".agents-config/skills/dev/plan-implementation",
+        ".agents-config/skills/dev/critique-implementation-plan"
+      ],
+      "layers": {
+        "data": "Not applicable: tooling change does not alter application persistence",
+        "service": "Portable workflow and evidence checks where this story requires them",
+        "ui": "Developer-facing skills, artifacts or verification output; no application UI change"
+      },
+      "acceptance": [
+        "a reviewer can determine ready work and validation without conversation context."
+      ],
+      "tests": [
+        "duplicate IDs, cycles, unknown/self dependencies, uncovered requirements, unjustified horizontal stories, path overlap, missing tests, changed spec hash, blocked decision, migration ownership."
+      ],
+      "verification": [
+        "test:fast"
+      ],
+      "rollback": "leave the plan draft and disable dispatch on its schema version."
+    },
+    {
+      "id": "STORY-003",
+      "title": "Execute and resume feature delivery through PR submission",
+      "outcome": "implement-feature delivers the approved scope through coding, tests, independent adversarial review, knowledge updates, integration, and PR submission without repeated routine prompts or concurrent ownership conflicts.",
+      "kind": "vertical",
+      "requirements": [
+        "REQ-004",
+        "REQ-005",
+        "REQ-006",
+        "REQ-007"
+      ],
+      "dependsOn": [
+        "STORY-002"
+      ],
+      "ownedPaths": [
+        "scripts/workflow.py",
+        "tests/tooling/test_workflow.py",
+        ".agents-config/skills/dev/implement-feature",
+        ".agents-config/skills/dev/implement-story",
+        ".agents-config/skills/dev/parallel-implementation",
+        ".agents-config/skills/dev/adversarial-review"
+      ],
+      "layers": {
+        "data": "Not applicable: tooling change does not alter application persistence",
+        "service": "Portable workflow and evidence checks where this story requires them",
+        "ui": "Developer-facing skills, artifacts or verification output; no application UI change"
+      },
+      "acceptance": [
+        "readiness depends on integrated verified prerequisites; independent reviews are genuine; browser runs honor existing shared-stack locking and fixture ownership."
+      ],
+      "tests": [
+        "diamond graph (A -> B/C -> D), no-premature D dispatch, maximum two writers, path reservations, worker failure, interrupted resume, duplicate claim prevention, stale base, failed integration, exact reviewed revision, feature-level five-round exhaustion, no PR on failed verification, approved branch/remote binding, and idempotent PR resume."
+      ],
+      "verification": [
+        "test:fast"
+      ],
+      "rollback": "stop dispatch, preserve worker branches/checkpoints, resume serially under the same approvals."
+    },
+    {
+      "id": "STORY-004",
+      "title": "Use the same workflow from isolated harness contexts",
+      "outcome": "a fresh supported harness discovers project-local skills and resumes the same work packet without modifying another worktree's global configuration.",
+      "kind": "vertical",
+      "requirements": [
+        "REQ-008"
+      ],
+      "dependsOn": [
+        "STORY-001"
+      ],
+      "ownedPaths": [
+        ".agents-config/skills/meta",
+        "tests/tooling/test_adapters.py"
+      ],
+      "layers": {
+        "data": "Not applicable: tooling change does not alter application persistence",
+        "service": "Portable workflow and evidence checks where this story requires them",
+        "ui": "Developer-facing skills, artifacts or verification output; no application UI change"
+      },
+      "acceptance": [
+        "Codex/Claude discovery checked; ORCA adapter either verified against the identified version or explicitly outside the completed compatibility claim."
+      ],
+      "tests": [
+        "project-relative symlinks, real-file collisions, optional global links in an isolated temporary home, two-worktree non-interference, missing delegation capability, missing independent reviewer, invocation-metadata parity."
+      ],
+      "verification": [
+        "test:fast"
+      ],
+      "rollback": "retain canonical packages and use project-local discovery; no destructive cleanup of personal skill directories."
+    },
+    {
+      "id": "STORY-005",
+      "title": "Migrate knowledge and legacy plans without losing decisions",
+      "outcome": "the wiki describes current capabilities, ADR status is honest, and the requested specs directory layout replaces legacy plans.",
+      "kind": "vertical",
+      "requirements": [
+        "REQ-007",
+        "REQ-009"
+      ],
+      "dependsOn": [
+        "STORY-002"
+      ],
+      "ownedPaths": [
+        "wiki",
+        "specs/plans",
+        "sdlc-prd.md",
+        ".agents-config/skills/dev/handoff",
+        ".agents-config/skills/dev/preview-issues",
+        ".agents-config/skills/dev/publish-issues"
+      ],
+      "layers": {
+        "data": "Not applicable: tooling change does not alter application persistence",
+        "service": "Portable workflow and evidence checks where this story requires them",
+        "ui": "Developer-facing skills, artifacts or verification output; no application UI change"
+      },
+      "acceptance": [
+        "each legacy file has a disposition; no obsolete local-only logout/cookie design is represented as current. Original stability-pilot drafts remain untouched."
+      ],
+      "tests": [
+        "skill/rule/wiki audits, active link/name audit, immutable historical references, ADR provenance and supersession, no generated graphs/secrets staged."
+      ],
+      "verification": [
+        "test:fast"
+      ],
+      "rollback": "recover deleted tracked documents from Git; never delete draft checkpoints automatically."
+    },
+    {
+      "id": "STORY-006",
+      "title": "Prove the workflow through integration and clean-session handoff",
+      "outcome": "a small declared workflow pilot exercises planning, critique, dependency-ready dispatch, failed-story blocking, review/fix, integration, and provider-neutral resume.",
+      "kind": "vertical",
+      "requirements": [
+        "REQ-001",
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-005",
+        "REQ-006",
+        "REQ-007",
+        "REQ-008",
+        "REQ-009"
+      ],
+      "dependsOn": [
+        "STORY-003",
+        "STORY-004",
+        "STORY-005"
+      ],
+      "ownedPaths": [
+        "tests/tooling/test_workflow_pilot.py"
+      ],
+      "layers": {
+        "data": "Not applicable: tooling change does not alter application persistence",
+        "service": "Portable workflow and evidence checks where this story requires them",
+        "ui": "Developer-facing skills, artifacts or verification output; no application UI change"
+      },
+      "acceptance": [
+        "no open blocking findings or invented approvals; evidence distinguishes simulated scheduler tests from real agent runs and real browser tests. Publish only under explicit granted scope."
+      ],
+      "tests": [
+        "applicable tooling tests, format/static/build checks, skill/rule/wiki audits, graph build/check, verify:commit, affected verify:story, and independent final review at the actual integrated revision."
+      ],
+      "verification": [
+        "test:fast"
+      ],
+      "rollback": "preserve reviewed branches and report the exact blocked stage; do not treat a pilot failure as completion."
+    }
+  ]
+}
+```

@@ -5,6 +5,7 @@
 # ///
 """Validate disposable plan-feature state and report the next bounded action."""
 
+# Historical 1.x validator only; never use its output to authorize v2 delivery.
 from __future__ import annotations
 
 import argparse

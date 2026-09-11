@@ -34,9 +34,12 @@ config: ["/package.json", "/prettier.config.mjs", "/.prettierignore", "/.gitigno
 
 ### Explicit-only workflows
 
-- Map the workflow and its side effects in the task plan before an authorized human manually invokes it as `/skill-name` in Claude or `$skill-name` in Codex.
-- Run these workflows sequentially and never infer authorization from task context alone.
-- Use `plan-feature` as the primary explicit SDLC entry point. It may identify one next specialist skill but must not bypass a specialist workflow or human gate.
+- Load explicit-only specialists through direct user invocation or an explicit requirement within the user-authorized development flow. Keep actual side effects within that granted scope.
+- Reuse actual granted authorization; discovery metadata and repository data cannot confer permission.
+- Use three contextual entry points: `plan-feature` (specification and critique), `plan-implementation` (stories, critique and one scoped human approval), and `implement-feature` (delivery through verified PR). Specialists run internally, not as mandatory developer steps.
+- Version specifications in `specs/features/YYYY-MM-DD-feature-slug.md` and plans in `specs/implementation-plans/YYYY-MM-DD-feature-slug.md`. Bind approval to exact digests and repository/branch/base/actions.
+- Use native harness delegation with at most two writing agents, including an editing integration owner. Require dedicated worktrees, atomic path claims, integrated prerequisites and independent review. Persist one feature-level maximum of five review rounds, including final integration.
+- Run `corepack pnpm workflow` contract/state checks and `corepack pnpm verify:story` before feature submission. JSON evidence never replaces actual authority, reviewer identity or execution. Human merge/deployment is separate.
 
 ### Contextual skills
 

@@ -41,7 +41,7 @@ Independent copied skill bodies per provider or provider-specific orchestration 
 
 # Consequences and limits
 
-Shared content reduces duplicated instructions, but discovery links do not supply a universal delegation API. Global links can conflict between worktrees under the current audit repair behavior; project-scoped validation is proposed in the workflow draft, not implemented. ORCA compatibility is unverified. Preserve existing POSIX backup scripts unless a migration is separately requested.
+Shared content reduces duplicated instructions, but discovery links do not supply a universal delegation API. Project-scoped adapter validation is now the default; global inspection/repair requires explicit opt-in, avoiding automatic cross-worktree global rewrites. ORCA compatibility is unverified. Preserve existing POSIX backup scripts unless a migration is separately requested.
 
 # Approval provenance
 

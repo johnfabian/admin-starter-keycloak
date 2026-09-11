@@ -29,12 +29,14 @@ REQUIRED_EXPLICIT_SKILLS = (
     META_SKILLS
     | OPS_SKILLS
     | {
-        "plan-feature",
-        "implement-story",
         "publish-issues",
     }
 )
 PROJECT_ADAPTERS = (Path(".agents/skills"), Path(".claude/skills"))
+RENAMED_SKILLS = {
+    "critique-plan": "critique-feature-spec",
+    "decompose-stories": "plan-implementation",
+}
 GLOBAL_ADAPTERS = (Path(".claude/skills"), Path(".codex/skills"))
 README_CATALOG_START = "<!-- skills-catalog:start -->"
 README_CATALOG_END = "<!-- skills-catalog:end -->"
@@ -49,6 +51,11 @@ def parse_args() -> argparse.Namespace:
         "--fix",
         action="store_true",
         help="Categorize flat packages and repair safe symlink drift.",
+    )
+    parser.add_argument(
+        "--global-adapters",
+        action="store_true",
+        help="Also audit or repair user-global adapters; omitted by default for worktree isolation.",
     )
     parser.add_argument("--json", action="store_true", help="Emit JSON output.")
     parser.add_argument(
@@ -116,7 +123,7 @@ def sidecar_implicit_policy(content: str) -> str | None:
 def main() -> int:
     args = parse_args()
     root = args.root.resolve()
-    home = (args.home or Path.home()).expanduser().resolve()
+    home = (args.home or Path.home()).expanduser().resolve() if args.global_adapters else None
     canonical_root = root / ".agents-config" / "skills"
     errors: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
@@ -231,6 +238,17 @@ def main() -> int:
                         source,
                         "The canonical root may contain only type directories or flat skill packages awaiting migration.",
                     )
+                continue
+            replacement = RENAMED_SKILLS.get(source.name)
+            if source_root != canonical_root and replacement and any(
+                (canonical_root / kind / replacement).is_dir() for kind in CATEGORIES
+            ):
+                issue(
+                    errors,
+                    "project-adapter-collision",
+                    source,
+                    "Obsolete adapter is a real package directory; preserve it for explicit resolution.",
+                )
                 continue
             category = category_for(source.name)
             destination = canonical_root / category / source.name
@@ -586,6 +604,16 @@ def main() -> int:
 
         for entry in sorted(adapter_root.iterdir(), key=lambda path: path.name):
             if entry.name not in canonical_by_name:
+                replacement = RENAMED_SKILLS.get(entry.name)
+                if replacement in canonical_by_name and entry.is_symlink() and args.fix:
+                    # Only remove adapters to this worktree's former package;
+                    # a same-named link to another destination is a collision.
+                    old_target = canonical_root / category_for(entry.name) / entry.name
+                    link_target = entry.parent / os.readlink(entry)
+                    if comparable_path(link_target) == comparable_path(old_target):
+                        entry.unlink()
+                        fixed("removed-renamed-project-adapter", entry)
+                        continue
                 issue(
                     errors,
                     "extra-project-adapter",
@@ -650,7 +678,7 @@ def main() -> int:
             valid_project_adapters += 1
 
     valid_global_adapters = 0
-    for global_relative in GLOBAL_ADAPTERS:
+    for global_relative in GLOBAL_ADAPTERS if args.global_adapters else ():
         global_root = home / global_relative
         if not global_root.exists():
             if args.fix and not lexists(global_root):
@@ -734,7 +762,8 @@ def main() -> int:
 
     result = {
         "root": str(root),
-        "home": str(home),
+        "home": str(home) if home is not None else None,
+        "adapterScope": "project-and-global" if args.global_adapters else "project",
         "revision": revision,
         "dirtyAtStart": dirty,
         "mode": "repair" if args.fix else "read-only",
@@ -760,7 +789,9 @@ def main() -> int:
     else:
         print("# Skills audit\n")
         print(f"- Root: `{root}`")
-        print(f"- Home: `{home}`")
+        print(f"- Adapter scope: {result['adapterScope']}")
+        if home is not None:
+            print(f"- Home: `{home}`")
         print(f"- Revision: `{revision}`")
         print(f"- Dirty at start: `{str(dirty).lower()}`")
         print(f"- Mode: {result['mode']}")

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Critique Feature Spec"
+  short_description: "Independently critique a feature specification for complete beh"
+  default_prompt: "Use $critique-feature-spec for the requested feature workflow."

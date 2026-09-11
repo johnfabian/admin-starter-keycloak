@@ -1,28 +1,23 @@
 ---
 name: handoff
-description: Create and track a provider-neutral, Markdown-first checkpoint so a clean Claude Code or Codex session can resume without conversation history. Use after a stage, before a human gate, compaction, provider/worktree transfer, or intentional stop; local output remains provisional until exact GitHub publication and read-back.
+description: Create a provider-neutral checkpoint that a clean session can resume without conversation history. Use after a stage, before ownership or provider transfer, compaction, a human gate, or an intentional stop; local output remains provisional until authorized GitHub publication and exact read-back.
 ---
 
 # Create a handoff checkpoint
 
-Use the full Git commit containing this package as the skill version ID and record it in the checkpoint. A dirty package is unversioned and cannot satisfy a completed gate.
+Record the package Git revision in the checkpoint; identify uncommitted package changes as provisional. Use [templates/checkpoint.md](templates/checkpoint.md) as the record shape.
 
-Use [templates/checkpoint.md](templates/checkpoint.md) as the exact record shape.
+1. Identify the authorized GitHub destination. An approved feature PR body can carry the checkpoint; separate issues or comments are optional. If no publication destination is authorized, prepare a local or copy/paste checkpoint and mark it `provisional`.
+2. Capture the objective, bounded scope, specification/plan paths and digests, feature/story IDs, base/current revisions, branch, checkout identity, and owned/excluded paths. Record each active writer's linked worktree, branch, ownership claim, and actual stop/reconciliation status.
+3. List completed work as observable artifacts, not a transcript or private reasoning. Record applied rule IDs and retrieved wiki concept IDs; use `none` or `unknown` explicitly.
+4. Record each check's exact command/category, result, timestamp, revision, and evidence digest/path or URL. Record actual independent reviewer identities, reviewed revisions, findings, and the current shared feature review round, including failed history. Handoff does not reset the five-round budget.
+5. Record the attributable flow-2 approval for the exact specification, plan, delivery destination, and actions. Reuse granted scope through PR submission without a new routine approval. Record unresolved material decisions and limitations honestly; agent prose, reactions, or silence are not human approval.
+6. List risks and blockers without secrets, tokens, private reasoning, or environment values. Write exactly one bounded, verifiable next action.
+7. For an authorized PR body, prepare the complete body with a stable feature/checkpoint marker, current verified revision, and sanitized checkpoint. Compute its exact payload digest separately from the approved scope digests. Inspect the target before mutation, publish within the existing authority, and read back the complete stored body and PR head/base. A payload digest verifies what was sent; it does not grant broader action authority or require a fresh human approval for an already authorized update.
+8. If separately authorized issue/comment publication is selected, preserve its exact preview-digest, stable-key, idempotency, and read-back workflow. Do not invoke issue publication merely to complete a PR-only handoff. Never edit historical stage comments or silently replace conflicting markers.
+9. Record the PR URL or immutable comment URL, persisted location, exact published-body digest, verified revision, and read-back time. Mark the checkpoint `durable` only after the expected marker and complete payload match. PR bodies are mutable: revalidate their current revision and digest when resuming; an old verification time does not prove the current body is unchanged.
+10. Never delete a local `.agent-work` copy automatically. Successful publication does not authorize cleanup.
 
-## Workflow
+Before handoff, verify the current revision and worktree still match the packet. The receiving session must recheck those values, approval bindings, ownership, and required evidence before resuming. A local copy remains useful recovery material even when publication is unavailable; report its provisional status without claiming a durable GitHub record.
 
-1. Identify the target GitHub issue or pull request. If it is unknown, render a copy/paste checkpoint, mark it `provisional`, and do not post.
-2. Capture the objective, bounded scope, feature/story links, base and current revisions, branch, checkout identity, and owned/excluded paths. Record each writer's linked worktree, branch and ownership.
-3. List completed work as observable artifacts, not a transcript or private reasoning.
-4. Record the IDs of applied rules and retrieved wiki concepts. Use `none` or `unknown` explicitly; never omit the field.
-5. Record each check with exact command/category, result, timestamp, revision, and evidence/report path or URL. Do not turn an agent claim into gate evidence.
-6. Record decisions, assumptions, artifact digests, reviewer independence, and human gate status. An agent, reaction, status field, or silence is not human approval.
-7. List risks and blockers without secrets, tokens, raw prompts, sensitive data, or credentials.
-8. Write exactly one next action. Make it bounded, imperative, and verifiable.
-9. Assign a stable `sdlc-comment-key` and compute the source-artifact digest and exact published-body digest. Include the checkpoint in `$preview-issues`; do not post it outside the approved preview/publish boundary.
-10. After authorized publication, re-read the checkpoint and record its immutable GitHub comment URL and verification time. Mark it `durable` only when the marker-plus-body is an exact match.
-11. Never delete a local `.agent-work` copy automatically. Even after durable publication, cleanup requires explicit human direction.
-
-Before handoff, verify that the current revision/worktree still matches the packet. A receiving session must re-check those values before acting. Local or copy/paste output is useful recovery material but is not the durable cross-provider record until GitHub read-back succeeds.
-
-Use [references/scenarios.md](references/scenarios.md) to exercise clean-session and approval-boundary recovery.
+Use [references/scenarios.md](references/scenarios.md) to exercise clean-session and authority-boundary recovery.

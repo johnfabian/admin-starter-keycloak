@@ -45,7 +45,7 @@ sources:
 
 The root declares `pnpm@11.1.2` and wraps web commands with `corepack pnpm`.[^root-package] The root `check` command runs Prettier check, web ESLint, React Router type generation, and TypeScript checking in sequence.[^root-package][^web-package]
 
-Use the root wrappers for environment-dependent web commands: the root build/dev/typecheck scripts inject `.env.development` through `dotenv-cli` without requiring agents to read the file.[^root-package]
+Use the root wrappers for environment-dependent web commands: the root build/dev/typecheck scripts use the Python environment wrapper and the explicitly configured original environment-file path, without copying or displaying credentials.[^root-package]
 
 Agent-framework skill automation is implemented in Python and launched through `uv run`. Canonical packages are typed under `.agents-config/skills/`; flat `.agents/skills/` and `.claude/skills/` symlinks expose the same packages to Codex and Claude.[^skills-audit-script][^skills-rule] Skill scripts are self-contained and currently require only the Python standard library. Existing operational backup/restore runbooks remain POSIX shell scripts; JavaScript `.mjs` files remain only where the JavaScript formatter or linter requires a configuration module.[^skills-audit-script][^prettier-config][^eslint-config]
 
@@ -86,3 +86,7 @@ There is no tracked CI workflow enforcing these commands. Rule ownership and req
 These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
 
 - [ADR-0009: Keep canonical agent procedures portable across harnesses (proposed)](/adr/ADR-0009-portable-agent-tooling.md)
+
+# Agent delivery tooling
+
+The [three-flow convention](/conventions/agent-development-workflow.md) uses corepack pnpm workflow for portable specification/plan checks and delivery evidence coordination. Skills-audit defaults to project discovery adapters; global audit/repair requires explicit --global-adapters opt-in. The helper supplies no universal agent API; native harness delegation and independent reviewers remain necessary.

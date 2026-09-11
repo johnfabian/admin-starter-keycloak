@@ -1,7 +1,7 @@
 # Agent development workflow
 
 Date: 2026-09-11
-Status: Draft - user-selected three flows; implementation approval pending
+Status: Implementation authorized in conversation; verification recorded in the feature PR
 Feature ID: FEAT-AGENT-WORKFLOW
 Source and existing skill version: 342ec668b7848fe0200a9c317812831ca546b885
 Branch: sdlc/feature-workflow-design
@@ -25,7 +25,7 @@ The user selected this grouping in conversation on 2026-09-11. The single routin
 
 Critiques, tests, audits, and knowledge updates are internal steps, not extra developer commands. A small feature can be one vertical story. Use parallel writers only when independent slices justify them; do not manufacture extra stories or database/API/UI layers just to exercise the process. The current login/roles foundation is context for future application features, not a request to build those applications now.
 
-## Reviewed baseline
+## Historical reviewed baseline
 
 - The implemented application is React Router Framework Mode with server-side BFF authentication, Postgres sessions, Keycloak, and a Java registration-approval listener. Express is a README placeholder; Drizzle and an existing-database migration framework are absent.
 - Chromium/axe browser tests, Python tooling tests, worktree preflight, shared-stack locking, and per-worktree Graphify tooling already exist.
@@ -85,7 +85,7 @@ Behavior: perform adversarial review appropriate to each story, fix findings, an
 Authority: no self-approval; only the designated human can accept material risk.
 Failure: exhaustion means blocked, not passed. Persist round counts and findings across resume; changed revisions require re-review. Proposed blocking threshold is unresolved critical/high defects.
 Evidence: limit exhaustion, stale review, repeated findings, retry counter persistence, reviewer independence, and final combined-diff checks.
-The feature-level review-budget scope is a working interpretation, not a separately approved decision.
+The implementation uses this feature-level budget under the user-approved plan; ADR acceptance remains a separate record.
 
 ### REQ-007: Knowledge and ADR ownership
 
@@ -114,7 +114,7 @@ Evidence: deletion manifest, active-link audit, historical source references pin
 
 ## Interview and decisions
 
-The three-flow structure is selected by the user. Other entries are working defaults or compatibility limits, not additional routine interview gates. Selecting the workflow shape is not approval of this implementation draft.
+The three-flow structure is selected by the user. Other entries are working defaults or compatibility limits, not additional routine interview gates. The later instruction "yes implement it then redo the PR" authorizes this implementation and updating PR #20.
 
 | ID      | Decision                      | Status and outcome                                                                                                                                                    |
 | ------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -133,3 +133,127 @@ All approved requirements have executable or explicit procedural evidence. Skill
 ## Portability sources
 
 The [Agent Skills specification](https://agentskills.io/specification) defines portable package structure. The [client integration guide](https://agentskills.io/client-implementation/adding-skills-support) describes harness-side discovery and activation. These do not by themselves establish ORCA support or a universal parallel execution API.
+
+## Implementation authorization
+
+The user instructed: "yes implement it then redo the PR, we will start using this pattern for the features, right now I'm just trying to get the project stable before we start building". This authorizes implementing the reviewed plan on sdlc/feature-workflow-design and updating johnfabian/admin-starter-keycloak PR #20 targeting master. It does not accept historical ADR proposals or authorize merge/deployment. The previous source revision and baseline above remain historical evidence.
+
+## Validated feature contract
+
+```feature-spec
+{
+  "version": 2,
+  "id": "FEAT-AGENT-WORKFLOW",
+  "title": "Three-flow agent development",
+  "scope": [
+    "Workflow skills, portable contracts, isolated delivery and maintained knowledge"
+  ],
+  "nonGoals": [
+    "Application features, identity policy, merge, deployment and unverified ORCA support"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "actor": "developer and planning coordinator.",
+      "outcome": "create specs/features/YYYY-MM-DD-feature-slug.md with stable feature/requirement IDs, actor-visible outcomes, scope, non-goals, positive/denied/failure criteria, architecture questions, test expectations, and pending decisions. Interview only on material uncertainty.",
+      "denied": "a request to plan permits research and drafting; drafting never implies approval or publication.",
+      "failure": "unresolved material choices are explicit; contradictory or incomplete inputs prevent approval.",
+      "acceptance": [
+        "valid/invalid fixtures, naming/path validation, and a clean-session resume exercise."
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "actor": "independent reviewer.",
+      "outcome": "critique-feature-spec evaluates requirements, evidence, scope, ambiguity, feasibility, and acceptance criteria before implementation planning. Rename critique-plan and update active references, metadata, discovery links, templates, and validators.",
+      "denied": "reviewer can raise/dispose findings with evidence, but cannot grant human approval or accept risk.",
+      "failure": "unresolved blocking findings prevent advancement; changed specification invalidates its prior critique/approval as applicable.",
+      "acceptance": [
+        "stale-digest and missing-criterion scenarios; critique tied to the exact document revision."
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "actor": "planning coordinator and independent reviewer.",
+      "outcome": "plan-implementation evolves decompose-stories into specs/implementation-plans/YYYY-MM-DD-feature-slug.md. Include complete story packets, requirement coverage, dependency graph, affected layers, owned/shared paths, tests, rollback, and integration order. critique-implementation-plan independently evaluates feasibility, verticality, dependencies, and coverage.",
+      "denied": "the single routine approval at the end of flow two covers the exact critiqued specification, plan, and delivery through PR submission; it does not authorize merge or deployment.",
+      "failure": "missing dependencies, duplicate IDs, cycles, uncovered requirements, ownership conflicts, and unresolved architectural choices block readiness.",
+      "acceptance": [
+        "deterministic validation of valid and adversarial plans; traceable critique disposition."
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "actor": "integration owner and story workers.",
+      "outcome": "implement-feature delivers implementation, tests, adversarial review/fixes, integration, knowledge updates, audits, and PR submission as one flow. It selects stories whose prerequisites are integrated and verified. Dispatch at most two disjoint writers, each on its own branch/worktree. A story may have dependents and still be ready. Recalculate readiness after each integration.",
+      "denied": "workers inherit bounded approved scope and path ownership; they cannot expand shared contracts, change identity policy, or publish beyond authorization.",
+      "failure": "blocked stories and their dependents remain blocked. Disjoint work can continue within the approved plan. A stale base or changed contract triggers revalidation.",
+      "acceptance": [
+        "diamond dependency graph, failed prerequisite, ownership collision, stale base, interrupted worker, duplicate dispatch, and resume tests."
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "actor": "story worker.",
+      "outcome": "deliver one observable outcome across needed layers: schema/model, migration, service/BFF/API, UI, and tests. Use the actual project stack; justify layers that do not apply. Keep shared migrations, lockfiles, infrastructure, and integration files under one owner.",
+      "denied": "no automatic database/realm repairs or shared-service termination.",
+      "failure": "acquire the shared test-stack lock before live verification; verify the tested server belongs to the worktree; report missing prerequisites.",
+      "acceptance": [
+        "existing ownership/locking tests plus scheduling scenarios; each integrated story has its declared tests and rollback evidence."
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "actor": "independent reviewer and implementer.",
+      "outcome": "perform adversarial review appropriate to each story, fix findings, and rerun relevant checks. Working interpretation: at most five feature-level review-and-fix rounds, including final integration review. Targeted story reviews feed the same finding record; workers and resumed sessions cannot reset or multiply the budget.",
+      "denied": "no self-approval; only the designated human can accept material risk.",
+      "failure": "exhaustion means blocked, not passed. Persist round counts and findings across resume; changed revisions require re-review. Proposed blocking threshold is unresolved critical/high defects.",
+      "acceptance": [
+        "limit exhaustion, stale review, repeated findings, retry counter persistence, reviewer independence, and final combined-diff checks."
+      ]
+    },
+    {
+      "id": "REQ-007",
+      "actor": "integration owner.",
+      "outcome": "refresh the local source graph after edit batches and integration; maintain wiki explanations/runbooks and ADRs for reusable decisions. Source-backed specs hold feature scope; GitHub holds delivery, review, and approval evidence under the proposed ownership model.",
+      "denied": "never mark an ADR accepted from inference. Record actual approver, accepted outcome, date, and evidence; existing draft ADRs retain IDs.",
+      "failure": "missing/stale graph triggers setup/refresh; extraction failure blocks graph-dependent verification. Missing approval leaves ADR proposed.",
+      "acceptance": [
+        "graph checks, wiki audit, ADR provenance/lineage review, source verification, and no active-plan duplication into wiki."
+      ]
+    },
+    {
+      "id": "REQ-008",
+      "actor": "any supported agent harness.",
+      "outcome": "canonical Markdown skills, portable Python validators, and explicit work packets remain harness-neutral. Provider adapters handle discovery, delegation, tool access, and invocation policy. Project discovery must not require rewriting global links in every worktree.",
+      "denied": "adapters preserve approval policy and worktree boundaries; global installation is a separately scoped operation.",
+      "failure": "unsupported capabilities are reported. Serial fallback preserves isolation; lack of an independent reviewer blocks that review gate rather than fabricating it.",
+      "acceptance": [
+        "project-link parity, isolated-home global tests, two-worktree non-interference, clean-session transfer, and capability documentation. ORCA verification awaits the exact project/version."
+      ]
+    },
+    {
+      "id": "REQ-009",
+      "actor": "integration owner.",
+      "outcome": "remove the 15 explicitly identified legacy specs/plans files after mapping still-relevant decisions and open gaps to maintained knowledge or new scoped proposals. Update active references and stop treating obsolete plans as application facts.",
+      "denied": "deletion is requested by the user; preserve Git history, unrelated files, and ignored stability-pilot drafts.",
+      "failure": "conflicting history is documented, never converted to fabricated accepted decisions.",
+      "acceptance": [
+        "deletion manifest, active-link audit, historical source references pinned to the baseline commit, and unchanged unrelated drafts."
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "question": "Which workflow grouping?",
+      "status": "resolved",
+      "disposition": "Three flows selected and implementation authorized by the user"
+    },
+    {
+      "question": "ORCA adapter version?",
+      "status": "deferred",
+      "disposition": "No ORCA-specific compatibility claim; core remains portable"
+    }
+  ]
+}
+```

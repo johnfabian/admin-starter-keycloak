@@ -39,7 +39,7 @@ config:
 
 ## Prohibited
 
-- Do not count files under `specs/plans/` as executable tests.
+- Do not count files under `specs/features/` or `specs/implementation-plans/` as executable tests.
 - Do not claim tests passed when only lint, formatting, type-check, or build ran.
 - Do not place real credentials, tokens, personal data, or production payloads in fixtures.
 
@@ -47,3 +47,5 @@ config:
 
 - Run `corepack pnpm check` for the current static gate.
 - Run corepack pnpm test:fast and corepack pnpm test:e2e for affected tooling/browser behavior. Record unavailable live prerequisites as blocked, never as passing tests.
+
+Workflow changes must run the Python tooling suite, including real disposable Git worktree tests for claims, dependencies, evidence and review budgets. Distinguish mocked publication tests from real GitHub publication and simulated checks from live browser runs.

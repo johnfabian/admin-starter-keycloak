@@ -10,7 +10,7 @@ Identify files that may change and load only matching `.agents-config/rules/` ca
 
 ## Using skills
 
-Use a relevant canonical package from `.agents-config/skills/`; `.claude/skills` contains flat discovery symlinks. Determine invocation mode from the package metadata, not its type directory: `disable-model-invocation: true` in `SKILL.md`, paired with Codex's sidecar lock, requires explicit `/skill-name` invocation. Other skills may load on demand from their descriptions, and every skill remains directly user-invokable. Use `/plan-feature` as the primary SDLC entry. After creating or moving a skill, manually run `/skills-audit`. Do not preload all skills.
+Use a relevant canonical package from `.agents-config/skills/`; `.claude/skills` contains flat discovery symlinks. Determine invocation mode from the package metadata, not its type directory: `disable-model-invocation: true` in `SKILL.md`, paired with Codex's sidecar lock, requires explicit invocation or a required specialist step of the authorized flow. Other skills may load on demand from their descriptions, and every skill remains directly user-invokable. Use `plan-feature`, `plan-implementation`, and `implement-feature` for the three flows; natural-language requests can select them. After creating or moving a skill, explicitly run `/skills-audit`. Do not preload all skills.
 
 ## Durable checkpoints
 
@@ -34,3 +34,7 @@ corepack pnpm verify:story at story completion. Git hooks supplement these requi
 The shared local Keycloak test stack is serialized across worktrees by the test runner.
 Automated characterization replaces the old human-browser baseline prerequisite; report failures
 and automation limitations explicitly. The wiki stores explanations and ADRs; the graph is derived code data.
+
+## Feature delivery
+
+Keep dated specs in `specs/features/` and story/dependency plans in `specs/implementation-plans/`. The single routine human approval after plan critique binds scope and delivery through PR submission. Reuse that approval for internal specialist work. Use actual native delegation, separate writing worktrees and independent reviewers; the integration owner counts toward the two-writer limit when editing. Use the portable workflow helper for atomic claims, revision evidence and one shared five-round review budget. Missing independent review blocks completion. Run skills-audit and rules-audit after their changes and wiki-audit after knowledge changes. Update wiki/graph before final verification and review. Do not merge the PR automatically.

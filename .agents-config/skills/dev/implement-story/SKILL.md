@@ -1,20 +1,21 @@
 ---
 name: implement-story
-description: Execute one approved implementation story with a verified baseline, characterization-first or TDD ordering, scoped ownership, deterministic evidence, independent review, and durable handoff. Use only when the story packet is ready and human gates are satisfied; never implement on the default branch or self-approve completion.
-disable-model-invocation: true
+description: Implement one approved story with scoped worktree ownership, tests, independent review, and revision-bound evidence. Use for a ready story delegated by an authorized feature coordinator or requested directly by the user.
 ---
 
 # Implement an approved story
 
-Use the full Git commit containing this package as the skill version ID and record it in every artifact. A dirty package is unversioned and cannot satisfy a completed gate.
+Record the package Git revision in the story evidence; identify uncommitted package changes as provisional.
 
-1. Validate the story packet with [templates/story-packet.md](templates/story-packet.md): scope, criteria, paths, rules, wiki concepts, tests, dependencies, risks, approvals, and verification commands.
-2. Confirm a dedicated linked worktree on a feature branch and run agent preflight. The user-approved 2026-09-11 automation plan supersedes the former worktree prohibition. Keep parallel writers disjoint and at most two.
-3. Record the pre-change baseline and existing failures. Automated browser characterization may establish the baseline; a human browser session is not a prerequisite.
-4. For existing/risky behavior, add characterization tests first. For new behavior, record a failing test before implementation when feasible.
-5. Make the smallest scoped change, then record red, green, and refactor evidence separately.
-6. Run matching rule checks and the complete story verification set. Do not collapse lint/build/test evidence.
-7. Obtain independent review for the declared risk level; the implementer cannot approve its own work.
-8. Create a durable handoff before a human gate, ownership change, compaction, or stop.
+Accept a story delegated by the authorized `implement-feature` coordinator without requiring the developer to invoke this specialist separately. Verify the attributable approval for the exact specification and implementation-plan digests, repository, feature branch, target base, and delivery actions through commit, push, and PR submission. Reuse that approval within scope. Material scope or destination changes, missing authority, or unresolved blocking findings require resolution; merge and deployment are outside this delivery approval.
+
+1. Validate [templates/story-packet.md](templates/story-packet.md): outcome, criteria, path ownership, rules, relevant wiki concepts, tests, dependencies, approved scope, and exact verification commands. A dependent story is ready only after its prerequisites are verified, reviewed, and integrated into the assigned base revision.
+2. Confirm a dedicated linked worktree and feature branch, the coordinator's active ownership claim, and matching base revision. Run `corepack pnpm agent:setup -- --env-file <absolute-path>` for a fresh worktree and `corepack pnpm agent:check` before edits. Reference the selected environment file without copying or printing it.
+3. Keep at most two writers active across the repository worktrees, including the integration owner when editing. Own only assigned paths; shared files and lockfiles have one integration owner. Stop and reconcile a conflicting claim before writing.
+4. Record the pre-change baseline and existing failures. Use automated browser characterization where applicable. Add characterization for existing risky behavior or a failing test for new behavior when it meaningfully demonstrates the change.
+5. Make the scoped change, run matching rule checks and story verification, and distinguish tests from lint/build evidence. Refresh the worktree's local graph after edit batches. Run `corepack pnpm verify:commit` before authorized commits and `corepack pnpm verify:story` at story completion.
+6. Return the committed revision and exact command, result, time, and evidence digest to the coordinator. Request actual independent review through the harness; a written reviewer name or JSON record does not instantiate a reviewer. Never self-review or claim review that did not occur.
+7. Participate in the coordinator's single feature budget of at most five review rounds, including final integration. Preserve failed reviews and the current round across retries, worker restarts, and handoffs. A new review attempt for the same subject needs the next shared round; do not create a per-story budget or reuse evidence after the reviewed revision changes. Open critical or high findings and failed checks block integration.
+8. Return a scoped handoff for integration. Preserve interrupted work and ownership until the actual worker is stopped and its worktree is reconciled. Keep a local checkpoint provisional until it is included in the authorized PR body or another authorized GitHub record and exactly read back; no issue publication is required for PR-only delivery.
 
 Use [references/scenarios.md](references/scenarios.md) for control regression checks.

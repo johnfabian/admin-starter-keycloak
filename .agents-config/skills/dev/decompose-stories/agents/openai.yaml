@@ -1,4 +1,0 @@
-interface:
-  display_name: "Decompose Stories"
-  short_description: "Create small vertical story drafts"
-  default_prompt: "Use $decompose-stories to turn approved requirements into vertical story drafts."

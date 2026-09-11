@@ -1,10 +1,14 @@
+> **Superseded historical design.** Retained for provenance, not active agent instructions. The current workflow is documented in [the wiki](wiki/conventions/agent-development-workflow.md) and implemented by the three canonical entry skills. Old skill names, explicit step gates and GitHub-only planning rules below describe the earlier design.
+
 ---
+
 title: Enterprise Repository-Native AI SDLC Framework
 document_type: Product Requirements Document
 status: Draft for approval
 version: 1.1
 date: 2026-08-02
 owner: Engineering Enablement
+
 ---
 
 # Enterprise Repository-Native AI SDLC Framework

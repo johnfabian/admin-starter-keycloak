@@ -33,12 +33,12 @@ A separate command and approval for every specialist increases interaction overh
 
 # Consequences and limits
 
-The coordinator must retain scope, evidence and approvals across internal steps and resume. Existing skills do not yet implement the combined interface. The five-round feature-level review budget is still a draft interpretation, not an accepted subdecision.
+The coordinator must retain scope, evidence and approvals across internal steps and resume. The skills and portable helper now implement the combined interface with one shared five-round feature review budget. This implementation status does not change the proposed ADR lifecycle.
 
 # Approval provenance
 
-The user selected the three-flow grouping in conversation on 2026-09-11. This proposal records that direction without inventing a GitHub acceptance record or approving the implementation draft.
-Acceptance requires an attributable record of the exact outcome and approver. This audit creates no accepted ADR and makes no application, realm, network, or tooling-policy change.
+The user selected the three-flow grouping in conversation on 2026-09-11. The user subsequently authorized implementing the plan and updating PR #20. This proposal records that direction without inventing formal ADR acceptance.
+Acceptance requires an attributable record of the exact outcome and approver. This record remains proposed until exact decision acceptance is attributable; implementation authorization alone does not accept the historical ADR set.
 
 # Evidence and related guidance
 
