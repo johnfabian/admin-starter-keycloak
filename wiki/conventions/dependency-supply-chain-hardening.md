@@ -36,3 +36,9 @@ Document why an exception is needed, who approved the trust change, its intended
 [^workspace-policy]: Canonical pnpm supply-chain settings
 
 [^package-manager]: Pinned package manager and scripts
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0010: Gate dependency adoption with explicit trust controls (proposed)](/adr/ADR-0010-dependency-trust-controls.md)

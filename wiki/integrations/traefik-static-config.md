@@ -39,3 +39,9 @@ Confirm any new flag against Traefik v3.2 or deliberately update the image pin. 
 - [Known production gaps](/architecture/known-production-gaps.md)
 
 [^gateway-compose]: Traefik Compose configuration
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0011: Separate the local gateway edge from database connectivity (proposed)](/adr/ADR-0011-local-gateway-isolation.md)

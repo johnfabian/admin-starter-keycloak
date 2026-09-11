@@ -47,3 +47,9 @@ The implemented browser session/BFF currently remains in `web/`. A resource API 
 [^workspace]: pnpm workspace configuration
 
 [^root-package]: Root package manifest
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0006: Enforce routes server-side using the current role contract (proposed)](/adr/ADR-0006-server-side-role-authorization.md)

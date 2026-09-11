@@ -55,3 +55,9 @@ The approved production TLS mode, trusted proxy addresses, management-path expos
 [^web-compose]: Gateway-mode web Compose configuration
 
 [^postgres-compose]: Gateway-mode Postgres Compose configuration
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0011: Separate the local gateway edge from database connectivity (proposed)](/adr/ADR-0011-local-gateway-isolation.md)

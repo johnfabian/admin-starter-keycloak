@@ -43,3 +43,9 @@ A verified self-registered user is expected to be disabled until an administrato
 [^factory]: Event listener factory
 
 [^image]: Custom Keycloak image build
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0007: Require administrator approval after self-registration verification (proposed)](/adr/ADR-0007-registration-approval.md)

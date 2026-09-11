@@ -49,3 +49,9 @@ These values are represented in code and templates, but the realm and client are
 [^gateway-env]: Gateway environment template
 
 [^access-settings]: Implemented role constants
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0006: Enforce routes server-side using the current role contract (proposed)](/adr/ADR-0006-server-side-role-authorization.md)

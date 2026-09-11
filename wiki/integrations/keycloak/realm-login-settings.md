@@ -53,3 +53,9 @@ Inspect the actual realm, test SMTP, register a disposable user, verify the emai
 [^listener]: Registration approval listener
 
 [^mailpit]: Local Mailpit service
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0007: Require administrator approval after self-registration verification (proposed)](/adr/ADR-0007-registration-approval.md)

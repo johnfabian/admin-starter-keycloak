@@ -55,3 +55,9 @@ The repository cannot verify the live client's authentication mode, scope mappin
 [^auth-config]: Implemented client configuration
 
 [^env-templates]: Direct-stack URI template
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0005: Keep browser authentication and token custody in the BFF (proposed)](/adr/ADR-0005-bff-session-and-token-boundary.md)

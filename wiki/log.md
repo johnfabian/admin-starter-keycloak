@@ -2,6 +2,10 @@
 
 ## 2026-09-11
 
+- Reconciled decision-bearing wiki guidance into ADR-0004 through ADR-0012 proposals, retaining source guides with backlinks. Clarified ADR-0002 ownership and the code-only Graphify/wiki split. All ADRs remain proposed; no historical acceptance, live verification, or production approval was inferred.
+
+- Added the user-selected three-flow development convention: specification with critique, implementation planning with critique and one routine approval, and implementation with tests/review through PR submission. Documented current automation limits and linked the convention from the root and conventions indexes; no ADR acceptance inferred.
+
 - Added local automation runbooks, code-graph ownership, and proposed ADRs; renamed the live ADR directory from decisions to adr. Historical records retain their original paths. Browser evidence remains conditional on successful live execution.
 
 ## 2026-08-02

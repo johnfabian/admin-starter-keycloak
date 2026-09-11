@@ -36,3 +36,9 @@ Review exports for sensitive values before storing or committing them. Keep reco
 [^backup-scripts]: Postgres backup and restore primitives
 
 [^keycloak-compose]: Keycloak database configuration
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0012: Recover local state from database dumps rather than realm exports (proposed)](/adr/ADR-0012-local-database-recovery.md)

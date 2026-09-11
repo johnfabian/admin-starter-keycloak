@@ -8,6 +8,10 @@ Use this index for progressive disclosure. Open only sections relevant to the ta
 
 All baseline concepts created on 2026-08-02 are `draft` and unverified until reviewed by the appropriate human owner.
 
+## Development workflow
+
+Start with [Three-flow agent development](/conventions/agent-development-workflow.md) for the selected feature-spec, implementation-plan, and implementation-to-PR process. The page distinguishes intended coordination from currently implemented tooling.
+
 ## Sections
 
 - [Architecture](architecture/) - Implemented system boundaries and structural relationships.

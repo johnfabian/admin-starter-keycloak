@@ -56,3 +56,9 @@ Do not generalize this runbook to a production provider. Do not expose environme
 [^gateway-compose]: Gateway Postgres volume and initialization
 
 [^backup-format]: Backup file format and restore primitives
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0012: Recover local state from database dumps rather than realm exports (proposed)](/adr/ADR-0012-local-database-recovery.md)

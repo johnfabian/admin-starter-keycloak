@@ -80,3 +80,9 @@ There is no tracked CI workflow enforcing these commands. Rule ownership and req
 [^skills-audit-script]: Skills audit Python automation
 
 [^skills-rule]: Shared skill package rule
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0009: Keep canonical agent procedures portable across harnesses (proposed)](/adr/ADR-0009-portable-agent-tooling.md)

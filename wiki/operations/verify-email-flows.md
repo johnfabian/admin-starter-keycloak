@@ -50,3 +50,9 @@ Record which mode, realm, disposable user, message type, final account state, an
 [^registration-listener]: Registration approval listener
 
 [^auth-routes]: Login and registration redirects
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0007: Require administrator approval after self-registration verification (proposed)](/adr/ADR-0007-registration-approval.md)

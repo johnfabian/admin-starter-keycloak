@@ -35,3 +35,9 @@ A Keycloak-initiated logout cannot proactively delete the BFF session row becaus
 [^logout-flow]: Implemented local and Keycloak logout flow
 
 [^routes]: Implemented application routes
+
+# Related decision records
+
+These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0005: Keep browser authentication and token custody in the BFF (proposed)](/adr/ADR-0005-bff-session-and-token-boundary.md)

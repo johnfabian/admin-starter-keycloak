@@ -32,3 +32,11 @@ approver identity or immutable approval URL. After that record exists, use recor
 # Supersession
 
 No preceding ADR exists. Preserve this identifier if the decision is later accepted or superseded.
+
+# Ownership clarification under review
+
+The selected three-flow convention places feature specifications in specs/features and implementation plans in specs/implementation-plans, with GitHub delivery, review and approval records linked to their revisions. The wiki maintains explanations and decision records; skills/rules define procedures and constraints. This refines this existing proposal rather than creating a competing ownership ADR. Current planning skills still require the older GitHub-artifact persistence model until the workflow change is implemented.
+
+The configured Graphify corpus includes source files and supported tests/automation, but excludes Markdown, environment files and provider discovery links. Code relationships do not supply decision rationale, approval provenance or operational instructions. Both the local code graph and maintained wiki are required by this convention.
+
+See [code graph ownership](/conventions/code-graph.md) and [three-flow development](/conventions/agent-development-workflow.md).
