@@ -1,7 +1,7 @@
 ---
 id: skills
-paths: [".agents-config/skills/**/*", ".agents/skills/*", ".claude/skills/*"]
-applies_to: [".agents-config/skills/**/*", ".agents/skills/*", ".claude/skills/*"]
+paths: [".agents-config/skills/**/*", ".agents/skills/*", ".claude/skills/*", "README.md"]
+applies_to: [".agents-config/skills/**/*", ".agents/skills/*", ".claude/skills/*", "README.md"]
 owner: unassigned
 enforcement: ["skills-audit", "skill-package-validation", "human-review"]
 wiki: ["/conventions/repository-tooling.md"]
@@ -27,6 +27,8 @@ config:
 - After adding, renaming, moving, or reviewing a skill, explicitly run `$skills-audit` with repair and then run its read-only audit.
 - Write skill automation as portable Python, declare its Python requirement in uv script metadata, and invoke it with `uv run`; prefer the standard library when no dependency is required.
 - Keep skill instructions and subprocess calls platform-neutral.
+- Keep approved feature-planning artifacts and handoffs in exact, idempotently keyed GitHub issue comments after preview and human approval. Treat `.agent-work` copies as provisional and never delete them automatically.
+- Keep the README skill catalog between its audit markers complete and linked to every canonical package; summarize purpose and invocation mode without copying skill bodies.
 
 ## Prohibited
 
@@ -38,4 +40,4 @@ config:
 ## Checks
 
 - Categorize packages and repair project/global adapters: explicitly invoke `$skills-audit`, which runs `uv run .agents-config/skills/meta/skills-audit/scripts/audit_skills.py . --fix`.
-- Audit package, invocation-policy, and adapter parity: `uv run .agents-config/skills/meta/skills-audit/scripts/audit_skills.py .`.
+- Audit package, README catalog, invocation-policy, and adapter parity: `uv run .agents-config/skills/meta/skills-audit/scripts/audit_skills.py .`.

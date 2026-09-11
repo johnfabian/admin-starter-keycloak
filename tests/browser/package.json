@@ -1,0 +1,16 @@
+{
+  "name": "admin-starter-browser-tests",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@axe-core/playwright": "4.13.0",
+    "@types/node": "25.7.0",
+    "typescript": "6.0.3"
+  }
+}

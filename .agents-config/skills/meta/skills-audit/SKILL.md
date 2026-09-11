@@ -1,6 +1,6 @@
 ---
 name: skills-audit
-description: Audit and repair the typed shared skill catalog, portable Python/uv automation, project discovery adapters, and flat Claude/Codex global symlinks. Use explicitly after adding, renaming, moving, or reviewing a skill under .agents-config/skills.
+description: Audit and repair the typed shared skill catalog, README catalog, portable Python/uv automation, project discovery adapters, and flat Claude/Codex global symlinks. Use explicitly after adding, renaming, moving, or reviewing a skill under .agents-config/skills.
 disable-model-invocation: true
 ---
 
@@ -46,6 +46,7 @@ Inspect every entry in both `~/.claude/skills/` and `~/.codex/skills/`. The Pyth
 - Require every package to be self-contained and every skill script to be portable Python with uv script metadata.
 - Reject PowerShell-dependent instructions and non-Python files under skill-local `scripts/` directories.
 - Verify project adapters are relative directory symlinks and tracked adapters use Git mode `120000`.
+- Verify the README catalog contains exactly one canonical link for every skill and no stale package links. The audit reports drift but never rewrites explanatory prose.
 
 ## Report
 

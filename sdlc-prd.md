@@ -22,7 +22,7 @@ owner: Engineering Enablement
 
 This PRD defines an enterprise, repository-native AI SDLC framework for planning, implementing, reviewing, and improving software changes. The framework keeps product intent, architecture knowledge, architectural decision records (ADRs), scoped implementation rules, skill packages, handoffs, evaluation data, and delivery evidence under version control. Claude Code and OpenAI Codex are interchangeable execution engines, not sources of truth.
 
-The framework makes work predictable by turning a feature request into a controlled chain of small, reviewable artifacts: research, requirements, architecture impact, edge cases, vertical stories, critique, approved GitHub issues, implementation evidence, adversarial review, and a model-neutral handoff. GitHub is the feature and delivery system of record after approval. Each capability is an independently invokable skill. A thin `feature-plan` skill only orders stages, maintains ephemeral state, and asks for approval; it does not duplicate specialist instructions. Humans retain explicit authority over scope, architecture, risk acceptance, publication, merge, and production release.
+The framework makes work predictable by turning a feature request into a controlled chain of small, reviewable artifacts: research, requirements, architecture impact, edge cases, vertical stories, critique, approved GitHub issues, implementation evidence, adversarial review, and a model-neutral handoff. GitHub is the feature and delivery system of record after approval. Each capability is an independently invokable skill. A thin `plan-feature` skill only orders stages, maintains ephemeral state, and asks for approval; it does not duplicate specialist instructions. Humans retain explicit authority over scope, architecture, risk acceptance, publication, merge, and production release.
 
 Markdown is the default artifact format because engineers and agents can review, diff, and link it in Git. JSON is reserved for temporary workflow state, contracts, schemas, and deterministic evidence. The repository contains an Open Knowledge Format (OKF)-compatible knowledge bundle retrieved at runtime. It is the progressive-disclosure layer for architecture, ADRs, policy, schemas, conventions, and stable operational knowledge; agents retrieve only relevant concepts instead of preloading a large wiki. A separate, path-scoped rules layer supplies concise, imperative React, Express, testing, security, and style guidance only while work is in its scope.
 
@@ -138,7 +138,7 @@ OpenTelemetry collector -> approved telemetry backends
 ├── wiki/                              # OKF-compatible progressive-disclosure wiki
 │   ├── index.md
 │   ├── architecture/
-│   ├── decisions/                      # durable ADR register and decision index
+│   ├── adr/                      # durable ADR register and decision index
 │   ├── constitution/                   # enduring engineering tenets and decision rights
 │   ├── policy/
 │   ├── schemas/
@@ -173,7 +173,7 @@ Provider adapters may translate invocation syntax but may not change the GitHub 
 
 ### FR-1: GitHub-backed feature record and ephemeral staging
 
-GitHub Issues and Projects shall be the durable record for feature intent, requirements, decisions, story breakdown, acceptance criteria, dependencies, workflow status, review outcomes, and handoff. A local `.agent-work/<feature-id>/` folder is optional, gitignored, and disposable. It may contain unpublished drafts, short-lived workflow state, generated previews, and machine-readable digests while a planning run is active. It must not become a parallel archive of feature documents. After approval, the publisher writes the approved material to GitHub and records links to CI/PR evidence; a later agent resumes from GitHub plus targeted wiki retrieval.
+GitHub Issues and Projects shall be the durable record for feature intent, requirements, decisions, story breakdown, acceptance criteria, dependencies, workflow status, review outcomes, and handoff. A local `.agent-work/<feature-id>/` folder is optional, gitignored, and provisional. It may contain unpublished drafts, short-lived workflow state, generated previews, and machine-readable digests while a planning run is active. It must not become a parallel authoritative archive of feature documents, and no skill may delete it automatically. After approval, the publisher writes issue/story definitions to GitHub issue bodies and writes approved stage artifacts and handoffs as immutable, idempotently keyed comments included in the exact approved preview. The publisher re-reads each record and captures its URL plus source and published-body digests before the workflow claims durable completion. Later cleanup requires explicit human direction; a later agent resumes from GitHub plus targeted wiki retrieval.
 
 ### FR-2: Self-contained skills and commands
 
@@ -183,7 +183,7 @@ Each capability shall be independently invokable. Required initial catalog:
 
 | Command                   | Skill responsibility                                                                               | Required output                                                                                  |
 | ------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `feature-plan`            | Thin orchestration: stage order, ephemeral resume state, approvals                                 | GitHub draft/checklist update and next-stage request                                             |
+| `plan-feature`            | Thin orchestration: stage order, ephemeral resume state, approvals                                 | GitHub draft/checklist update and next-stage request                                             |
 | `feature-research`        | Find analogous code, tests, GitHub history, and relevant wiki concepts                             | GitHub planning comment or draft issue section                                                   |
 | `requirements-interview`  | Convert intent into testable requirements and decisions                                            | Feature issue body/decision comment                                                              |
 | `architecture-impact`     | Identify affected boundaries, contracts, ADR needs, compatibility                                  | Feature issue architecture section and wiki/ADR links                                            |
@@ -199,12 +199,12 @@ Each capability shall be independently invokable. Required initial catalog:
 | `wiki-update`             | Safely add, refresh, deprecate, or correct durable knowledge                                       | Reviewed concept/index/log updates and validation report                                         |
 | `wiki-audit`              | Validate conformance, stale concepts, sources, and link integrity                                  | Read-only audit report; no silent mutations                                                      |
 | `wiki-visualize`          | Generate a self-contained relationship viewer from the wiki                                        | `wiki/viz.html` and a generation manifest                                                        |
-| `record-adr`              | Convert an approved, durable architectural decision into an ADR concept                            | Reviewed `wiki/decisions/ADR-<id>-<slug>.md`, index/log updates, and GitHub cross-link           |
+| `record-adr`              | Convert an approved, durable architectural decision into an ADR concept                            | Reviewed `wiki/adr/ADR-<id>-<slug>.md`, index/log updates, and GitHub cross-link                 |
 | `rules-audit`             | Validate rule-card scope, conflicts, adapters, and automated enforcement mapping                   | Read-only rule coverage/conflict report; no silent mutations                                     |
 
 ### FR-3: Thin orchestration
 
-`feature-plan` shall not contain detailed research, interview, decomposition, or critique instructions. It shall inspect the GitHub feature record and any current ephemeral state, validate declared outputs, invoke or direct the next skill, stop at approval gates, and record the stage transition on the feature issue. It shall never publish issues or code by default.
+`plan-feature` shall not contain detailed research, interview, decomposition, or critique instructions. It shall inspect the GitHub feature record and any current ephemeral state, validate declared outputs, invoke or direct the next skill, stop at approval gates, and record the stage transition on the feature issue. It shall never publish issues or code by default.
 
 ### FR-4: Research and knowledge retrieval
 
@@ -256,7 +256,7 @@ The framework shall provide `wiki-visualize`, which deterministically produces a
 
 ### FR-16: ADR lifecycle
 
-The framework shall provide `record-adr` to create or update a durable ADR only after the associated GitHub decision is approved. Each ADR shall be a `Decision` concept in `wiki/decisions/` with an immutable `ADR-<id>` identifier, context, decision, alternatives and consequences, decision status, approver/decision date, supporting evidence, and Markdown links to superseded or superseding ADRs. The linked GitHub issue or pull request retains the active discussion, options, approvals, and delivery context; the ADR records the reusable outcome and rationale. Superseded ADRs remain in the bundle with an explicit lifecycle/supersession link—never silently rewritten or deleted.
+The framework shall provide `record-adr` to create or update a durable ADR only after the associated GitHub decision is approved. Each ADR shall be a `Decision` concept in `wiki/adr/` with an immutable `ADR-<id>` identifier, context, decision, alternatives and consequences, decision status, approver/decision date, supporting evidence, and Markdown links to superseded or superseding ADRs. The linked GitHub issue or pull request retains the active discussion, options, approvals, and delivery context; the ADR records the reusable outcome and rationale. Superseded ADRs remain in the bundle with an explicit lifecycle/supersession link—never silently rewritten or deleted.
 
 ### FR-17: Scoped implementation rules
 
@@ -272,7 +272,7 @@ The framework shall provide `adversarial-review` for high-risk plans and changes
 
 ### FR-20: Session checkpoints and provider-neutral handoff
 
-The framework shall use provider session history only as a convenience. It shall create a durable `handoff` checkpoint after every completed stage, before a human gate, before context compaction/provider switch, before an implementation worktree changes owner, and whenever a session is intentionally stopped. The checkpoint is a structured GitHub issue/PR comment with a small optional `.agent-work/` JSON digest; it is sufficient for a clean Claude Code or Codex session to resume without transcript access. Required fields are objective and scope; feature/story and GitHub links; base/current revision; branch/worktree identity; owned paths; completed work; applied rules and retrieved wiki IDs; decisions/gate status; exact check results; risks/blockers; and one exact next action.
+The framework shall use provider session history only as a convenience. It shall create a `handoff` checkpoint after every completed stage, before a human gate, before context compaction/provider switch, before an implementation worktree changes owner, and whenever a session is intentionally stopped. A local or copy/paste checkpoint is provisional. It becomes durable only as a structured GitHub issue/PR comment whose stable key, exact body, URL, digests, and read-back time have been verified; a small optional `.agent-work/` JSON digest may accompany it. The durable checkpoint is sufficient for a clean Claude Code or Codex session to resume without transcript access. Required fields are objective and scope; feature/story and GitHub links; base/current revision; branch/worktree identity; owned paths; completed work; applied rules and retrieved wiki IDs; decisions/gate status; exact check results; risks/blockers; persistence status; and one exact next action.
 
 ### FR-21: Parallel implementation and worktrees
 
@@ -306,7 +306,7 @@ The framework shall permit parallel implementation only after `parallel-implemen
 | Research               | Read-only skill                            | Request, runtime retrieval                             | Evidence-backed issue comment/section           | Evidence links valid                        |
 | Requirements           | Planner + product                          | Request, research                                      | Feature issue requirements and decisions        | Decisions identified/answered               |
 | Architecture impact    | Staff/security review                      | Requirements, research                                 | Feature issue impact section and wiki/ADR links | ADR/security review if triggered            |
-| ADR record             | `record-adr` + architecture owner          | Approved durable decision                              | `wiki/decisions/` ADR and GitHub cross-link     | Human approval; index/log/audit pass        |
+| ADR record             | `record-adr` + architecture owner          | Approved durable decision                              | `wiki/adr/` ADR and GitHub cross-link           | Human approval; index/log/audit pass        |
 | Edge cases             | Analyst                                    | Requirements, architecture                             | Feature issue risk/test section                 | Every material case disposed                |
 | Story map              | Decomposer                                 | Approved feature record                                | Draft child issues/sub-issues                   | Verticality and testability checks pass     |
 | Critique               | Clean-context reviewer                     | Feature issue and linked evidence                      | Structured review comment                       | Critical findings resolved or accepted      |
@@ -426,7 +426,7 @@ JSON shall be used for state, contracts, schemas, deterministic grader output, t
 
 ### 9.3 Provider-neutral handoff
 
-The handoff shall be a structured GitHub issue or pull-request comment, not a separate feature document. It shall include: objective and scope; feature/story IDs; provider/session as optional provenance only; base/current revision; branch/worktree identity; owned paths; completed work; applied rule IDs; retrieved wiki IDs; checks and evidence links; decisions/assumptions and human gate status; remaining risks/blockers; exact next action; and the minimum retrieval references. During an active local run, a small JSON state/digest may sit in `.agent-work/`; it is disposable once the durable GitHub handoff is posted. Handoff checkpoints are required at the boundaries in FR-20, not only at the end of a planning run.
+The handoff shall be a structured GitHub issue or pull-request comment, not a separate feature document. It shall include: objective and scope; feature/story IDs; provider/session as optional provenance only; base/current revision; branch/worktree identity; owned paths; completed work; applied rule IDs; retrieved wiki IDs; checks and evidence links; decisions/assumptions and human gate status; remaining risks/blockers; persistence status and digests; exact next action; and the minimum retrieval references. During an active local run, a small JSON state/digest may sit in `.agent-work/`; it remains provisional until the exact comment is published and re-read successfully. No workflow deletes the local copy automatically, and any later cleanup requires explicit human direction. Handoff checkpoints are required at the boundaries in FR-20, not only at the end of a planning run.
 
 ### 9.4 Parallel-work coordination record
 
@@ -447,7 +447,7 @@ wiki/
 │   └── telemetry.md
 ├── domain/
 │   └── index.md
-├── decisions/
+├── adr/
 │   ├── index.md
 │   └── ADR-0042-bff-boundary.md
 ├── constitution/
@@ -504,7 +504,7 @@ sources:
 
 ### 10.3 ADRs as decision concepts
 
-`wiki/decisions/` is the canonical, repository-versioned ADR register. An ADR is a durable decision concept, not a duplicate issue template and not an all-purpose meeting record. It is created when a GitHub decision has been approved and the result changes an architectural constraint, establishes a reusable cross-team convention, or carries material, long-lived tradeoffs. A feature-level choice that affects only that delivery remains in GitHub.
+`wiki/adr/` is the canonical, repository-versioned ADR register. An ADR is a durable decision concept, not a duplicate issue template and not an all-purpose meeting record. It is created when a GitHub decision has been approved and the result changes an architectural constraint, establishes a reusable cross-team convention, or carries material, long-lived tradeoffs. A feature-level choice that affects only that delivery remains in GitHub.
 
 ```yaml
 ---
@@ -532,9 +532,9 @@ Its Markdown body shall use fixed headings: **Context**, **Decision**, **Alterna
 
 **`wiki-update`** shall take a scoped trigger such as a merged pull request, approved architecture change, incident learning, or explicit correction. It shall retrieve only affected concepts, validate changed claims against code/configuration and sources, update `generated`, `verified` only when an actual verifier confirmed content, `status`, `stale_after`, applicable indexes, and the local `log.md`. It shall never rewrite unrelated concepts, fabricate verification, or turn a feature issue into a wiki page.
 
-**`wiki-audit`** shall be read-only and deterministic. It checks the OKF conformance baseline, reserved-file rules, `type`, YAML parsing, index coverage, link graph, sources, actor format, trust/freshness status, generated-file freshness, and accidental feature-plan content in the wiki. It reports broken links and stale concepts separately from hard conformance failures.
+**`wiki-audit`** shall be read-only and deterministic. It checks the OKF conformance baseline, reserved-file rules, `type`, YAML parsing, index coverage, link graph, sources, actor format, trust/freshness status, generated-file freshness, and accidental active feature-planning content in the wiki. It reports broken links and stale concepts separately from hard conformance failures.
 
-**`record-adr`** shall receive an approved GitHub decision and targeted supporting evidence, retrieve the affected ADR/index concepts, and create or update the smallest valid ADR record. It must allocate an immutable identifier, add required body sections and cross-links, preserve history, update the decisions index and root log, and post the resulting commit/path on the originating GitHub issue or pull request. It shall stop for human direction if approval, ownership, or the decision outcome is ambiguous.
+**`record-adr`** shall receive an approved GitHub decision and targeted supporting evidence, retrieve the affected ADR/index concepts, and create or update the smallest valid ADR record. It must allocate an immutable identifier, add required body sections and cross-links, preserve history, update the ADR index and root log, and post the resulting commit/path on the originating GitHub issue or pull request. It shall stop for human direction if approval, ownership, or the decision outcome is ambiguous.
 
 ### 10.5 Relationship visualization
 
@@ -684,12 +684,12 @@ Traefik provides logs, access logs, metrics, and tracing; its metrics can be exp
 
 ## 18. Acceptance criteria for the pilot
 
-- A product owner can explicitly start a feature with `/feature-plan` in Claude or `$feature-plan` in Codex, or independently invoke any listed planning skill. Implementation and publication workflow anchors also require explicit invocation; contextual specialist skills remain available through progressive disclosure.
+- A product owner can explicitly start a feature with `/plan-feature` in Claude or `$plan-feature` in Codex, or independently invoke any listed planning skill. Implementation and publication workflow anchors also require explicit invocation; contextual specialist skills remain available through progressive disclosure.
 - The orchestrator resumes correctly after a stopped stage using the GitHub feature record, targeted wiki retrieval, and any available ephemeral state.
 - Every skill package is portable and self-contained; package lint verifies it has no external instruction-file dependency.
 - `wiki-init` creates a valid `wiki/` bundle with root/child indexes and log; `wiki-audit` reports conformance, stale concepts, sources, and links without mutation.
 - `wiki-update` refreshes only scoped, reusable concepts with sources and trust/freshness metadata; it does not turn a feature issue into a wiki page.
-- An approved, reusable architectural decision produces a valid ADR in `wiki/decisions/`, linked to its GitHub approval; a supersession preserves the original ADR and the relationship.
+- An approved, reusable architectural decision produces a valid ADR in `wiki/adr/`, linked to its GitHub approval; a supersession preserves the original ADR and the relationship.
 - `wiki-visualize` deterministically produces an accessible, self-contained `wiki/viz.html` with nodes, directed cross-link edges, detail metadata, filters, and a generation manifest.
 - The canonical React Router and Express rule cards load only for their scoped files, identify their automated checks, and are consistent with their Claude adapters; `rules-audit` finds no unresolved conflict or protected-path gap.
 - A feature produces a complete GitHub record, linked CI/PR evidence, and a provider-neutral GitHub handoff without creating a permanent parallel feature-document archive.

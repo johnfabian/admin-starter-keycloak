@@ -1,4 +1,4 @@
 interface:
   display_name: "Handoff"
-  short_description: "Create a durable GitHub checkpoint packet"
-  default_prompt: "Use $handoff to prepare a provider-neutral Markdown checkpoint for the current GitHub issue or pull request."
+  short_description: "Create and track a resumable checkpoint"
+  default_prompt: "Use $handoff to prepare a provider-neutral checkpoint and record whether its GitHub persistence is provisional or verified."

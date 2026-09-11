@@ -392,7 +392,10 @@ function SplashFooter() {
       <div className="px-6 py-10 md:px-10 md:py-12 lg:px-16">
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <Link to={appRoutes.home} className="mb-4 flex items-center gap-2.5 font-semibold text-foreground">
+            <Link
+              to={appRoutes.home}
+              className="mb-4 flex items-center gap-2.5 font-semibold text-foreground"
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <LayoutDashboard className="h-5 w-5" aria-hidden="true" />
               </span>
@@ -431,7 +434,13 @@ function SplashFooter() {
   );
 }
 
-function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
+function FooterColumn({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
   return (
     <div>
       <h3 className="mb-4 text-sm font-semibold text-foreground">{title}</h3>

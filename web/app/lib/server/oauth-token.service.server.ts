@@ -200,9 +200,7 @@ export async function requestTokenResult(body: URLSearchParams): Promise<TokenRe
       ok: false,
       failureType: timedOut ? "timeout" : "network",
       status: TOKEN_SERVICE_CONFIG.serviceUnavailableStatus,
-      error: timedOut
-        ? TOKEN_REQUEST_ERRORS.requestTimeout
-        : TOKEN_REQUEST_ERRORS.requestFailed,
+      error: timedOut ? TOKEN_REQUEST_ERRORS.requestTimeout : TOKEN_REQUEST_ERRORS.requestFailed,
     };
   } finally {
     clearTimeout(timeout);
@@ -229,7 +227,11 @@ export async function requestToken(body: URLSearchParams) {
   return result.ok ? result.tokens : null;
 }
 
-export function createAuthorizationCodeParams(code: string, codeVerifier: string, redirectUri: string) {
+export function createAuthorizationCodeParams(
+  code: string,
+  codeVerifier: string,
+  redirectUri: string
+) {
   return {
     code,
     code_verifier: codeVerifier,

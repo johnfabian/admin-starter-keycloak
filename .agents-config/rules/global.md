@@ -12,6 +12,8 @@ config: ["/package.json", "/prettier.config.mjs", "/.prettierignore", "/.gitigno
 
 ## Required
 
+- Use a dedicated linked worktree and feature branch for every writing agent; run corepack pnpm agent:check before edits and corepack pnpm verify:commit before commits. Bootstrap changes validate Git identity first.
+
 - Preserve unrelated work and inspect `git status` before and after editing.
 - Keep changes within the authorized scope and cite repository evidence for new durable knowledge.
 - Use root `corepack pnpm` scripts so repository environment wrappers are preserved.
@@ -34,7 +36,7 @@ config: ["/package.json", "/prettier.config.mjs", "/.prettierignore", "/.gitigno
 
 - Map the workflow and its side effects in the task plan before an authorized human manually invokes it as `/skill-name` in Claude or `$skill-name` in Codex.
 - Run these workflows sequentially and never infer authorization from task context alone.
-- Use `feature-plan` as the primary explicit SDLC entry point. It may identify one next specialist skill but must not bypass a specialist workflow or human gate.
+- Use `plan-feature` as the primary explicit SDLC entry point. It may identify one next specialist skill but must not bypass a specialist workflow or human gate.
 
 ### Contextual skills
 
@@ -43,7 +45,7 @@ config: ["/package.json", "/prettier.config.mjs", "/.prettierignore", "/.gitigno
 
 ## Prohibited
 
-- Do not read, commit, or print ignored secrets, dumps, logs, backups, or local environment files.
+- Do not print or commit ignored secrets, dumps, logs, backups, or local environment values. Authorized Keycloak/environment helpers may read an explicitly selected local environment file in-process without displaying values; graph extraction must exclude it.
 - Do not treat plans, placeholders, agent prose, or documentation as proof of implemented behavior.
 - Do not mutate GitHub, production systems, or protected branches without explicit authority.
 - Do not add PowerShell (`.ps1`, `powershell`, or `pwsh`) or Node (`.js`, `.cjs`, or `.mjs`) automation under repository or skill `scripts/` directories; JavaScript tool configuration modules are exempt.

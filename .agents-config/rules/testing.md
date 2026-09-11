@@ -4,18 +4,28 @@ paths:
   [
     "**/*.{test,spec}.{js,jsx,ts,tsx}",
     "**/{test,tests,__tests__}/**/*",
+    "scripts/*.py",
     "**/{vitest,jest,playwright,cypress}.config.*",
   ]
 applies_to:
   [
     "**/*.{test,spec}.{js,jsx,ts,tsx}",
     "**/{test,tests,__tests__}/**/*",
+    "scripts/*.py",
     "**/{vitest,jest,playwright,cypress}.config.*",
   ]
 owner: unassigned
-enforcement: ["repository-check", "manual-test-gap"]
+enforcement: ["repository-check", "python-unit-tests", "playwright"]
 wiki: ["/testing/verification-baseline.md"]
-config: ["/package.json", "/web/package.json", "/web/eslint.config.mjs", "/web/tsconfig.json"]
+config:
+  [
+    "/package.json",
+    "/web/package.json",
+    "/web/eslint.config.mjs",
+    "/web/tsconfig.json",
+    "/tests/browser/playwright.config.ts",
+    "/scripts/checks.py",
+  ]
 ---
 
 # Testing rules
@@ -36,4 +46,4 @@ config: ["/package.json", "/web/package.json", "/web/eslint.config.mjs", "/web/t
 ## Checks
 
 - Run `corepack pnpm check` for the current static gate.
-- Record automated tests as unavailable until a test runner and test scripts exist.
+- Run corepack pnpm test:fast and corepack pnpm test:e2e for affected tooling/browser behavior. Record unavailable live prerequisites as blocked, never as passing tests.

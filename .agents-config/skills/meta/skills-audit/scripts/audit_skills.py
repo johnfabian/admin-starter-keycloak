@@ -29,13 +29,15 @@ REQUIRED_EXPLICIT_SKILLS = (
     META_SKILLS
     | OPS_SKILLS
     | {
-        "feature-plan",
+        "plan-feature",
         "implement-story",
         "publish-issues",
     }
 )
 PROJECT_ADAPTERS = (Path(".agents/skills"), Path(".claude/skills"))
 GLOBAL_ADAPTERS = (Path(".claude/skills"), Path(".codex/skills"))
+README_CATALOG_START = "<!-- skills-catalog:start -->"
+README_CATALOG_END = "<!-- skills-catalog:end -->"
 
 
 def parse_args() -> argparse.Namespace:
@@ -97,7 +99,7 @@ def lexists(path: Path) -> bool:
 def category_for(name: str) -> str:
     if name in META_SKILLS:
         return "meta"
-    if name in OPS_SKILLS:
+    if name in OPS_SKILLS or name == "keycloak-admin":
         return "ops"
     return "dev"
 
@@ -476,6 +478,72 @@ def main() -> int:
                             "Python skill scripts must declare requires-python in uv script metadata.",
                         )
 
+    readme_path = root / "README.md"
+    readme_catalog_entries = 0
+    if not readme_path.is_file():
+        issue(
+            errors,
+            "missing-readme",
+            readme_path,
+            "README.md must document the canonical skill catalog.",
+        )
+    else:
+        readme = readme_path.read_text(encoding="utf-8")
+        if (
+            readme.count(README_CATALOG_START) != 1
+            or readme.count(README_CATALOG_END) != 1
+        ):
+            issue(
+                errors,
+                "invalid-readme-skill-catalog-markers",
+                readme_path,
+                "README.md must contain one ordered skills-catalog marker pair.",
+            )
+        else:
+            start = readme.index(README_CATALOG_START) + len(README_CATALOG_START)
+            end = readme.index(README_CATALOG_END)
+            if start > end:
+                issue(
+                    errors,
+                    "invalid-readme-skill-catalog-order",
+                    readme_path,
+                    "README.md skill catalog end marker precedes its start marker.",
+                )
+            else:
+                catalog = readme[start:end]
+                expected_links = {
+                    f".agents-config/skills/{skill['category']}/{skill['name']}/SKILL.md"
+                    for skill in skills
+                }
+                actual_links = re.findall(
+                    r"\.agents-config/skills/(?:meta|ops|dev)/[a-z0-9-]+/SKILL\.md",
+                    catalog,
+                )
+                readme_catalog_entries = len(actual_links)
+                for expected in sorted(expected_links):
+                    count = actual_links.count(expected)
+                    if count == 0:
+                        issue(
+                            errors,
+                            "missing-readme-skill",
+                            readme_path,
+                            f"README.md skill catalog is missing {expected}.",
+                        )
+                    elif count > 1:
+                        issue(
+                            errors,
+                            "duplicate-readme-skill",
+                            readme_path,
+                            f"README.md skill catalog lists {expected} {count} times.",
+                        )
+                for actual in sorted(set(actual_links) - expected_links):
+                    issue(
+                        errors,
+                        "stale-readme-skill",
+                        readme_path,
+                        f"README.md skill catalog links to non-canonical package {actual}.",
+                    )
+
     def create_symlink(link: Path, target: str, code: str) -> bool:
         try:
             os.symlink(target, link, target_is_directory=True)
@@ -677,6 +745,7 @@ def main() -> int:
             "dev": sum(skill["category"] == "dev" for skill in skills),
             "projectAdapters": valid_project_adapters,
             "globalAdapters": valid_global_adapters,
+            "readmeCatalogEntries": readme_catalog_entries,
             "untrackedProjectAdapters": untracked_project_adapters,
             "fixes": len(fixes),
             "errors": len(errors),
@@ -701,6 +770,7 @@ def main() -> int:
         )
         print(f"- Valid project adapters: {valid_project_adapters}")
         print(f"- Valid global adapters: {valid_global_adapters}")
+        print(f"- README catalog entries: {readme_catalog_entries}")
         print(f"- Untracked project adapters: {untracked_project_adapters}")
         print(f"- Fixes: {len(fixes)}")
         print(f"- Errors: {len(errors)}")

@@ -46,4 +46,4 @@ Use only a type that describes the content. The initial repository taxonomy may 
 
 ## Content boundary
 
-Include reusable engineering knowledge. Exclude active feature scope, acceptance criteria, delivery status, approval requests, handoffs, and raw session transcripts. GitHub remains the durable record for active decisions and delivery; accepted reusable architectural decisions later become `Decision` concepts in `decisions/`.
+Include reusable engineering knowledge. Exclude active feature scope, acceptance criteria, delivery status, approval requests, handoffs, and raw session transcripts. GitHub remains the durable record for active decisions and delivery; accepted reusable architectural decisions later become `Decision` concepts in `adr/`.

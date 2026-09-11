@@ -32,3 +32,12 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# Generated automation artifacts
+.venv/
+__pycache__/
+graphify-out/
+.agent-work/
+**/test-results/
+**/playwright-report/
+**/playwright/.auth/

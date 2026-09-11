@@ -1,0 +1,6 @@
+interface:
+  display_name: "Keycloak administration"
+  short_description: "Manage configured Keycloak realms and test accounts"
+  default_prompt: "Use $keycloak-admin to inspect the configured realm and prepare isolated browser-test accounts."
+policy:
+  allow_implicit_invocation: true

@@ -74,7 +74,7 @@ config:
 
 - Preserve the server-side token boundary, opaque HttpOnly session cookie, same-origin mutation checks, and explicit role authorization.
 - Validate external input and identity claims at the trusted boundary; test negative authorization paths when behavior changes.
-- Keep secrets in environment/secret stores and inspect example files only for names and safe placeholders.
+- Keep secrets in environment/secret stores. Inspect examples for variable names; authorized environment/Keycloak helpers may consume an explicitly selected environment file without displaying values. Never index environment files, authentication state, or test traces.
 - Preserve the declared pnpm age, provenance, source, and lifecycle-script controls unless a narrow exception receives attributable review.
 - Preserve `exposedByDefault=false`, explicit router opt-in, read-only Docker socket access, and mode-correct Keycloak proxy/hostname settings.
 - Name the exact restore stack, container, database or volume, and backup file; obtain explicit destructive-action confirmation and take a recoverable pre-restore backup when applicable.

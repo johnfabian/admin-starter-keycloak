@@ -1,11 +1,66 @@
 {
-  "workflowVersion": "1.0.0",
-  "skillVersion": "FULL_COMMIT_SHA:.agents-config/skills/dev/feature-plan",
+  "workflowVersion": "1.1.0",
+  "skillVersion": "FULL_COMMIT_SHA:.agents-config/skills/dev/plan-feature",
   "featureKey": "FEATURE-KEY",
   "sourceRevision": "FULL_COMMIT_SHA",
   "github": { "parentIssue": null },
   "approved": false,
   "previewDigest": null,
+  "persistence": {
+    "status": "pending",
+    "artifacts": {
+      "research": {
+        "commentKey": "FEATURE-KEY:research",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      },
+      "requirements": {
+        "commentKey": "FEATURE-KEY:requirements",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      },
+      "architectureImpact": {
+        "commentKey": "FEATURE-KEY:architecture-impact",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      },
+      "edgeCases": {
+        "commentKey": "FEATURE-KEY:edge-cases",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      },
+      "testStrategy": {
+        "commentKey": "FEATURE-KEY:test-strategy",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      },
+      "stories": {
+        "commentKey": "FEATURE-KEY:stories",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      },
+      "critique": {
+        "commentKey": "FEATURE-KEY:critique",
+        "artifactDigest": null,
+        "bodyDigest": null,
+        "githubUrl": null,
+        "verifiedAt": null
+      }
+    },
+    "handoffs": []
+  },
   "stages": {
     "research": {
       "status": "pending",

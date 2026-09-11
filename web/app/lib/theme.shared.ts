@@ -18,4 +18,3 @@ export function getValidColorMode(value: string | null | undefined) {
 export function getValidColorTheme(value: string | null | undefined) {
   return isColorTheme(value) ? value : appTheme.defaultTheme;
 }
-

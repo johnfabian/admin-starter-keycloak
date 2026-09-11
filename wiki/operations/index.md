@@ -15,3 +15,6 @@
 - [Troubleshoot the gateway](troubleshoot-gateway.md) - Local Traefik routing and reachability diagnosis.
 - [Troubleshoot Keycloak email](troubleshoot-keycloak-email.md) - SMTP, delivery, link-host, and approval-state diagnosis.
 - [Verify email flows](verify-email-flows.md) - Manual local verification and password-reset sequence.
+
+- [Agent worktrees](agent-worktrees.md)
+- [Keycloak administration CLI](keycloak-cli.md)
