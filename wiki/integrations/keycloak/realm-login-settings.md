@@ -56,6 +56,6 @@ Inspect the actual realm, test SMTP, register a disposable user, verify the emai
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0007: Require administrator approval after self-registration verification (proposed)](/adr/ADR-0007-registration-approval.md)
+- [ADR-0007: Require administrator approval after self-registration verification (accepted)](/adr/ADR-0007-registration-approval.md)

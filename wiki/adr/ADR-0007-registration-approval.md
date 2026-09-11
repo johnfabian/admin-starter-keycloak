@@ -1,14 +1,22 @@
 ---
 type: Decision
 title: "ADR-0007: Require administrator approval after self-registration verification"
-description: Proposed decision record extracted from current wiki and source evidence.
+description: Accepted architectural decision with attributable conversation approval recorded in PR 20.
 tags: [adr, architecture]
 adr_id: ADR-0007
-decision_status: proposed
-status: draft
+decision_status: accepted
+decided_on: 2026-09-11
+approved_by: "human:requesting-user"
+status: stable
 generated: { by: "codex/gpt-6", at: "2026-09-11T20:32:36Z" }
 stale_after: 2026-12-11
+verified: { by: human:requesting-user, at: "2026-09-11T21:27:10.569994+00:00" }
 sources:
+  - id: acceptance
+    resource: https://github.com/johnfabian/admin-starter-keycloak/pull/20#adr-acceptance---2026-09-11
+    title: Conversation approval of the exact ADR set recorded in PR 20
+    author: "human:requesting-user"
+    last_modified: 2026-09-11
   - id: source-1
     resource: /auth-server/providers/disable-after-email-verify/src/main/java/com/adminstarter/keycloak/events/DisableAfterEmailVerifyEventListenerProvider.java
     title: "auth-server/providers/disable-after-email-verify/src/main/java/com/adminstarter/keycloak/events/DisableAfterEmailVerifyEventListenerProvider.java"
@@ -23,7 +31,7 @@ sources:
 
 The starter provides self-registration while retaining an administrator-controlled activation step.
 
-# Decision proposal
+# Decision
 
 Record the observed Keycloak listener design: mark a self-registered account on REGISTER; after VERIFY_EMAIL, remove the self-registration marker, set awaiting_admin_approval, disable an enabled account and remove its sessions. An administrator separately enables the account. Administrator-created accounts are outside this self-registration marker flow.
 
@@ -37,8 +45,13 @@ The Java provider must be installed and enabled in the selected realm, and the e
 
 # Approval provenance
 
-This is a proposed record of architecture observed in the cited source. The original approver, decision date and historical rationale were not established. Do not treat implemented behavior as approval or infer that the alternatives below were historically considered.
-Acceptance requires an attributable record of the exact outcome and approver. This audit creates no accepted ADR and makes no application, realm, network, or tooling-policy change.
+Accepted on 2026-09-11 by the requesting human user in the Codex conversation (human:requesting-user). The user said: "lets not worrry about orca right now, but the ADRs look good to me".
+
+The approval covers ADR-0001 through ADR-0012 as presented at commit 04e3abe09195516104180fb4f10ba23394cd1f04. It was transcribed into [PR #20](https://github.com/johnfabian/admin-starter-keycloak/pull/20#adr-acceptance---2026-09-11) and exactly reread before acceptance. This is conversation approval recorded by the assistant, not a GitHub review submitted by the human. No GitHub identity is inferred.
+
+Acceptance confirms the architectural choice; it does not claim historical approval, independent runtime verification, production readiness, deployment or PR merge authorization. ORCA is deferred and does not block the accepted workflow.
+
+The previous proposed record remains available at the approved Git revision. Record-ADR skill version: 04e3abe09195516104180fb4f10ba23394cd1f04.
 
 # Evidence and related guidance
 

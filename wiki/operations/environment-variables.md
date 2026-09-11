@@ -55,6 +55,6 @@ Restart the affected app or container after changing configuration. Rotating eit
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0005: Keep browser authentication and token custody in the BFF (proposed)](/adr/ADR-0005-bff-session-and-token-boundary.md)
+- [ADR-0005: Keep browser authentication and token custody in the BFF (accepted)](/adr/ADR-0005-bff-session-and-token-boundary.md)

@@ -55,6 +55,6 @@ This is expected in gateway mode: Postgres publishes no host port and is on the 
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0011: Separate the local gateway edge from database connectivity (proposed)](/adr/ADR-0011-local-gateway-isolation.md)
+- [ADR-0011: Separate the local gateway edge from database connectivity (accepted)](/adr/ADR-0011-local-gateway-isolation.md)

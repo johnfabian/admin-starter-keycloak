@@ -44,6 +44,6 @@ Groups may carry these roles, but the app consumes role claims rather than group
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0006: Enforce routes server-side using the current role contract (proposed)](/adr/ADR-0006-server-side-role-authorization.md)
+- [ADR-0006: Enforce routes server-side using the current role contract (accepted)](/adr/ADR-0006-server-side-role-authorization.md)

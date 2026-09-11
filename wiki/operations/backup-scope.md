@@ -49,6 +49,6 @@ No scheduled backup, encryption policy, offsite copy, retention, integrity monit
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0012: Recover local state from database dumps rather than realm exports (proposed)](/adr/ADR-0012-local-database-recovery.md)
+- [ADR-0012: Recover local state from database dumps rather than realm exports (accepted)](/adr/ADR-0012-local-database-recovery.md)

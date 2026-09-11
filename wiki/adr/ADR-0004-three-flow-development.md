@@ -1,14 +1,22 @@
 ---
 type: Decision
 title: "ADR-0004: Use three developer flows with one routine approval"
-description: Proposed decision record extracted from current wiki and source evidence.
+description: Accepted architectural decision with attributable conversation approval recorded in PR 20.
 tags: [adr, architecture]
 adr_id: ADR-0004
-decision_status: proposed
-status: draft
+decision_status: accepted
+decided_on: 2026-09-11
+approved_by: "human:requesting-user"
+status: stable
 generated: { by: "codex/gpt-6", at: "2026-09-11T20:32:36Z" }
 stale_after: 2026-12-11
+verified: { by: human:requesting-user, at: "2026-09-11T21:27:10.569994+00:00" }
 sources:
+  - id: acceptance
+    resource: https://github.com/johnfabian/admin-starter-keycloak/pull/20#adr-acceptance---2026-09-11
+    title: Conversation approval of the exact ADR set recorded in PR 20
+    author: "human:requesting-user"
+    last_modified: 2026-09-11
   - id: source-1
     resource: /specs/features/2026-09-11-agent-development-workflow.md
     title: "specs/features/2026-09-11-agent-development-workflow.md"
@@ -23,7 +31,7 @@ sources:
 
 The starter kit has many specialist procedures. Requiring a separate user invocation for each one makes small features cumbersome.
 
-# Decision proposal
+# Decision
 
 Organize work as feature specification plus critique; implementation plan plus critique and one routine human approval; then implementation, tests, independent adversarial review/fixes, integration, knowledge updates and PR submission. Approval binds the exact specification, plan, and delivery target. Merge and deployment remain separate human decisions. A small feature can remain one story.
 
@@ -33,12 +41,17 @@ A separate command and approval for every specialist increases interaction overh
 
 # Consequences and limits
 
-The coordinator must retain scope, evidence and approvals across internal steps and resume. The skills and portable helper now implement the combined interface with one shared five-round feature review budget. This implementation status does not change the proposed ADR lifecycle.
+The coordinator must retain scope, evidence and approvals across internal steps and resume. The skills and portable helper now implement the combined interface with one shared five-round feature review budget. The architectural choice is now accepted through the approval recorded below.
 
 # Approval provenance
 
-The user selected the three-flow grouping in conversation on 2026-09-11. The user subsequently authorized implementing the plan and updating PR #20. This proposal records that direction without inventing formal ADR acceptance.
-Acceptance requires an attributable record of the exact outcome and approver. This record remains proposed until exact decision acceptance is attributable; implementation authorization alone does not accept the historical ADR set.
+Accepted on 2026-09-11 by the requesting human user in the Codex conversation (human:requesting-user). The user said: "lets not worrry about orca right now, but the ADRs look good to me".
+
+The approval covers ADR-0001 through ADR-0012 as presented at commit 04e3abe09195516104180fb4f10ba23394cd1f04. It was transcribed into [PR #20](https://github.com/johnfabian/admin-starter-keycloak/pull/20#adr-acceptance---2026-09-11) and exactly reread before acceptance. This is conversation approval recorded by the assistant, not a GitHub review submitted by the human. No GitHub identity is inferred.
+
+Acceptance confirms the architectural choice; it does not claim historical approval, independent runtime verification, production readiness, deployment or PR merge authorization. ORCA is deferred and does not block the accepted workflow.
+
+The previous proposed record remains available at the approved Git revision. Record-ADR skill version: 04e3abe09195516104180fb4f10ba23394cd1f04.
 
 # Evidence and related guidance
 

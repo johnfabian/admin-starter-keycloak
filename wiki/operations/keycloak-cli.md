@@ -62,6 +62,6 @@ The repository image currently uses Keycloak 26.0; verify version applicability 
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0008: Use realm-local credentials for routine application administration (proposed)](/adr/ADR-0008-realm-scoped-automation-administration.md)
+- [ADR-0008: Use realm-local credentials for routine application administration (accepted)](/adr/ADR-0008-realm-scoped-automation-administration.md)

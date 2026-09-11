@@ -43,6 +43,6 @@ Any exception or dependency change needs a focused `pnpm-lock.yaml` review, the 
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0010: Gate dependency adoption with explicit trust controls (proposed)](/adr/ADR-0010-dependency-trust-controls.md)
+- [ADR-0010: Gate dependency adoption with explicit trust controls (accepted)](/adr/ADR-0010-dependency-trust-controls.md)

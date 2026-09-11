@@ -61,7 +61,7 @@ Parallelize only independent slices. Ready work has its prerequisites integrated
 
 Local [automated verification](/testing/automated-local-verification.md), [worktree isolation](/operations/agent-worktrees.md), and graph commands already exist.[^verification] The plan-feature, plan-implementation and implement-feature skills form the entry points. Root workflow checks validate dated artifacts, exact digests, dependency readiness, branch/worktree ownership, global claims, review evidence and publication targets.[^current-planning]
 
-Keep the core procedures harness-neutral. Discovery symlinks alone do not establish delegation, approval, or resume compatibility; ORCA-specific support remains unverified until the exact harness is identified.
+Keep the core procedures harness-neutral. Discovery symlinks alone do not establish delegation, approval, or resume compatibility; ORCA work is deferred at the user's request and is not a prerequisite for using this workflow.
 
 [^selected-workflow]: Versioned specification recording the selected flow and later implementation authorization.
 
@@ -73,10 +73,10 @@ Keep the core procedures harness-neutral. Discovery symlinks alone do not establ
 
 # Related decision records
 
-These proposals record the decision and tradeoffs; this page retains the current behavior or operational procedure.
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
 
-- [ADR-0004: Use three developer flows with one routine approval (proposed)](/adr/ADR-0004-three-flow-development.md)
-- [ADR-0009: Keep canonical agent procedures portable across harnesses (proposed)](/adr/ADR-0009-portable-agent-tooling.md)
+- [ADR-0004: Use three developer flows with one routine approval (accepted)](/adr/ADR-0004-three-flow-development.md)
+- [ADR-0009: Keep canonical agent procedures portable across harnesses (accepted)](/adr/ADR-0009-portable-agent-tooling.md)
 
 # Operation and recovery
 
