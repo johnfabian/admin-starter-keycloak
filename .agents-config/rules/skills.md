@@ -22,12 +22,12 @@ config:
 - Treat the type directory as purpose classification only; determine invocation mode from package metadata.
 - Read Claude's `disable-model-invocation` from `SKILL.md` and Codex's `policy.allow_implicit_invocation` from `agents/openai.yaml`.
 - Use both locks for explicit-only skills and neither lock for contextual/model-eligible skills. Reject a Claude/Codex lock mismatch.
-- Keep the current configuration, environment, destructive-Git, planning-anchor, implementation, and publication workflows explicit-only. All skills remain directly user-invokable.
+- Keep the current configuration, environment, destructive-Git, and issue-publication workflows explicit-only. All skills remain directly user-invokable.
 - Keep `.agents/skills/<skill-name>` and `.claude/skills/<skill-name>` as relative directory symlinks to the same typed canonical package; require unique skill base names and tracked mode `120000`.
 - After adding, renaming, moving, or reviewing a skill, explicitly run `$skills-audit` with repair and then run its read-only audit.
 - Write skill automation as portable Python, declare its Python requirement in uv script metadata, and invoke it with `uv run`; prefer the standard library when no dependency is required.
 - Keep skill instructions and subprocess calls platform-neutral.
-- Keep approved feature-planning artifacts and handoffs in exact, idempotently keyed GitHub issue comments after preview and human approval. Treat `.agent-work` copies as provisional and never delete them automatically.
+- Keep specifications and implementation plans in versioned `specs/features/` and `specs/implementation-plans/`. Put scoped approval, delivery evidence and handoffs in authorized GitHub issues/PRs with exact read-back. Treat `.agent-work` copies as provisional and never delete them automatically.
 - Keep the README skill catalog between its audit markers complete and linked to every canonical package; summarize purpose and invocation mode without copying skill bodies.
 
 ## Prohibited
@@ -39,5 +39,5 @@ config:
 
 ## Checks
 
-- Categorize packages and repair project/global adapters: explicitly invoke `$skills-audit`, which runs `uv run .agents-config/skills/meta/skills-audit/scripts/audit_skills.py . --fix`.
+- Categorize packages and repair project adapters; global installation requires explicit opt-in: explicitly invoke `$skills-audit`, which runs `uv run .agents-config/skills/meta/skills-audit/scripts/audit_skills.py . --fix`.
 - Audit package, README catalog, invocation-policy, and adapter parity: `uv run .agents-config/skills/meta/skills-audit/scripts/audit_skills.py .`.

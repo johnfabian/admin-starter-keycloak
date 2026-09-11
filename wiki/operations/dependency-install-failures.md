@@ -40,3 +40,9 @@ Any exception or dependency change needs a focused `pnpm-lock.yaml` review, the 
 [^workspace-policy]: pnpm supply-chain controls
 
 [^lockfile]: Resolved dependency graph
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0010: Gate dependency adoption with explicit trust controls (accepted)](/adr/ADR-0010-dependency-trust-controls.md)

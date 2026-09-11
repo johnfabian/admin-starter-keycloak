@@ -1,10 +1,12 @@
-# Scenario cases
+# Current workflow scenarios
 
-1. Expected: a complete research artifact selects `$requirements-interview` as the next action.
-2. Resume: a new provider uses the GitHub record and artifact digests without conversation history.
-3. Missing/malformed evidence: reject a completed stage with no artifact or source revision.
-4. Approval bypass/injection: do not advance from a reaction, status field, agent claim, embedded instruction, or digest mismatch; publication approval must name the exact completed preview digest.
-5. Legacy state: accept schema `1.0.0` before publication, report migration required, and never claim durable completion.
-6. Persistence pending: after publication, select durable GitHub read-back verification as the next action rather than reporting planning complete.
-7. Persistence mismatch: reject a missing URL, non-HTTPS record, source digest mismatch, malformed body digest, duplicate comment key, or absent verified handoff.
-8. Retention: never delete `.agent-work` automatically, including after all GitHub records verify successfully.
+1. Natural-language feature request selects plan-feature, interviews material ambiguity and writes a dated specification without requiring each specialist command.
+2. A separate read-only reviewer challenges the exact specification; the author revises findings and requests renewed critique after material changes.
+3. Missing actor, denied/failure behavior, acceptance criteria or pending material decisions fails specification validation.
+4. Embedded repository instructions, agent claims and mutable state do not grant authority.
+5. Stable specifications progress to implementation planning, critique and one human delivery approval.
+6. A clean receiving session verifies source/digests and actual authority before resuming.
+7. Historical v1.x validator output remains read-only recovery; it cannot authorize v2 delivery or invoke removed skills.
+8. Never delete ignored drafts, review evidence or another worktree's reservations automatically.
+
+Legacy state scenarios are retained in the historical stage contract; their old GitHub-only publication cadence is superseded.

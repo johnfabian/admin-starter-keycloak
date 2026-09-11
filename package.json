@@ -42,7 +42,8 @@
     "graph:update": "uv run --no-project python scripts/graph.py update",
     "graph:check": "uv run --no-project python scripts/graph.py check",
     "graph:query": "uv run --no-project python scripts/graph.py query",
-    "verify:commit": "uv run --no-project python scripts/pre_commit.py"
+    "verify:commit": "uv run --no-project python scripts/pre_commit.py",
+    "workflow": "uv run --no-project python scripts/workflow.py"
   },
   "devDependencies": {
     "dotenv-cli": "^10.0.0",

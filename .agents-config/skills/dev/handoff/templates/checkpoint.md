@@ -5,10 +5,13 @@
 ### Persistence
 
 - Checkpoint status: `<provisional/durable>`
-- Stable comment key: `<feature-or-story-key:handoff-stage>`
+- Stable feature/checkpoint or optional comment key: `<feature-or-story-key:handoff-stage>`
+- Approved specification/plan digests: `<sha256:digests>`
 - Source-artifact digest: `sha256:<digest>`
-- Published-body digest: `<sha256:digest or pending>`
-- GitHub comment: `<immutable URL or pending>`
+- Exact published-payload digest (separate from approval scope): `<sha256:digest or pending>`
+- Persisted location: `<PR body / optional issue comment / provisional local copy>`
+- GitHub record: `<PR URL or immutable comment URL, or pending>`
+- Verified PR head/base: `<exact revision/base, or not applicable>`
 - Read-back verified at: `<ISO 8601 UTC timestamp or pending>`
 - Local retention: `never delete automatically; cleanup requires explicit human direction`
 
@@ -17,7 +20,8 @@
 - Objective: `<observable outcome>`
 - In scope: `<bounded scope>`
 - Out of scope: `<explicit exclusions>`
-- Feature/story: `<IDs and GitHub links, or unknown>`
+- Feature/story: `<IDs; optional GitHub issue links>`
+- Delivery authority: `<attributable flow-2 approval; repository, branch, base, actions>`
 
 ### Revision and ownership
 
@@ -25,7 +29,8 @@
 - Current revision: `<full commit SHA>`
 - Branch: `<branch>`
 - Worktree: `<absolute path or stable worktree identifier>`
-- Isolation policy: `<linked worktree and feature branch>`
+- Isolation policy: `<linked worktree and feature branch; max two writers including editing coordinator>`
+- Active claims/reconciliation: `<worker identity, branch, paths, generation, actual stop status>`
 - Owned paths: `<paths>`
 - Excluded/shared paths: `<paths>`
 
@@ -50,11 +55,9 @@
 - Decisions/assumptions: `<durable record links or explicit unknown>`
 - Approved artifact digests: `<digest + attributable approval record, or none>`
 - Independent reviewer: `<identity/context and artifact revision, or not-triggered>`
-- Product gate: `<approved/pending/not-triggered; approver record>`
-- Architecture gate: `<approved/pending/not-triggered; approver record>`
-- Security gate: `<approved/pending/not-triggered; approver record>`
-- Code-owner gate: `<approved/pending/not-triggered; approver record>`
-- Release gate: `<approved/pending/not-triggered; approver record>`
+- Shared review budget: `<current round of five; failed history and evidence; never reset on resume>`
+- Material unresolved decisions: `<owner/status/evidence, or none>`
+- Merge/deployment authority: `<outside routine feature-delivery scope; separate explicit authority if supplied>`
 
 ### Risks and blockers
 

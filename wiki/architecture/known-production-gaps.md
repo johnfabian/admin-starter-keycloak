@@ -32,7 +32,7 @@ sources:
 - `init-app-schema.sql` runs only when an empty Postgres volume is initialized. There is no migration framework for an existing database.[^app-schema]
 - The web container has no health check, and the repository has no implemented metrics, tracing, alerting, scheduled backup, offsite retention, or production restore procedure.
 - `WEB_KEYCLOAK_API_AUDIENCE` is empty in the examples. Explicit resource-audience validation must be designed with the eventual resource API and matching Keycloak mapper.
-- The repository has no test suite or CI workflow; the static gate formats, lints, and type-checks without exercising a browser or live identity flow.[^root-scripts]
+- Local Python tooling and Playwright browser suites now exist through the root verification commands. Hosted CI is not configured, and the local suite does not by itself establish production-image behavior or readiness. See [automated local verification](/testing/automated-local-verification.md) for coverage and limits.[^root-scripts]
 
 These are observations, not an approved deployment design. Provider, TLS, secret, persistence, observability, and recovery choices still require human decisions.
 

@@ -20,8 +20,6 @@ CANONICAL_RULES = Path(".agents-config/rules")
 PROVIDER_RULE_LINKS = (Path(".agents/rules"), Path(".claude/rules"))
 SKILL_TYPES = ("meta", "ops", "dev")
 REQUIRED_EXPLICIT_SKILLS = {
-    "plan-feature",
-    "implement-story",
     "prune-deleted-branches",
     "publish-issues",
     "rules-audit",
@@ -416,8 +414,6 @@ def main() -> int:
         "`disable-model-invocation: true`",
         "`allow_implicit_invocation: false`",
         "All skills remain user-invokable",
-        "### Explicit-only workflows",
-        "### Contextual skills",
     )
     for marker in required_workflow_markers:
         if marker not in global_content:

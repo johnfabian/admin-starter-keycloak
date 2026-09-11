@@ -51,7 +51,7 @@ The browser cookie stores session state with `httpOnly`, `sameSite: lax`, and pr
 
 # Uncertainty
 
-No executable automated tests currently prove the authentication, authorization, or refresh behavior. The approved production TLS/proxy topology and the final downstream resource API are also not established in implemented code.
+Local Playwright tests exercise login, logout, role access, and session continuity; their [coverage and limits](/testing/automated-local-verification.md) do not establish every token-refresh failure case. The approved production TLS/proxy topology and final downstream resource API are not established in implemented code.
 
 [^framework-mode]: React Router framework configuration
 
@@ -62,3 +62,9 @@ No executable automated tests currently prove the authentication, authorization,
 [^bff-fetch]: Authenticated resource-server fetch helper
 
 [^route-guards]: Server route guards
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0005: Keep browser authentication and token custody in the BFF (accepted)](/adr/ADR-0005-bff-session-and-token-boundary.md)

@@ -48,3 +48,9 @@ Inspect the user's Enabled state and `awaiting_admin_approval` attribute before 
 [^root-scripts]: Keycloak and mail log commands
 
 [^gateway-keycloak]: Keycloak external URL and proxy settings
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0007: Require administrator approval after self-registration verification (accepted)](/adr/ADR-0007-registration-approval.md)

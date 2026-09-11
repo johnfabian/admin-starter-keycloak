@@ -43,3 +43,9 @@ The gateway has one HTTP entrypoint and an insecure dashboard at `http://localho
 [^web-gateway]: Web gateway Compose configuration
 
 [^keycloak-gateway]: Keycloak gateway Compose configuration
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0011: Separate the local gateway edge from database connectivity (accepted)](/adr/ADR-0011-local-gateway-isolation.md)

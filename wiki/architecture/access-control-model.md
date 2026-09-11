@@ -37,7 +37,7 @@ Protected loaders call `requireUserRoute` or `requireAdminRoute`; authentication
 
 # Uncertainty
 
-No automated test enumerates every route and guard. The running Keycloak realm is configured manually, so role definitions and mappings can drift from these code constants.
+The local browser suite exercises a declared protected-route matrix for anonymous, no-role, Users, and Admins accounts. That list does not automatically cover future routes; see [automated local verification](/testing/automated-local-verification.md). Live realm role definitions and mappings can drift from the code, so test preflight checks remain necessary.
 
 # Related concepts
 
@@ -50,3 +50,9 @@ No automated test enumerates every route and guard. The running Keycloak realm i
 [^token-roles]: Current-user role extraction
 
 [^route-guards]: Server route guards
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0006: Enforce routes server-side using the current role contract (accepted)](/adr/ADR-0006-server-side-role-authorization.md)

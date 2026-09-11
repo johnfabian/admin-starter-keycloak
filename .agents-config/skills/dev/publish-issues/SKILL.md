@@ -4,9 +4,11 @@ description: Publish only an exact, human-approved issue-and-comment preview to 
 disable-model-invocation: true
 ---
 
-# Publish an approved preview
+# Publish an approved issue preview
 
 Use the full Git commit containing this package as the skill version ID and record it in the publication report. A dirty package is unversioned and cannot satisfy a completed gate.
+
+This workflow is optional and specific to issue/comment publication. PR-only feature delivery uses the existing approval for its exact specification, plan, destination, and delivery actions; it does not require this publisher, an issue checkpoint, or a new routine approval for its PR body. Issue/comment mutations remain subject to the exact approved preview below and are not implied by authority to submit a PR. An authorized coordinator may execute the approved specialist step without requiring another developer invocation; it may not infer issue-publication authority from task context alone.
 
 1. Require the preview file, source JSON, exact SHA-256 digest, approval record, target repository, and mutation authorization.
 2. Run `uv run scripts/verify_approval.py <preview.md> <approved-digest> <source.json>` from this skill directory. Stop on any preview or canonical-source digest mismatch.

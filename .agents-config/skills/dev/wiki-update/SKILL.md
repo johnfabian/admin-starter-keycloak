@@ -9,7 +9,7 @@ Use the full Git commit containing this package as the skill version ID and reco
 
 1. Accept a scoped trigger and identify only affected concepts through the wiki index.
 2. Verify changed claims against current code/configuration and attributable sources.
-3. Keep feature scope, status, acceptance criteria, active decisions, and handoffs in GitHub.
+3. Keep feature scope and acceptance in versioned specs/features, stories and dependencies in specs/implementation-plans, and delivery status, approval/review evidence and handoffs in authorized GitHub issues/PRs. Keep those active artifacts out of the durable wiki.
 4. Preserve `draft` and unverified status unless a real human verifier and evidence are provided.
 5. Update required metadata, relevant immediate indexes, links, freshness, and root log without rewriting unrelated concepts.
 6. Use bundle-relative links and preserve deprecated/superseded history.

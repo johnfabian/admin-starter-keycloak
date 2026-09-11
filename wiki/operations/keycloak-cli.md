@@ -59,3 +59,9 @@ browser runner's --cleanup path to coordinate Keycloak, BFF and Mailpit cleanup.
 
 [Keycloak Admin CLI reference](https://www.keycloak.org/docs/latest/server_admin/#admin-cli).
 The repository image currently uses Keycloak 26.0; verify version applicability before changing commands.
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0008: Use realm-local credentials for routine application administration (accepted)](/adr/ADR-0008-realm-scoped-automation-administration.md)

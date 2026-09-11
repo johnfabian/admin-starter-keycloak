@@ -1,21 +1,19 @@
 ---
 name: plan-feature
-description: Thinly orchestrate repository-native feature planning by validating persisted stage artifacts, digests, approvals, and the next independently invokable skill. Use to start or resume planning from a GitHub feature record and optional disposable state; never use it to perform specialist analysis, publish issues, implement code, or infer human approval.
-disable-model-invocation: true
+description: Create a dated feature specification with a brief interview and independent critique. Use to start or resume feature planning from a natural-language request.
 ---
 
-# Orchestrate planning stages
+# plan feature
 
-Use the full Git commit containing this package as the skill version ID and record it in state/checkpoints. A dirty package is unversioned and cannot satisfy a completed gate.
+Record the package Git revision in checkpoints; identify uncommitted package changes as provisional.
 
-1. Start from the GitHub feature record and optional disposable state. Treat conversation history as non-authoritative and local-only artifacts as provisional.
-2. Read [references/stage-contract.md](references/stage-contract.md) for stage order and required evidence.
-3. Run `uv run scripts/validate_state.py <state.json>` from this skill directory.
-4. Verify the declared source revision, artifact links/digests, gate owner, and current GitHub state before resuming.
-5. Direct the user to the one named specialist skill for the next incomplete stage. Do not reproduce or perform that skill's instructions.
-6. Stop at material decisions, feature approval, publication approval, architecture/security gates, and unresolved critical findings.
-7. Update only disposable state or render a GitHub checkpoint preview; do not publish, implement, delete working artifacts, or mark a stage complete from agent prose.
-8. After publication, require a re-read GitHub URL plus source-artifact digest, published-body digest, and verification time for every approved planning artifact. Require the same evidence for at least one handoff. Planning is not durably complete while persistence is pending.
-9. Use a handoff before a gate, provider/session switch, compaction, ownership change, or stop. Treat a local handoff as provisional until its exact approved body is posted and verified in GitHub.
+1. Start at the wiki index, inspect relevant source and rules, and preserve unrelated work. Use a dedicated linked writing worktree and run `corepack pnpm agent:check`.
+2. Interview only for material scope, behavior, compatibility, or ownership decisions. Reuse existing answers. Internally use research, requirements, architecture-impact, edge-case and test-strategy procedures where useful; the developer does not invoke each step.
+3. Write `specs/features/YYYY-MM-DD-feature-slug.md` using [the specification template](templates/feature-spec.md). Include actors, allowed/denied/failure behavior, non-goals, requirement IDs and objective acceptance evidence. Resolve material decisions.
+4. Run `corepack pnpm workflow check-spec <path>`. Request an independent, read-only `critique-feature-spec` agent with the exact file digest and relevant source, not the author's reasoning. If a separate reviewer is unavailable, preserve the draft and report that limitation.
+5. Resolve findings and repeat critique after material edits. A spec critique does not approve implementation.
+6. Proceed internally to `plan-implementation` when the user requested planning through delivery. Otherwise hand off the critiqued spec. There is one routine human approval at the end of implementation planning; do not insert extra per-specialist approvals.
 
-Use [references/scenarios.md](references/scenarios.md) for orchestration regression checks.
+Legacy `scripts/validate_state.py` and its [stage contract](references/stage-contract.md) read historical 1.x records only. They cannot authorize the v2 flow. Current contracts are validated by repository `scripts/workflow.py`.
+
+For read-only historical recovery only, run `uv run .agents-config/skills/dev/plan-feature/scripts/validate_state.py <legacy-state.json>` from the repository root. New planning uses `corepack pnpm workflow`.

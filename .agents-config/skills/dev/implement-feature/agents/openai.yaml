@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Feature"
+  short_description: "Deliver an approved feature through isolated stories, testing, "
+  default_prompt: "Use $implement-feature for the requested feature workflow."

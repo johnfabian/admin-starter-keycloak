@@ -7,6 +7,10 @@ status: draft
 generated: { by: "codex/gpt-6", at: "2026-09-11T15:57:51Z" }
 stale_after: 2026-12-11
 sources:
+  - id: extraction-config
+    resource: /graphify.config.json
+    title: Explicit code extraction corpus
+    last_modified: 2026-09-11
   - id: implementation
     resource: /scripts/graph.py
     title: Implemented automation
@@ -40,3 +44,11 @@ Refresh after branch switches/merges before relying on the graph.
 
 [Graphify source and documentation](https://github.com/Graphify-Labs/graphify) describe upstream
 capabilities. Repository commands intentionally avoid upstream hook installation and semantic document ingestion.
+
+# Why both are needed
+
+In this repository, graphify.config.json and scripts/graph.py restrict extraction to configured code extensions, including supported tests, Python automation, Java and SQL. Markdown wiki pages, ADRs and feature specifications are outside that corpus. This is the repository integration choice, not a claim about every upstream Graphify capability.
+
+Use Graphify to locate symbols, imports, calls and dependencies. Use the wiki for maintained explanations and runbooks, and its ADR register for decisions, alternatives and approval history. Start with the wiki, query a fresh graph for the relevant code, then verify claims in source. Graph edges cannot replace either approval evidence or runtime tests.
+
+[ADR-0002](/adr/ADR-0002-graph-and-wiki-ownership.md) records this ownership proposal, including the proposed specification/GitHub split for the three-flow workflow.

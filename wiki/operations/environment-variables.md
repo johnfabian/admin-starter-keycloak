@@ -52,3 +52,9 @@ Restart the affected app or container after changing configuration. Rotating eit
 [^direct-template]: Direct-stack environment template
 
 [^gateway-template]: Gateway environment template
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0005: Keep browser authentication and token custody in the BFF (accepted)](/adr/ADR-0005-bff-session-and-token-boundary.md)

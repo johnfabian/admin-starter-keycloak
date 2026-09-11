@@ -86,7 +86,7 @@ def main() -> int:
     test_files = selected(
         files,
         lambda path: (
-            not path.startswith("specs/plans/")
+            not path.startswith("specs/")
             and bool(
                 re.search(
                     r"(^|/)(__tests__|tests?|spec)(/|$)|\.(test|spec)\.[^/]+$",

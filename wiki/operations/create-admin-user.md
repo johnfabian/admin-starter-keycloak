@@ -41,3 +41,9 @@ Groups may carry these roles, but the app consumes role claims rather than group
 [^access-settings]: Implemented application roles
 
 [^keycloak-compose]: Keycloak bootstrap admin configuration
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0006: Enforce routes server-side using the current role contract (accepted)](/adr/ADR-0006-server-side-role-authorization.md)

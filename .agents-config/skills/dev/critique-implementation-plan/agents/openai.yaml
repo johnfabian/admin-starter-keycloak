@@ -1,0 +1,4 @@
+interface:
+  display_name: "Critique Implementation Plan"
+  short_description: "Independently challenge vertical stories, dependencies, ownersh"
+  default_prompt: "Use $critique-implementation-plan for the requested feature workflow."

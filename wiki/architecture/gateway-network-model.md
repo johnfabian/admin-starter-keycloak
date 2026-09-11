@@ -49,3 +49,9 @@ Host database tools cannot connect to gateway Postgres. Use container-scoped too
 [^postgres-gateway]: Gateway Postgres internal network
 
 [^service-networks]: Web gateway networks
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0011: Separate the local gateway edge from database connectivity (accepted)](/adr/ADR-0011-local-gateway-isolation.md)

@@ -1,3 +1,5 @@
+> Historical v1.x contract: retained for read-only recovery. Its stage names and publication rules do not authorize the current v2 workflow. Use plan-feature and the repository workflow helper for new features.
+
 # Planning stage contract
 
 Stages advance in this order:

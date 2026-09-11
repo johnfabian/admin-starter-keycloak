@@ -45,3 +45,9 @@ The repository has no migration framework or automated schema test. Retention, c
 [^session-repository]: BFF session data-access repository
 
 [^postgres-compose]: Direct-development Postgres Compose configuration
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0005: Keep browser authentication and token custody in the BFF (accepted)](/adr/ADR-0005-bff-session-and-token-boundary.md)

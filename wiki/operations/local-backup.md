@@ -48,3 +48,9 @@ Confirm the output directory contains the expected stack-specific files, keep th
 [^orchestration]: Local backup orchestration
 
 [^primitives]: Postgres dump implementation
+
+# Related decision records
+
+These accepted ADRs record the decisions and tradeoffs; this page retains the current behavior or operational procedure.
+
+- [ADR-0012: Recover local state from database dumps rather than realm exports (accepted)](/adr/ADR-0012-local-database-recovery.md)
