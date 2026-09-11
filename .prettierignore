@@ -6,3 +6,14 @@ web/build/
 web/node_modules/
 .tmp/
 pnpm-lock.yaml
+
+# Generated automation artifacts
+.venv/
+__pycache__/
+graphify-out/
+.agent-work/
+**/test-results/
+**/playwright-report/
+**/playwright/.auth/
+uv.lock
+tests/browser/pnpm-lock.yaml

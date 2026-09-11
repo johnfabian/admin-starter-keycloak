@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".java", ".sql"],
+  "excludeDirectories": [
+    ".git",
+    ".agents",
+    ".claude",
+    ".codex",
+    ".agent-work",
+    ".venv",
+    "node_modules",
+    "build",
+    ".react-router",
+    "graphify-out",
+    "test-results",
+    "playwright-report",
+    "playwright",
+    ".pytest_cache",
+    "__pycache__",
+    "backups"
+  ],
+  "excludeFiles": ["pnpm-lock.yaml", "uv.lock"],
+  "maxFileBytes": 2000000
+}

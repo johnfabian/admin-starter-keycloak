@@ -138,7 +138,7 @@ OpenTelemetry collector -> approved telemetry backends
 ├── wiki/                              # OKF-compatible progressive-disclosure wiki
 │   ├── index.md
 │   ├── architecture/
-│   ├── decisions/                      # durable ADR register and decision index
+│   ├── adr/                      # durable ADR register and decision index
 │   ├── constitution/                   # enduring engineering tenets and decision rights
 │   ├── policy/
 │   ├── schemas/
@@ -199,7 +199,7 @@ Each capability shall be independently invokable. Required initial catalog:
 | `wiki-update`             | Safely add, refresh, deprecate, or correct durable knowledge                                       | Reviewed concept/index/log updates and validation report                                         |
 | `wiki-audit`              | Validate conformance, stale concepts, sources, and link integrity                                  | Read-only audit report; no silent mutations                                                      |
 | `wiki-visualize`          | Generate a self-contained relationship viewer from the wiki                                        | `wiki/viz.html` and a generation manifest                                                        |
-| `record-adr`              | Convert an approved, durable architectural decision into an ADR concept                            | Reviewed `wiki/decisions/ADR-<id>-<slug>.md`, index/log updates, and GitHub cross-link           |
+| `record-adr`              | Convert an approved, durable architectural decision into an ADR concept                            | Reviewed `wiki/adr/ADR-<id>-<slug>.md`, index/log updates, and GitHub cross-link                 |
 | `rules-audit`             | Validate rule-card scope, conflicts, adapters, and automated enforcement mapping                   | Read-only rule coverage/conflict report; no silent mutations                                     |
 
 ### FR-3: Thin orchestration
@@ -256,7 +256,7 @@ The framework shall provide `wiki-visualize`, which deterministically produces a
 
 ### FR-16: ADR lifecycle
 
-The framework shall provide `record-adr` to create or update a durable ADR only after the associated GitHub decision is approved. Each ADR shall be a `Decision` concept in `wiki/decisions/` with an immutable `ADR-<id>` identifier, context, decision, alternatives and consequences, decision status, approver/decision date, supporting evidence, and Markdown links to superseded or superseding ADRs. The linked GitHub issue or pull request retains the active discussion, options, approvals, and delivery context; the ADR records the reusable outcome and rationale. Superseded ADRs remain in the bundle with an explicit lifecycle/supersession link—never silently rewritten or deleted.
+The framework shall provide `record-adr` to create or update a durable ADR only after the associated GitHub decision is approved. Each ADR shall be a `Decision` concept in `wiki/adr/` with an immutable `ADR-<id>` identifier, context, decision, alternatives and consequences, decision status, approver/decision date, supporting evidence, and Markdown links to superseded or superseding ADRs. The linked GitHub issue or pull request retains the active discussion, options, approvals, and delivery context; the ADR records the reusable outcome and rationale. Superseded ADRs remain in the bundle with an explicit lifecycle/supersession link—never silently rewritten or deleted.
 
 ### FR-17: Scoped implementation rules
 
@@ -306,7 +306,7 @@ The framework shall permit parallel implementation only after `parallel-implemen
 | Research               | Read-only skill                            | Request, runtime retrieval                             | Evidence-backed issue comment/section           | Evidence links valid                        |
 | Requirements           | Planner + product                          | Request, research                                      | Feature issue requirements and decisions        | Decisions identified/answered               |
 | Architecture impact    | Staff/security review                      | Requirements, research                                 | Feature issue impact section and wiki/ADR links | ADR/security review if triggered            |
-| ADR record             | `record-adr` + architecture owner          | Approved durable decision                              | `wiki/decisions/` ADR and GitHub cross-link     | Human approval; index/log/audit pass        |
+| ADR record             | `record-adr` + architecture owner          | Approved durable decision                              | `wiki/adr/` ADR and GitHub cross-link           | Human approval; index/log/audit pass        |
 | Edge cases             | Analyst                                    | Requirements, architecture                             | Feature issue risk/test section                 | Every material case disposed                |
 | Story map              | Decomposer                                 | Approved feature record                                | Draft child issues/sub-issues                   | Verticality and testability checks pass     |
 | Critique               | Clean-context reviewer                     | Feature issue and linked evidence                      | Structured review comment                       | Critical findings resolved or accepted      |
@@ -447,7 +447,7 @@ wiki/
 │   └── telemetry.md
 ├── domain/
 │   └── index.md
-├── decisions/
+├── adr/
 │   ├── index.md
 │   └── ADR-0042-bff-boundary.md
 ├── constitution/
@@ -504,7 +504,7 @@ sources:
 
 ### 10.3 ADRs as decision concepts
 
-`wiki/decisions/` is the canonical, repository-versioned ADR register. An ADR is a durable decision concept, not a duplicate issue template and not an all-purpose meeting record. It is created when a GitHub decision has been approved and the result changes an architectural constraint, establishes a reusable cross-team convention, or carries material, long-lived tradeoffs. A feature-level choice that affects only that delivery remains in GitHub.
+`wiki/adr/` is the canonical, repository-versioned ADR register. An ADR is a durable decision concept, not a duplicate issue template and not an all-purpose meeting record. It is created when a GitHub decision has been approved and the result changes an architectural constraint, establishes a reusable cross-team convention, or carries material, long-lived tradeoffs. A feature-level choice that affects only that delivery remains in GitHub.
 
 ```yaml
 ---
@@ -534,7 +534,7 @@ Its Markdown body shall use fixed headings: **Context**, **Decision**, **Alterna
 
 **`wiki-audit`** shall be read-only and deterministic. It checks the OKF conformance baseline, reserved-file rules, `type`, YAML parsing, index coverage, link graph, sources, actor format, trust/freshness status, generated-file freshness, and accidental active feature-planning content in the wiki. It reports broken links and stale concepts separately from hard conformance failures.
 
-**`record-adr`** shall receive an approved GitHub decision and targeted supporting evidence, retrieve the affected ADR/index concepts, and create or update the smallest valid ADR record. It must allocate an immutable identifier, add required body sections and cross-links, preserve history, update the decisions index and root log, and post the resulting commit/path on the originating GitHub issue or pull request. It shall stop for human direction if approval, ownership, or the decision outcome is ambiguous.
+**`record-adr`** shall receive an approved GitHub decision and targeted supporting evidence, retrieve the affected ADR/index concepts, and create or update the smallest valid ADR record. It must allocate an immutable identifier, add required body sections and cross-links, preserve history, update the ADR index and root log, and post the resulting commit/path on the originating GitHub issue or pull request. It shall stop for human direction if approval, ownership, or the decision outcome is ambiguous.
 
 ### 10.5 Relationship visualization
 
@@ -689,7 +689,7 @@ Traefik provides logs, access logs, metrics, and tracing; its metrics can be exp
 - Every skill package is portable and self-contained; package lint verifies it has no external instruction-file dependency.
 - `wiki-init` creates a valid `wiki/` bundle with root/child indexes and log; `wiki-audit` reports conformance, stale concepts, sources, and links without mutation.
 - `wiki-update` refreshes only scoped, reusable concepts with sources and trust/freshness metadata; it does not turn a feature issue into a wiki page.
-- An approved, reusable architectural decision produces a valid ADR in `wiki/decisions/`, linked to its GitHub approval; a supersession preserves the original ADR and the relationship.
+- An approved, reusable architectural decision produces a valid ADR in `wiki/adr/`, linked to its GitHub approval; a supersession preserves the original ADR and the relationship.
 - `wiki-visualize` deterministically produces an accessible, self-contained `wiki/viz.html` with nodes, directed cross-link edges, detail metadata, filters, and a generation manifest.
 - The canonical React Router and Express rule cards load only for their scoped files, identify their automated checks, and are consistent with their Claude adapters; `rules-audit` finds no unresolved conflict or protected-path gap.
 - A feature produces a complete GitHub record, linked CI/PR evidence, and a provider-neutral GitHub handoff without creating a permanent parallel feature-document archive.

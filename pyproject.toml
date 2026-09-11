@@ -1,0 +1,6 @@
+[project]
+name = "admin-starter-tooling"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["graphifyy[sql]==0.9.58"]
+

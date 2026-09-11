@@ -1,0 +1,4 @@
+interface:
+  display_name: "Local Code Graph"
+  short_description: "Query and refresh branch-local code relationships"
+  default_prompt: "Use $graphify to locate the relevant code relationships and verify them in source."

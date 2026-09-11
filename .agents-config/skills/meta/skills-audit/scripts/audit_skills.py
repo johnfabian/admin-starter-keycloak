@@ -99,7 +99,7 @@ def lexists(path: Path) -> bool:
 def category_for(name: str) -> str:
     if name in META_SKILLS:
         return "meta"
-    if name in OPS_SKILLS:
+    if name in OPS_SKILLS or name == "keycloak-admin":
         return "ops"
     return "dev"
 
